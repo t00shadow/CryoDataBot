@@ -1,0 +1,90 @@
+import requests
+import csv
+import os
+
+# This is a helper function that sends and receives requests
+def get_emdb_validation_data(entry_ids):
+    data = {}
+    # Send API request for each entry ID
+    for entry_id in entry_ids:
+        url = f"https://www.ebi.ac.uk/emdb/api/analysis/{entry_id}"
+        response = requests.get(url)
+        if response.status_code == 200:
+            data[entry_id] = response.json()
+        else:
+            data[entry_id] = f"Failed to retrieve data: {response.status_code}"
+    return data
+
+# This function retrieves the qscores from the dictionary returned from the request
+def get_average_qscores(entry_ids):
+    data = get_emdb_validation_data(entry_ids)
+    qscores = {}
+    for entry_id in entry_ids:
+        try:
+            if isinstance(data[entry_id], dict):
+                qscores[entry_id] = data[entry_id][entry_id]["qscore"]["allmodels_average_qscore"]
+            else:
+                # Contains the error response status code because a dictionary was not returned
+                qscores[entry_id] = data[entry_id]  
+        except Exception as e: # Catches some strange errors. Usually won't happen
+            # print(e)
+            qscores[entry_id] = "Q-score not found in the data"
+    return qscores
+
+# This function writes the qscores to a CSV file
+def write_qscores_to_csv(qscores, filename="emdb_qscores.csv"):
+    with open(filename, 'w', newline='') as csvfile:
+        fieldnames = ['EMDB ID', 'Average Q-score']
+        writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
+
+        writer.writeheader()
+        for emdb_id, qscore in qscores.items():
+            writer.writerow({'EMDB ID': emdb_id, 'Average Q-score': qscore})
+
+# This function appends qscores to an existing CSV file with an option to include EMDB IDs
+def append_qscores_to_csv(qscores, include_ids=True, filename="emdb_qscores.csv"):
+    # Check if the file exists and read the existing data if it does
+    if os.path.exists(filename):
+        with open(filename, 'r', newline='') as csvfile:
+            reader = csv.reader(csvfile)
+            existing_data = [row for row in reader]
+    else:
+        existing_data = []
+
+    # Determine the next available column index
+    next_column = len(existing_data[0]) if existing_data else 0
+
+    # Prepare the new header if needed
+    if not existing_data:
+        if include_ids:
+            existing_data.append(['EMDB ID', 'Average Q-score'])
+        else:
+            existing_data.append(['Average Q-score'])
+
+    # Add new data to the existing data structure
+    for idx, (emdb_id, qscore) in enumerate(qscores.items()):
+        if include_ids:
+            if len(existing_data) <= idx + 1:  # Add new row if necessary
+                existing_data.append([''] * next_column)
+            existing_data[idx + 1].extend([emdb_id, qscore])
+        else:
+            if len(existing_data) <= idx + 1:  # Add new row if necessary
+                existing_data.append([''] * next_column)
+            existing_data[idx + 1].append(qscore)
+
+    # Write the updated data back to the file
+    with open(filename, 'w', newline='') as csvfile:
+        writer = csv.writer(csvfile)
+        writer.writerows(existing_data)
+
+# Example usage with a list of EMDB IDs
+entry_ids = ["9964", "3000", "1010", "10778", "14864"]  # Add more IDs as needed
+average_qscores = get_average_qscores(entry_ids)
+print(average_qscores) # Returns dictionary
+
+# write_qscores_to_csv(average_qscores)
+# append_qscores_to_csv(average_qscores, include_ids=True)
+
+# Formating for terminal output
+for id, score in average_qscores.items():
+    print(f"EMDB ID {id}: Q-score = {score}")
