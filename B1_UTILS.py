@@ -1,7 +1,7 @@
 import os
 import shutil
 import subprocess
-
+import requests
 import mrcfile
 import numpy as np
 from scipy.ndimage import zoom
@@ -75,12 +75,8 @@ def map_output(input_map, map_data, output_map, is_model=False):
 #     download_filter = "?wt=csv&download=true&fl=emdb_id,title,resolution,fitted_pdbs,map_release_date,overall_molecular_weight,xref_ALPHAFOLD"
 
 
-def search_emdb(
-        query,
-        file_names,
-        fl='emdb_id,title,resolution,fitted_pdbs,xref_UNIPROTKB,xref_ALPHAFOLD'
-):
-
+def search_emdb(query, file_names=None, fl='emdb_id,title,resolution,fitted_pdbs,xref_UNIPROTKB,xref_ALPHAFOLD', rows=None):
+    """
     # Inputs:
     # query: a string list of search queries
     # Example: ['structure_determination_method:"singleParticle"', 'Human Albumin']
@@ -89,29 +85,66 @@ def search_emdb(
 
     # file_names: a string list of desired file names
     # Example: 'Ribosome'
+    # Default: 'download_file_0'
 
     # fl: list of fields to be shown in the csv file; each item is separated by ','
     # Example: 'emdb_id,resolution,fitted_pdbs'
     # Default: 'emdb_id,title,resolution,fitted_pdbs,xref_UNIPROTKB,xref_ALPHAFOLD'
 
+    # rows: a list of int (how many entries to include in each file)
+    # Example: [1000, 500]
+    # Default: 100
+
     # Output(s):
     # csv file(s) with the user provided file names
-
-    import requests
+    """
     url = 'https://www.ebi.ac.uk/emdb/api/search/'
-    payload = {'fl': fl}
-
-    if len(query) == len(file_names):
+    if file_names is None:
         for i in range(len(query)):
-            r = requests.get(url + query[i],
-                             params=payload,
-                             headers={'accept': 'text/csv'})
-            df = str(r.text)
+            output = ''
+            try:
+                if rows is None:
+                    payload = {'rows': 100, 'fl': fl}
+                elif len(rows) == len(query):
+                    payload = {'rows': rows[i], 'fl': fl}
+                else:
+                    print('The length of query, file_names, and rows must match!')
+                    return
+                r = requests.get(url+query[i], params=payload, headers={'accept': 'text/csv'})
+                if r.status_code == 200:
+                    output += r.text
+                else:
+                    print(f"Error fetching data query: {query[i]}. Unexpected error.")
+            except requests.exceptions.RequestException as e:
+                print(f"Error fetching data: {e}")
+
+            file_name = f'download_file_{i}' + '.csv'
+            with open(file_name, 'w') as out:
+                out.write(output)
+                print(f'File wrote: {file_name}')
+    elif len(query) == len(file_names):
+        for i in range(len(query)):
+            output = ''
+            try:
+                if rows is None:
+                    payload = {'rows': 100, 'fl': fl}
+                elif len(rows) == len(query):
+                    payload = {'rows': rows[i], 'fl': fl}
+                else:
+                    print('Error: the length of query, file_names, and rows must match!')
+                    return
+                r = requests.get(url+query[i], params=payload, headers={'accept': 'text/csv'})
+                if r.status_code == 200:
+                    output += r.text
+                else:
+                    print(f"Error fetching data query: {query[i]}. Unexpected error.")
+            except requests.exceptions.RequestException as e:
+                print(f"Error fetching data: {e}")
 
             file_name = file_names[i] + '.csv'
             with open(file_name, 'w') as out:
-                out.write(df)
+                out.write(output)
+                print(f'File wrote: {file_name}')
     else:
-        print('The length of query and file_names must match!')
-
+        print('Error: the length of query and file_names must match!')
     pass
