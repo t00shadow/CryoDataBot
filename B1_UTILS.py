@@ -121,6 +121,13 @@ def search_emdb(query, file_names=None, fl='emdb_id,title,resolution,fitted_pdbs
             file_name = f'download_file_{i}' + '.csv'
             with open(file_name, 'w') as out:
                 out.write(output)
+                count = output.count('\n')-1
+                if rows is None:
+                    if count< 100:
+                        print(f"Number of entries is less than 100. Entries fetched: {count}.")
+                else:
+                    if count < rows[i]:
+                        print(f"Number of entries is less than {rows[i]}. Entries fetched: {count}.")
                 print(f'File wrote: {file_name}')
     elif len(query) == len(file_names):
         for i in range(len(query)):
@@ -144,6 +151,13 @@ def search_emdb(query, file_names=None, fl='emdb_id,title,resolution,fitted_pdbs
             file_name = file_names[i] + '.csv'
             with open(file_name, 'w') as out:
                 out.write(output)
+                count = output.count('\n') - 1
+                if rows is None:
+                    if count < 100:
+                        print(f"Number of entries is less than 100. Entries fetched: {count}.")
+                else:
+                    if count < rows[i]:
+                        print(f"Number of entries is less than {rows[i]}. Entries fetched: {count}.")
                 print(f'File wrote: {file_name}')
     else:
         print('Error: the length of query and file_names must match!')
