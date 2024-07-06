@@ -78,20 +78,20 @@ def map_output(input_map, map_data, output_map, is_model=False):
 def search_emdb(query, file_names=None, fl='emdb_id,title,resolution,fitted_pdbs,xref_UNIPROTKB,xref_ALPHAFOLD', rows=None):
     """
     # Inputs:
-    # query: a string list of search queries
+    # query(required): a string list of search queries
     # Example: ['structure_determination_method:"singleParticle"', 'Human Albumin']
     # The query can also be composed by multiple search terms concatened by AND or OR terms
     # Example: ['sample_type:"virus" and resolution [* TO 3]']
 
-    # file_names: a string list of desired file names
+    # file_names(optional): a string list of desired file names
     # Example: 'Ribosome'
     # Default: 'download_file_0'
 
-    # fl: list of fields to be shown in the csv file; each item is separated by ','
+    # fl(optional): list of fields to be shown in the csv file; each item is separated by ','
     # Example: 'emdb_id,resolution,fitted_pdbs'
     # Default: 'emdb_id,title,resolution,fitted_pdbs,xref_UNIPROTKB,xref_ALPHAFOLD'
 
-    # rows: a list of int (how many entries to include in each file)
+    # rows(optional): a list of int (how many entries to include in each file)
     # Example: [1000, 500]
     # Default: 100
 
