@@ -162,3 +162,23 @@ def search_emdb(query, file_names=None, fl='emdb_id,title,resolution,fitted_pdbs
     else:
         print('Error: the length of query and file_names must match!')
     pass
+
+def search_rcsb(file_path, save_path):
+    """
+    :param file_path: path to .csv file
+    :param save_path: path to save directory
+    :return: .csv file with classification and classification description for each entry
+    """
+    df = pd.read_csv(file_path)
+    url = 'https://data.rcsb.org/rest/v1/core/entry/'
+    classification = []
+    classification_des = []
+    for i in range(len(df['fitted_pdbs'])):
+        pdb_id = df['fitted_pdbs'][i]
+        r = requests.get(url + pdb_id)
+        file = r.json()
+        classification.append(file["struct_keywords"]["pdbx_keywords"])
+        classification_des.append(file["struct_keywords"]["text"])
+    df["RCSB_classification"] = classification
+    df["RCSB_description"] = classification_des
+    df.to_csv(save_path, index=False)
