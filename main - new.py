@@ -30,9 +30,9 @@ from B2_UTILS_data2npy import data_to_npy
 # temp_sample_path = os.path.join(HOME_PATH, "ready_to_train_and_val")
 # os.makedirs(temp_sample_path, exist_ok=True)
 
-output_dir = "PATH1"
-csv_path = "PATH2"
-DATA_PATH = ""
+csv_path = "path_of_downloaded_csv_file"
+DATA_PATH = "path_to_save_downloaded_map_and_model"
+output_dir = "path_of_output_dataset"
 
 
 def main(output_dir, csv_path):
