@@ -8,7 +8,7 @@ import os
 DATA_PATH = "dddd"
 
 
-def search_emdb(query, save_directory, file_names=None, fl='emdb_id,title,resolution,fitted_pdbs,xref_UNIPROTKB,xref_ALPHAFOLD', rows=None):
+def search_emdb(query, file_names=None, fl='emdb_id,title,resolution,fitted_pdbs,xref_UNIPROTKB,xref_ALPHAFOLD', save_directory=DATA_PATH,  rows=None):
     """
     # Inputs:
     # query(required): a string list of search queries
@@ -202,14 +202,14 @@ def append_qscores_to_csv(qscores, include_ids=True, filename="emdb_qscores.csv"
         writer = csv.writer(csvfile)
         writer.writerows(existing_data)
 
-# Example usage with a list of EMDB IDs
-entry_ids = ["9964", "3000", "1010", "10778", "14864"]  # Add more IDs as needed
-average_qscores = get_average_qscores(entry_ids)
-print(average_qscores) # Returns dictionary
+# # Example usage with a list of EMDB IDs
+# entry_ids = ["9964", "3000", "1010", "10778", "14864"]  # Add more IDs as needed
+# average_qscores = get_average_qscores(entry_ids)
+# print(average_qscores) # Returns dictionary
 
-# write_qscores_to_csv(average_qscores)
-# append_qscores_to_csv(average_qscores, include_ids=True)
+# # write_qscores_to_csv(average_qscores)
+# # append_qscores_to_csv(average_qscores, include_ids=True)
 
-# Formating for terminal output
-for id, score in average_qscores.items():
-    print(f"EMDB ID {id}: Q-score = {score}")
+# # Formating for terminal output
+# for id, score in average_qscores.items():
+#     print(f"EMDB ID {id}: Q-score = {score}")

@@ -11,7 +11,6 @@ import sys
 from pathlib import Path
 import random
 
-sys.path.append(str(Path(__file__).parent.parent))
 
 from MRC import MRC
 
@@ -23,14 +22,12 @@ CLASSES = 24
 
 # RNA bases
 atoms_base_A = ['N9', 'C8', 'N7', 'C5', 'C6', 'N6', 'N1', 'C2', 'N3', 'C4']
-atoms_base_G = [
-    'N9', 'C8', 'N7', 'C5', 'C6', 'O6', 'N1', 'C2', 'N2', 'N3', 'C4'
-]
+atoms_base_G = ['N9', 'C8', 'N7', 'C5', 'C6', 'O6', 'N1', 'C2', 'N2', 'N3', 'C4']
 atoms_base_C = ['N1', 'C2', 'O2', 'N3', 'C4', 'N4', 'C5', 'C6']
 atoms_base_U = ['N1', 'C2', 'O2', 'N3', 'C4', 'O4', 'C5', 'C6']
 atoms_nuc_base = list(set(atoms_base_A + atoms_base_G + atoms_base_C + atoms_base_U))
 
-# Protein_residues
+# Protein_residue_side_chains
 atoms_alanine_ALA = ['CB']
 atoms_arginine_ARG = ['CB', 'CG', 'CD', 'NE', 'CZ', 'NH1', 'NH2']
 atoms_asparagine_ASN = ['CB', 'CG', 'OD1', 'ND2']

@@ -1,37 +1,34 @@
+import json
 import os
-
-# split data into training and testing dataset
-import splitfolders
-
 import shutil
 
+import numpy as np
+import pandas as pd
+
+from Utils_search_EMDB import search_emdb, search_rcsb
+from Utils_preprocess import read_csv_info, fetch_map_model, normalize_raw_map
+from Utils_generate_dataset import data_to_npy
 
 
 
-MAIN_HOME_PATH = '/home/qiboxu/Database/U_NET/EMDB_PDB_for_U_Net/Filtered_Dateset'
-PATH_SETTINGS = {
-    "Filtered_Dateset": [
-        os.path.join(MAIN_HOME_PATH, 'Raw'),
-        os.path.join(MAIN_HOME_PATH, 'Training'),
-        os.path.join(MAIN_HOME_PATH, 'Raw', 'final-20240212.csv'),
-    ],
-}
+csv_path = "path_of_downloaded_csv_file"
+output_dir = "./"
+query = "ribosome AND resolution: [1 TO 4}"
+fetch_classification = False
 
-PATH_KEYS = "Filtered_Dateset"
-DATA_PATH, HOME_PATH, csv_path = PATH_SETTINGS[PATH_KEYS]
-temp_sample_path = os.path.join(HOME_PATH, "ready_to_train_and_val")
-os.makedirs(temp_sample_path, exist_ok=True)
+def main(output_dir, csv_path):
+
+    # Step 1. Read search queries for EMDB search, download the information and refine it
+    # 1.1 Search EMDB and download the csv file
+    path_list = search_emdb(query, csv_path)
+    if fetch_classification:
+        for i in range(len(path_list)):
+            path = path_list[i]
+            new_file_name = path[path.rfind('/') + 1:] - '.csv'
+            search_rcsb(path, new_file_name+'_classified.csv')
+    # 1.2 Refine entries in the csv file
 
 
 
-sample_path = os.path.join(HOME_PATH, "TEST_with_blank", "train_val_data")
-
-print(temp_sample_path)
-os.makedirs(sample_path, exist_ok=True)
-splitfolders.ratio(input=temp_sample_path,
-                    output=sample_path,
-                    seed=44,
-                    ratio=(.8, .2),
-                    group_prefix=None,
-                    move=True)
-# shutil.rmtree(temp_sample_path)
+if __name__ == "__main__":
+    main(output_dir, csv_path)

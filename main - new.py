@@ -20,14 +20,14 @@ def main(output_dir, csv_path):
 
     # Step 1. Read search queries for EMDB search, download the information and refine it
     # 1.1 Search EMDB and download the csv file
-    path_list = search_emdb(query,csv_path)
+    path_list = search_emdb(query, csv_path)
     if fetch_classification:
         for i in range(len(path_list)):
             path = path_list[i]
             new_file_name = path[path.rfind('/') + 1:] - '.csv'
-            search_rcsb(path,new_file_name+'_classified.csv')
+            search_rcsb(path, new_file_name+'_classified.csv')
     # 1.2 Refine entries in the csv file
-    
+
 
 
     # Step 2. Download map and model files and do preprocessing
