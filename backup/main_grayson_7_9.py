@@ -52,7 +52,7 @@ def fetch_map_model(csv_info):
                             directory=DATA_PATH)
 
 # 1.3 Resampl and normalize map files
-def normalized_raw_map(csv_info,path_info):
+def normalized_raw_map(csv_info, path_info):
     """
     return:
         updated_path_info: raw_map, model, and normalized map paths
@@ -62,7 +62,7 @@ def normalized_raw_map(csv_info,path_info):
     map_paths = [
         f"{raw_map_path.split('.map')[0]}_normalized.mrc"
         for raw_map_path in raw_map_paths
-    ] 
+    ]
     for idx, _ in enumerate(emdb_ids):
         if not os.path.exists(map_paths[idx]):
                 map_data = map_normalizing(raw_map_paths[idx])

@@ -4,92 +4,39 @@ import shutil
 
 import numpy as np
 import pandas as pd
-from B1_UTILS import download_map_model, map_normalizing, map_output
-from B2_UTILS_data2npy import data_to_npy
 
-# from scipy.ndimage import zoom
+from Utils_search_EMDB import search_emdb, search_rcsb
+from Utils_preprocess import read_csv_info, fetch_map_model, normalize_raw_map
+from Utils_generate_dataset import data_to_npy
 
-# DOWNLOAD = False
-# NORMALIZATION = False
-# MAP2NPY = True
 
-# MODEL_PARTS = ['secondary_strctures', 'key_atoms', 'residue_types']
-
-# MAIN_HOME_PATH = '/home/qiboxu/Database/U_NET/EMDB_PDB_for_U_Net/Filtered_Dateset'
-# PATH_SETTINGS = {
-#     "Filtered_Dateset": [
-#         os.path.join(MAIN_HOME_PATH, 'Raw'),
-#         os.path.join(MAIN_HOME_PATH, 'Training'),
-#         # os.path.join(MAIN_HOME_PATH, 'Raw', 'final-20240212.csv'),
-#         os.path.join(MAIN_HOME_PATH, 'Raw', 'final-20240520.csv'),
-#     ],
-# }
-
-# PATH_KEYS = "Filtered_Dateset"
-# DATA_PATH, , csv_path = PATH_SETTINGS[PATH_KEYS]
-# temp_sample_path = os.path.join(HOME_PATH, "ready_to_train_and_val")
-# os.makedirs(temp_sample_path, exist_ok=True)
 
 csv_path = "path_of_downloaded_csv_file"
-DATA_PATH = "path_to_save_downloaded_map_and_model"
 output_dir = "path_of_output_dataset"
 
 
 def main(output_dir, csv_path):
 
-    # Step 1. Download map and model files and do preprocessing
-    # 1.1 Read map list and generate raw_map and model downloading paths
+    # Step 1. Read search queries for EMDB search, download the information and refine it
+    # 1.1 Search EMDB and download the csv file
+
+    # 1.2 Refine entries in the csv file
+
+    # Step 2. Download map and model files and do preprocessing
+    # 2.1 Read map list and generate raw_map and model downloading paths
+    csv_info, raw_map_paths, model_paths = read_csv_info(csv_path)
+
+    # 2.2 Download map and model files
+    fetch_map_model(csv_info)
+
+    # 2.3 Resample and normalize map files
+    map_paths = normalize_raw_map(csv_info, raw_map_paths)
+
+    # Step 3. Generate a dataset (3d numpy arraies) from map and model files
+    # 3.1 Read model files and create lables
     
-    # 1.2 Download map and model files
-
-    # 1.3 Resampl and normalize map files
-
-
-
-    df = pd.read_csv(csv_path)
-    emdbs, pdbs = df["emdb_id"], df["fitted_pdbs"]
-    resolutions = df["resolution"].astype(str)
-    emdb_ids = [emdb.split("-")[1] for emdb in emdbs]
-    folders = [
-        f"{emdb}_re_{resolution}"
-        for emdb, resolution in zip(emdbs, resolutions)
-    ]
-    raw_maps = [f"emd_{emdb_id}.map" for emdb_id in emdb_ids]
-    models = [f"{pdb}.cif" for pdb in pdbs]
-
-    raw_map_paths = [
-        f"{DATA_PATH}/{folder}/{raw_map}"
-        for folder, raw_map in zip(folders, raw_maps)
-    ]
-    model_paths = [
-        f"{DATA_PATH}/{folder}/{model}"
-        for folder, model in zip(folders, models)
-    ]
-
-    # Download cryoEM map file and correspoding atomic model file,
-    # then create resampled and normalized map file
-    map_paths = [
-        f"{raw_map_path.split('.map')[0]}_normalized.mrc"
-        for raw_map_path in raw_map_paths
-    ]
-    for idx, emdb_id in enumerate(emdb_ids):
-        if DOWNLOAD:
-            download_map_model(emdb=emdbs[idx],
-                               pdb=pdbs[idx],
-                               resolution=resolutions[idx],
-                               directory=DATA_PATH)
-        if NORMALIZATION and not os.path.exists(map_paths[idx]):
-            map_data = map_normalizing(raw_map_paths[idx])
-            map_output(raw_map_paths[idx],
-                       map_data,
-                       map_paths[idx],
-                       is_model=False)
-
-
-    # Step 2. Generate dataset (3d numpy arraies) from map and model files
-
+    # 3.2 Generate a dataset
     if MAP2NPY:
-        
 
         # idx of npy file
         sample_num = 0
@@ -139,8 +86,8 @@ def main(output_dir, csv_path):
         import splitfolders
         # sample_path = os.path.join(output_dir, "TEST_with_blank", "train_val_data")
         # sample_path = os.path.join(output_dir, "TEST_with_all", "train_val_data")
-        sample_path = os.path.join(output_dir, "TEST_20240520", "train_val_data")
-
+        sample_path = os.path.join(output_dir, "TEST_20240520",
+                                   "train_val_data")
 
         os.makedirs(sample_path, exist_ok=True)
         splitfolders.ratio(input=temp_sample_path,
