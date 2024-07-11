@@ -24,8 +24,10 @@ def main(output_dir, csv_path):
     if fetch_classification:
         for i in range(len(path_list)):
             path = path_list[i]
-            new_file_name = path[path.rfind('/') + 1:] - '.csv'
-            search_rcsb(path,new_file_name+'_classified.csv')
+            new_file_name = path[path.rfind('/') + 1:]
+            new_file_name.replace('.csv', '')
+            search_rcsb(path,csv_path+new_file_name+'_classified.csv')
+            
     # 1.2 Refine entries in the csv file
 
     # Step 2. Download map and model files and do preprocessing
