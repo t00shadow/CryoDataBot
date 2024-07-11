@@ -13,7 +13,7 @@ import random
 
 sys.path.append(str(Path(__file__).parent.parent))
 
-from U_UTILS.MRC import MRC
+from MRC import MRC
 
 # import pandas as pd
 
