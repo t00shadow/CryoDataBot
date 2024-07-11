@@ -31,9 +31,10 @@ def search_emdb(query, save_directory, file_names=None, fl='emdb_id,title,resolu
     # Default: 100
 
     # Output(s):
-    # csv file(s) with the user provided file names
+    # list of csv file(s) with the user provided file names
     """
     url = 'https://www.ebi.ac.uk/emdb/api/search/'
+    path_list = []
     if file_names is None:
         for i in range(len(query)):
             output = ''
@@ -64,7 +65,9 @@ def search_emdb(query, save_directory, file_names=None, fl='emdb_id,title,resolu
                 else:
                     if count < rows[i]:
                         print(f"Number of entries is less than {rows[i]}. Entries fetched: {count}.")
-                print(f'File wrote: {file_name}')
+                print(f'File wrote: {file_name} at {full_path}')
+                path_list.append(full_path)
+            return path_list
     elif len(query) == len(file_names):
         for i in range(len(query)):
             output = ''
@@ -95,7 +98,9 @@ def search_emdb(query, save_directory, file_names=None, fl='emdb_id,title,resolu
                 else:
                     if count < rows[i]:
                         print(f"Number of entries is less than {rows[i]}. Entries fetched: {count}.")
-                print(f'File wrote: {file_name}')
+                print(f'File wrote: {file_name} at {full_path}')
+                path_list.append(full_path)
+            return path_list
     else:
         print('Error: the length of query and file_names must match!')
     pass
