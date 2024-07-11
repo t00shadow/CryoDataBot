@@ -25,7 +25,7 @@ def main(output_dir, csv_path):
         for i in range(len(path_list)):
             path = path_list[i]
             new_file_name = path[path.rfind('/') + 1:] - '.csv'
-            search_rcsb(path, new_file_name+'_classified.csv')
+            search_rcsb(path,new_file_name+'_classified.csv')
     # 1.2 Refine entries in the csv file
 
 

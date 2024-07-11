@@ -35,12 +35,13 @@ def search_emdb(query, file_names=None, fl='emdb_id,title,resolution,fitted_pdbs
     """
     url = 'https://www.ebi.ac.uk/emdb/api/search/'
     path_list = []
+    entries = 100000
     if file_names is None:
         for i in range(len(query)):
             output = ''
             try:
                 if rows is None:
-                    payload = {'rows': 100, 'fl': fl}
+                    payload = {'rows': entries, 'fl': fl}
                 elif len(rows) == len(query):
                     payload = {'rows': rows[i], 'fl': fl}
                 else:
@@ -60,20 +61,19 @@ def search_emdb(query, file_names=None, fl='emdb_id,title,resolution,fitted_pdbs
                 out.write(output)
                 count = output.count('\n')-1
                 if rows is None:
-                    if count< 100:
-                        print(f"Number of entries is less than 100. Entries fetched: {count}.")
+                    if count < 100:
+                        print(f"Number of entries is less than {entries}. Entries fetched: {count}.")
                 else:
                     if count < rows[i]:
                         print(f"Number of entries is less than {rows[i]}. Entries fetched: {count}.")
-                print(f'File wrote: {file_name} at {full_path}')
-                path_list.append(full_path)
-            return path_list
+            print(f'File wrote: {file_name} at {full_path}')
+            path_list.append(full_path)
     elif len(query) == len(file_names):
         for i in range(len(query)):
             output = ''
             try:
                 if rows is None:
-                    payload = {'rows': 100, 'fl': fl}
+                    payload = {'rows': entries, 'fl': fl}
                 elif len(rows) == len(query):
                     payload = {'rows': rows[i], 'fl': fl}
                 else:
@@ -94,17 +94,15 @@ def search_emdb(query, file_names=None, fl='emdb_id,title,resolution,fitted_pdbs
                 count = output.count('\n') - 1
                 if rows is None:
                     if count < 100:
-                        print(f"Number of entries is less than 100. Entries fetched: {count}.")
+                        print(f"Number of entries is less than {entries}. Entries fetched: {count}.")
                 else:
                     if count < rows[i]:
                         print(f"Number of entries is less than {rows[i]}. Entries fetched: {count}.")
-                print(f'File wrote: {file_name} at {full_path}')
-                path_list.append(full_path)
-            return path_list
+            print(f'File wrote: {file_name} at {full_path}')
+            path_list.append(full_path)
     else:
         print('Error: the length of query and file_names must match!')
-    pass
-
+    return path_list
 
 def search_rcsb(file_path, save_path):
     """
@@ -113,19 +111,27 @@ def search_rcsb(file_path, save_path):
     :return: .csv file with classification and classification description for each entry
     """
     df = pd.read_csv(file_path)
-    url = 'https://data.rcsb.org/rest/v1/core/entry/'
-    classification = []
-    classification_des = []
-    for i in range(len(df['fitted_pdbs'])):
-        pdb_id = df['fitted_pdbs'][i]
-        r = requests.get(url + pdb_id)
-        file = r.json()
-        classification.append(file["struct_keywords"]["pdbx_keywords"])
-        classification_des.append(file["struct_keywords"]["text"])
-    df["RCSB_classification"] = classification
-    df["RCSB_description"] = classification_des
-    df.to_csv(save_path, index=False)
-
+    if 'fitted_pdbs' in df.columns:
+        url = 'https://data.rcsb.org/rest/v1/core/entry/'
+        classification = []
+        classification_des = []
+        for i in range(len(df['fitted_pdbs'])):
+            pdb_id = str(df['fitted_pdbs'][i])
+            if pdb_id == 'nan':
+                classification.append('')
+                classification_des.append('')
+                continue
+            r = requests.get(url + pdb_id)
+            file = r.json()
+            classification.append(file["struct_keywords"]["pdbx_keywords"])
+            classification_des.append(file["struct_keywords"]["text"])
+        df["RCSB_classification"] = classification
+        df["RCSB_description"] = classification_des
+        df.to_csv(save_path, index=False)
+        new_file_name = save_path[save_path.rfind('/') + 1:]
+        print(f'Classification info fetched. File wrote: {new_file_name} at {save_path}')
+    else:
+        print("The column 'fitted_pdbs' does not exist in the DataFrame.")
 
 # This is a helper function that sends and receives requests
 def get_emdb_validation_data(entry_ids):
