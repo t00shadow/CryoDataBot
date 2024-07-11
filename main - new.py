@@ -29,6 +29,8 @@ def main(output_dir, csv_path):
             search_rcsb(path,csv_path+new_file_name+'_classified.csv')
             
     # 1.2 Refine entries in the csv file
+    
+
 
     # Step 2. Download map and model files and do preprocessing
     # 2.1 Read map list and generate raw_map and model downloading paths
