@@ -8,13 +8,15 @@ import os
 DATA_PATH = "dddd"
 
 
-def search_emdb(query, file_names=None, fl='emdb_id,title,resolution,fitted_pdbs,xref_UNIPROTKB,xref_ALPHAFOLD', rows=None):
+def search_emdb(query, save_directory, file_names=None, fl='emdb_id,title,resolution,fitted_pdbs,xref_UNIPROTKB,xref_ALPHAFOLD', rows=None):
     """
     # Inputs:
     # query(required): a string list of search queries
     # Example: ['structure_determination_method:"singleParticle"', 'Human Albumin']
     # The query can also be composed by multiple search terms concatened by AND or OR terms
     # Example: ['sample_type:"virus" and resolution [* TO 3]']
+
+    # direcotory(required): path to save
 
     # file_names(optional): a string list of desired file names
     # Example: 'Ribosome'
@@ -29,9 +31,10 @@ def search_emdb(query, file_names=None, fl='emdb_id,title,resolution,fitted_pdbs
     # Default: 100
 
     # Output(s):
-    # csv file(s) with the user provided file names
+    # list of csv file(s) with the user provided file names
     """
     url = 'https://www.ebi.ac.uk/emdb/api/search/'
+    path_list = []
     if file_names is None:
         for i in range(len(query)):
             output = ''
@@ -52,7 +55,8 @@ def search_emdb(query, file_names=None, fl='emdb_id,title,resolution,fitted_pdbs
                 print(f"Error fetching data: {e}")
 
             file_name = f'download_file_{i}' + '.csv'
-            with open(file_name, 'w') as out:
+            full_path = save_directory + file_name
+            with open(full_path, 'w') as out:
                 out.write(output)
                 count = output.count('\n')-1
                 if rows is None:
@@ -61,7 +65,9 @@ def search_emdb(query, file_names=None, fl='emdb_id,title,resolution,fitted_pdbs
                 else:
                     if count < rows[i]:
                         print(f"Number of entries is less than {rows[i]}. Entries fetched: {count}.")
-                print(f'File wrote: {file_name}')
+                print(f'File wrote: {file_name} at {full_path}')
+                path_list.append(full_path)
+            return path_list
     elif len(query) == len(file_names):
         for i in range(len(query)):
             output = ''
@@ -82,7 +88,8 @@ def search_emdb(query, file_names=None, fl='emdb_id,title,resolution,fitted_pdbs
                 print(f"Error fetching data: {e}")
 
             file_name = file_names[i] + '.csv'
-            with open(file_name, 'w') as out:
+            full_path = save_directory + file_name
+            with open(full_path, 'w') as out:
                 out.write(output)
                 count = output.count('\n') - 1
                 if rows is None:
@@ -91,7 +98,9 @@ def search_emdb(query, file_names=None, fl='emdb_id,title,resolution,fitted_pdbs
                 else:
                     if count < rows[i]:
                         print(f"Number of entries is less than {rows[i]}. Entries fetched: {count}.")
-                print(f'File wrote: {file_name}')
+                print(f'File wrote: {file_name} at {full_path}')
+                path_list.append(full_path)
+            return path_list
     else:
         print('Error: the length of query and file_names must match!')
     pass
