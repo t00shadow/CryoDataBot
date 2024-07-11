@@ -13,13 +13,14 @@ from Utils_generate_dataset import data_to_npy
 
 csv_path = "path_of_downloaded_csv_file"
 output_dir = "path_of_output_dataset"
+query = "ribosome"
 
 
 def main(output_dir, csv_path):
 
     # Step 1. Read search queries for EMDB search, download the information and refine it
     # 1.1 Search EMDB and download the csv file
-
+    search_emdb(query,csv_path)
     # 1.2 Refine entries in the csv file
 
     # Step 2. Download map and model files and do preprocessing
