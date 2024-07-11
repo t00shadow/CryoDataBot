@@ -31,16 +31,17 @@ def search_emdb(query, save_directory, file_names=None, fl='emdb_id,title,resolu
     # Default: 100
 
     # Output(s):
-    # list of csv file path(s) with the user provided file names
+    # list of csv file(s) with the user provided file names
     """
     url = 'https://www.ebi.ac.uk/emdb/api/search/'
     path_list = []
+    entries = 100000
     if file_names is None:
         for i in range(len(query)):
             output = ''
             try:
                 if rows is None:
-                    payload = {'rows': 100, 'fl': fl}
+                    payload = {'rows': entries, 'fl': fl}
                 elif len(rows) == len(query):
                     payload = {'rows': rows[i], 'fl': fl}
                 else:
@@ -61,7 +62,7 @@ def search_emdb(query, save_directory, file_names=None, fl='emdb_id,title,resolu
                 count = output.count('\n')-1
                 if rows is None:
                     if count < 100:
-                        print(f"Number of entries is less than 100. Entries fetched: {count}.")
+                        print(f"Number of entries is less than {entries}. Entries fetched: {count}.")
                 else:
                     if count < rows[i]:
                         print(f"Number of entries is less than {rows[i]}. Entries fetched: {count}.")
@@ -72,7 +73,7 @@ def search_emdb(query, save_directory, file_names=None, fl='emdb_id,title,resolu
             output = ''
             try:
                 if rows is None:
-                    payload = {'rows': 100, 'fl': fl}
+                    payload = {'rows': entries, 'fl': fl}
                 elif len(rows) == len(query):
                     payload = {'rows': rows[i], 'fl': fl}
                 else:
@@ -93,7 +94,7 @@ def search_emdb(query, save_directory, file_names=None, fl='emdb_id,title,resolu
                 count = output.count('\n') - 1
                 if rows is None:
                     if count < 100:
-                        print(f"Number of entries is less than 100. Entries fetched: {count}.")
+                        print(f"Number of entries is less than {entries}. Entries fetched: {count}.")
                 else:
                     if count < rows[i]:
                         print(f"Number of entries is less than {rows[i]}. Entries fetched: {count}.")
@@ -102,7 +103,6 @@ def search_emdb(query, save_directory, file_names=None, fl='emdb_id,title,resolu
     else:
         print('Error: the length of query and file_names must match!')
     return path_list
-
 
 def search_rcsb(file_path, save_path):
     """
