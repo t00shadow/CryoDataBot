@@ -14,7 +14,7 @@ def search_emdb(
         file_name=None,
         fl='emdb_id,title,resolution,fitted_pdbs,xref_UNIPROTKB,xref_ALPHAFOLD',
         rows=9999999,
-        fetch_classification=True):
+        fetch_classification=False):
     """
     # Search the EMDB and generate .csv file using the searching query.
 
@@ -50,12 +50,13 @@ def search_emdb(
         print(f"Error fetching data: {e}")
 
     if file_name is None:
-        file_name = f'download_file_0' + '.csv'
-        full_path = save_directory + file_name
-        num = 1
+        num = 0
+        file_name = f'download_file_{num}.csv'
+        full_path = os.path.join(save_directory, file_name)
         while os.path.exists(full_path):
-            full_path = save_directory + f'download_file_{num}' + '.csv'
-            num += num
+            num += 1
+            file_name = f'download_file_{num}.csv'
+            full_path = os.path.join(save_directory, file_name)
     else:
         full_path = save_directory + file_name + '.csv'
     with open(full_path, 'w') as out:
@@ -82,10 +83,19 @@ def search_rcsb(file_path):
                 classification.append('')
                 classification_des.append('')
                 continue
+            else:
+                pdb_id = pdb_id.split(',')
+                pdb_id = pdb_id[0]
             r = requests.get(url + pdb_id)
             file = r.json()
-            classification.append(file["struct_keywords"]["pdbx_keywords"])
-            classification_des.append(file["struct_keywords"]["text"])
+            try:
+                classification.append(file["struct_keywords"]["pdbx_keywords"])
+                classification_des.append(file["struct_keywords"]["text"])
+            except KeyError:
+                print(f"Classification info not found in {pdb_id}")
+                classification.append('')
+                classification_des.append('')
+                continue
         df["RCSB_classification"] = classification
         df["RCSB_description"] = classification_des
         file_name = os.path.basename(file_path)
@@ -95,6 +105,7 @@ def search_rcsb(file_path):
         print(f'Classification info fetched. File wrote: {file_name} at {save_path}')
     else:
         print("The column 'fitted_pdbs' does not exist in the DataFrame.")
+
 
 
 # This is a helper function that sends and receives requests
