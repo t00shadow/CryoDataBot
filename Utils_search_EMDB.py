@@ -14,7 +14,7 @@ def search_emdb(
         file_name=None,
         fl='emdb_id,title,resolution,fitted_pdbs,xref_UNIPROTKB,xref_ALPHAFOLD',
         rows=9999999,
-        fetch_classification=False):
+        fetch_classification=True):
     """
     # Search the EMDB and generate .csv file using the searching query.
 
@@ -96,6 +96,7 @@ def search_rcsb(file_path):
     else:
         print("The column 'fitted_pdbs' does not exist in the DataFrame.")
 
+
 # This is a helper function that sends and receives requests
 def get_emdb_validation_data(entry_ids):
     data = {}
@@ -108,6 +109,7 @@ def get_emdb_validation_data(entry_ids):
         else:
             data[entry_id] = f"Failed to retrieve data: {response.status_code}"
     return data
+
 
 # This function retrieves the qscores from the dictionary returned from the request
 def get_average_qscores(entry_ids):
@@ -125,6 +127,7 @@ def get_average_qscores(entry_ids):
             qscores[entry_id] = "Q-score not found in the data"
     return qscores
 
+
 # This function writes the qscores to a CSV file
 def write_qscores_to_csv(qscores, filename="emdb_qscores.csv"):
     with open(filename, 'w', newline='') as csvfile:
@@ -134,6 +137,7 @@ def write_qscores_to_csv(qscores, filename="emdb_qscores.csv"):
         writer.writeheader()
         for emdb_id, qscore in qscores.items():
             writer.writerow({'EMDB ID': emdb_id, 'Average Q-score': qscore})
+
 
 # This function appends qscores to an existing CSV file with an option to include EMDB IDs
 def append_qscores_to_csv(qscores, include_ids=True, filename="emdb_qscores.csv"):
@@ -170,6 +174,7 @@ def append_qscores_to_csv(qscores, include_ids=True, filename="emdb_qscores.csv"
     with open(filename, 'w', newline='') as csvfile:
         writer = csv.writer(csvfile)
         writer.writerows(existing_data)
+
 
 # # Example usage with a list of EMDB IDs
 # entry_ids = ["9964", "3000", "1010", "10778", "14864"]  # Add more IDs as needed
