@@ -1,23 +1,9 @@
-import json
-import os
-import shutil
-
-import numpy as np
-import pandas as pd
-
-from Utils_search_EMDB import search_emdb, search_rcsb
-from Utils_preprocess import read_csv_info, fetch_map_model, normalize_raw_map
-from Utils_generate_dataset import data_to_npy
-
-
-
 # RNA bases
 atoms_base_A = ['N9', 'C8', 'N7', 'C5', 'C6', 'N6', 'N1', 'C2', 'N3', 'C4']
 atoms_base_G = ['N9', 'C8', 'N7', 'C5', 'C6', 'O6', 'N1', 'C2', 'N2', 'N3', 'C4']
 atoms_base_C = ['N1', 'C2', 'O2', 'N3', 'C4', 'N4', 'C5', 'C6']
 atoms_base_U = ['N1', 'C2', 'O2', 'N3', 'C4', 'O4', 'C5', 'C6']
-atoms_nuc_base = list(set(atoms_base_A + atoms_base_G + atoms_base_C + atoms_base_U))
-
+atoms_nuc_base = ['N9', 'N1', 'N2', 'N7', 'C6', 'N4', 'C5', 'N6', 'C2', 'C4', 'C8', 'N3', 'O6', 'O4', 'O2']
 
 # Protein_residue_side_chains
 atoms_alanine_ALA = ['CB']
@@ -40,14 +26,7 @@ atoms_threonine_THR = ['CB', 'OG1', 'CG2']
 atoms_tryptophan_TRP = ['CB', 'CG', 'CD1', 'CD2', 'NE1', 'CE2', 'CE3', 'CZ2', 'CZ3', 'CH2']
 atoms_tyrosine_TYR = ['CB', 'CG', 'CD1', 'CD2', 'CE1', 'CE2', 'CZ']
 atoms_valine_VAL = ['CB', 'CG1', 'CG2']
-atoms_protein_residue = list(set(atoms_alanine_ALA+atoms_arginine_ARG+atoms_asparagine_ASN+atoms_aspartic_acid_ASP+atoms_cysteine_CYS+
-                         atoms_glutamic_acid_GLU+atoms_glutamine_GLN+atoms_glycine_GLY+atoms_histidine_HIS+atoms_isoleucine_ILE+
-                         atoms_leucine_LEU+atoms_lysine_LYS+atoms_methionine_MET+atoms_phenylalanine_PHE+atoms_proline_PRO+
-                         atoms_serine_SER+atoms_threonine_THR+atoms_tryptophan_TRP+atoms_tyrosine_TYR+atoms_valine_VAL))
-
-print(atoms_protein_residue)
-
-exit()
+atoms_protein_residue = ['CE2', 'CD1', 'SG', 'OG1', 'OD2', 'OD1', 'CZ3', 'CD2', 'NZ', 'NE1', 'CG1', 'ND1', 'CG', 'CZ2', 'CE', 'SD', 'NE2', 'OE2', 'CG2', 'OE1', 'CE3', 'CH2', 'NE', 'ND2', 'CB', 'CZ', 'CE1', 'NH2', 'NH1', 'CD', 'OG']
 
 # Protein and rna residues
 residues_protein = [

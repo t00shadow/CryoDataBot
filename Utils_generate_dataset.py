@@ -20,54 +20,7 @@ from MRC import MRC
 GENERATET_MRC_TEST = False
 CLASSES = 24
 
-# RNA bases
-atoms_base_A = ['N9', 'C8', 'N7', 'C5', 'C6', 'N6', 'N1', 'C2', 'N3', 'C4']
-atoms_base_G = ['N9', 'C8', 'N7', 'C5', 'C6', 'O6', 'N1', 'C2', 'N2', 'N3', 'C4']
-atoms_base_C = ['N1', 'C2', 'O2', 'N3', 'C4', 'N4', 'C5', 'C6']
-atoms_base_U = ['N1', 'C2', 'O2', 'N3', 'C4', 'O4', 'C5', 'C6']
-atoms_nuc_base = list(set(atoms_base_A + atoms_base_G + atoms_base_C + atoms_base_U))
 
-# Protein_residue_side_chains
-atoms_alanine_ALA = ['CB']
-atoms_arginine_ARG = ['CB', 'CG', 'CD', 'NE', 'CZ', 'NH1', 'NH2']
-atoms_asparagine_ASN = ['CB', 'CG', 'OD1', 'ND2']
-atoms_aspartic_acid_ASP = ['CB', 'CG', 'OD1', 'OD2']
-atoms_cysteine_CYS = ['CB', 'SG']
-atoms_glutamic_acid_GLU = ['CB', 'CG', 'CD', 'OE1', 'OE2']
-atoms_glutamine_GLN = ['CB', 'CG', 'CD', 'OE1', 'NE2']
-atoms_glycine_GLY = []
-atoms_histidine_HIS = ['CB', 'CG', 'ND1', 'CD2', 'CE1', 'NE2']
-atoms_isoleucine_ILE = ['CB', 'CG1', 'CG2', 'CD1']
-atoms_leucine_LEU = ['CB', 'CG', 'CD1', 'CD2']
-atoms_lysine_LYS = ['CB', 'CG', 'CD', 'CE', 'NZ']
-atoms_methionine_MET = ['CB', 'CG', 'SD', 'CE']
-atoms_phenylalanine_PHE = ['CB', 'CG', 'CD1', 'CD2', 'CE1', 'CE2', 'CZ']
-atoms_proline_PRO = ['CB', 'CG', 'CD']
-atoms_serine_SER = ['CB', 'OG']
-atoms_threonine_THR = ['CB', 'OG1', 'CG2']
-atoms_tryptophan_TRP = ['CB', 'CG', 'CD1', 'CD2', 'NE1', 'CE2', 'CE3', 'CZ2', 'CZ3', 'CH2']
-atoms_tyrosine_TYR = ['CB', 'CG', 'CD1', 'CD2', 'CE1', 'CE2', 'CZ']
-atoms_valine_VAL = ['CB', 'CG1', 'CG2']
-atoms_protein_residue = list(set(atoms_alanine_ALA+atoms_arginine_ARG+atoms_asparagine_ASN+atoms_aspartic_acid_ASP+atoms_cysteine_CYS+
-                         atoms_glutamic_acid_GLU+atoms_glutamine_GLN+atoms_glycine_GLY+atoms_histidine_HIS+atoms_isoleucine_ILE+
-                         atoms_leucine_LEU+atoms_lysine_LYS+atoms_methionine_MET+atoms_phenylalanine_PHE+atoms_proline_PRO+
-                         atoms_serine_SER+atoms_threonine_THR+atoms_tryptophan_TRP+atoms_tyrosine_TYR+atoms_valine_VAL))
-
-# Protein and rna residues
-residues_protein = [
-    'ALA', 'ARG', 'ASN', 'ASP', 'CYS', 'GLU', 'GLN', 'GLY', 'HIS', 'ILE',
-    'LEU', 'LYS', 'MET', 'PHE', 'PRO', 'SER', 'THR', 'TRP', 'TYR', 'VAL'
-]
-residues_rna = ['A', 'G', 'C', 'U']
-
-# Tagged atom groups
-atoms_sugar_ring_new = ["C4'", "O4'", "C3'", "C2'", "C1'"]
-key_atoms = [["CA"], ['P'], atoms_sugar_ring_new, atoms_nuc_base, atoms_protein_residue]
-atoms_protein_backbone = ['CA', 'C', 'N']
-atoms_rna_backbone = [
-    "P", "OP1", "OP2", "O5'", "C5'", "C4'", "O4'", "C3'", "O3'", "C2'", "O2'",
-    "C1'"
-]
 
 
 def data_to_npy(map_path: str,

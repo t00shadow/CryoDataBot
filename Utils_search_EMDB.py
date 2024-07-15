@@ -8,7 +8,7 @@ import os
 DATA_PATH = "dddd"
 
 
-def search_emdb(query, file_names=None, fl='emdb_id,title,resolution,fitted_pdbs,xref_UNIPROTKB,xref_ALPHAFOLD', save_directory=DATA_PATH,  rows=None):
+def search_emdb(query, file_names=None, fl='emdb_id,title,resolution,fitted_pdbs,xref_UNIPROTKB,xref_ALPHAFOLD', save_directory=DATA_PATH,  rows=999999999):
     """
     # Inputs:
     # query(required): a string list of search queries
@@ -35,13 +35,12 @@ def search_emdb(query, file_names=None, fl='emdb_id,title,resolution,fitted_pdbs
     """
     url = 'https://www.ebi.ac.uk/emdb/api/search/'
     path_list = []
-    entries = 100000
     if file_names is None:
         for i in range(len(query)):
             output = ''
             try:
                 if rows is None:
-                    payload = {'rows': entries, 'fl': fl}
+                    payload = {'rows': 999999999, 'fl': fl}
                 elif len(rows) == len(query):
                     payload = {'rows': rows[i], 'fl': fl}
                 else:
