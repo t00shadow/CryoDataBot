@@ -8,106 +8,68 @@ import os
 DATA_PATH = "dddd"
 
 
-def search_emdb(query, file_names=None, fl='emdb_id,title,resolution,fitted_pdbs,xref_UNIPROTKB,xref_ALPHAFOLD', save_directory=DATA_PATH,  rows=999999999):
+def search_emdb(
+        query,
+        save_directory=DATA_PATH,
+        file_name=None,
+        fl='emdb_id,title,resolution,fitted_pdbs,xref_UNIPROTKB,xref_ALPHAFOLD',
+        rows=9999999,
+        fetch_classification=False):
     """
+    # Search the EMDB and generate .csv file using the searching query.
+
     # Inputs:
-    # query(required): a string list of search queries
-    # Example: ['structure_determination_method:"singleParticle"', 'Human Albumin']
-    # The query can also be composed by multiple search terms concatened by AND or OR terms
-    # Example: ['sample_type:"virus" and resolution [* TO 3]']
+    # query(required): a string of searching queries
+    # Example: 'structure_determination_method:"singleParticle"'
+    # The query can also be composed by multiple search terms concatenated by AND or OR terms
+    # Example: 'sample_type:"virus" and resolution [* TO 3]'
 
-    # direcotory(required): path to save
+    # save_directory(required): path to save
 
-    # file_names(optional): a string list of desired file names
+    # file_names(optional): a string of desired file names
     # Example: 'Ribosome'
     # Default: 'download_file_0'
 
-    # fl(optional): list of fields to be shown in the csv file; each item is separated by ','
+    # fl(optional): a string of fields to be shown in the csv file; each item is separated by ','
     # Example: 'emdb_id,resolution,fitted_pdbs'
     # Default: 'emdb_id,title,resolution,fitted_pdbs,xref_UNIPROTKB,xref_ALPHAFOLD'
 
-    # rows(optional): a list of int (how many entries to include in each file)
-    # Example: [1000, 500]
-    # Default: 100
-
-    # Output(s):
-    # list of csv file(s) with the user provided file names
+    # rows(optional): an int indicating how many entries to fetch
+    # Example: 100
+    # Default: 9999999
     """
     url = 'https://www.ebi.ac.uk/emdb/api/search/'
-    path_list = []
-    if file_names is None:
-        for i in range(len(query)):
-            output = ''
-            try:
-                if rows is None:
-                    payload = {'rows': 999999999, 'fl': fl}
-                elif len(rows) == len(query):
-                    payload = {'rows': rows[i], 'fl': fl}
-                else:
-                    print('The length of query, file_names, and rows must match!')
-                    return
-                r = requests.get(url+query[i], params=payload, headers={'accept': 'text/csv'})
-                if r.status_code == 200:
-                    output += r.text
-                else:
-                    print(f"Error fetching data query: {query[i]}. Unexpected error.")
-            except requests.exceptions.RequestException as e:
-                print(f"Error fetching data: {e}")
+    output = ''
+    try:
+        r = requests.get(url + query, params={'rows': rows, 'fl': fl}, headers={'accept': 'text/csv'})
+        if r.status_code == 200:
+            output += r.text
+        else:
+            print(f"Error fetching data query: {query}. Unexpected error.")
+    except requests.exceptions.RequestException as e:
+        print(f"Error fetching data: {e}")
 
-            file_name = f'download_file_{i}' + '.csv'
-            full_path = save_directory + file_name
-            with open(full_path, 'w') as out:
-                out.write(output)
-                count = output.count('\n')-1
-                if rows is None:
-                    if count < 100:
-                        print(f"Number of entries is less than {entries}. Entries fetched: {count}.")
-                else:
-                    if count < rows[i]:
-                        print(f"Number of entries is less than {rows[i]}. Entries fetched: {count}.")
-            print(f'File wrote: {file_name} at {full_path}')
-            path_list.append(full_path)
-    elif len(query) == len(file_names):
-        for i in range(len(query)):
-            output = ''
-            try:
-                if rows is None:
-                    payload = {'rows': entries, 'fl': fl}
-                elif len(rows) == len(query):
-                    payload = {'rows': rows[i], 'fl': fl}
-                else:
-                    print('Error: the length of query, file_names, and rows must match!')
-                    return
-                r = requests.get(url+query[i], params=payload, headers={'accept': 'text/csv'})
-                if r.status_code == 200:
-                    output += r.text
-                else:
-                    print(f"Error fetching data query: {query[i]}. Unexpected error.")
-            except requests.exceptions.RequestException as e:
-                print(f"Error fetching data: {e}")
-
-            file_name = file_names[i] + '.csv'
-            full_path = save_directory + file_name
-            with open(full_path, 'w') as out:
-                out.write(output)
-                count = output.count('\n') - 1
-                if rows is None:
-                    if count < 100:
-                        print(f"Number of entries is less than {entries}. Entries fetched: {count}.")
-                else:
-                    if count < rows[i]:
-                        print(f"Number of entries is less than {rows[i]}. Entries fetched: {count}.")
-            print(f'File wrote: {file_name} at {full_path}')
-            path_list.append(full_path)
+    if file_name is None:
+        file_name = f'download_file_0' + '.csv'
+        full_path = save_directory + file_name
+        num = 1
+        while os.path.exists(full_path):
+            full_path = save_directory + f'download_file_{num}' + '.csv'
+            num += num
     else:
-        print('Error: the length of query and file_names must match!')
-    return path_list
+        full_path = save_directory + file_name + '.csv'
+    with open(full_path, 'w') as out:
+        out.write(output)
+        count = output.count('\n') - 1
+    print(f'File wrote: {file_name} at {full_path}\nEntries fetched: {count}.')
+    if fetch_classification:
+        search_rcsb(full_path)
 
-def search_rcsb(file_path, save_path):
+
+def search_rcsb(file_path):
     """
-    :param file_path: path to .csv file
-    :param save_path: path to save directory
-    :return: .csv file with classification and classification description for each entry
+    Read fitted_pdbs info and add classification and classification description for each entry
+    file_path: path to .csv file
     """
     df = pd.read_csv(file_path)
     if 'fitted_pdbs' in df.columns:
@@ -126,9 +88,11 @@ def search_rcsb(file_path, save_path):
             classification_des.append(file["struct_keywords"]["text"])
         df["RCSB_classification"] = classification
         df["RCSB_description"] = classification_des
+        file_name = os.path.basename(file_path)
+        file_name.replace('.csv', '')
+        save_path = DATA_PATH+file_name+'_classified.csv'
         df.to_csv(save_path, index=False)
-        new_file_name = save_path[save_path.rfind('/') + 1:]
-        print(f'Classification info fetched. File wrote: {new_file_name} at {save_path}')
+        print(f'Classification info fetched. File wrote: {file_name} at {save_path}')
     else:
         print("The column 'fitted_pdbs' does not exist in the DataFrame.")
 
