@@ -129,7 +129,7 @@ def search_rcsb(file_path, save_directory):
     file_path: path to .csv file
     return: path to classified .csv file
     """
-    df = pd.read_csv(file_path, save_directory)
+    df = pd.read_csv(file_path)
     print(
         "--------------------------------------------------------------------------------\nFetching classification info...")
     if 'fitted_pdbs' in df.columns:
