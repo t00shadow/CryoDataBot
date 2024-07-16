@@ -35,7 +35,8 @@ def search_emdb(
     # Example: 'sample_type:"virus" and resolution [* TO 3]'
 
     # save_directory(required): string, path to save
-
+    # Default: DATA_PATH
+    
     # file_names(optional): string, desired file names
     # Example: 'Ribosome'
     # Default: 'download_file_0'
@@ -81,14 +82,14 @@ def search_emdb(
     with open(full_path, 'w') as out:
         out.write(output)
         count = output.count('\n') - 1
-    print('EMDB data fetched.')
-
+    print(f'EMDB data fetched. File wrote at {full_path}\nEntries fetched: {count}.')
+    print('--------------------------------------------------------------------------------\n')
     if fetch_classification and not fetch_qscore:
-        new_path = search_rcsb(full_path, save_directory)
+        new_path = search_rcsb(full_path)
     elif fetch_qscore and not fetch_classification:
         new_path = search_qscore(full_path)
     elif fetch_classification and fetch_qscore:
-        new_path = search_qscore(search_rcsb(full_path, save_directory))
+        new_path = search_qscore(search_rcsb(full_path))
     else:
         new_path = full_path
     print('--------------------------------------------------------------------------------')
@@ -108,7 +109,7 @@ def search_emdb(
     final_path = full_path.replace('.csv','_review.csv')
     new_df.to_csv(final_path, index=False)
     print(f'Final review file created at: {final_path}')
-    # print('--------------------------------------------------------------------------------\n')
+    print('--------------------------------------------------------------------------------\n')
 
 
 def get_class(pdb_id):
@@ -123,7 +124,7 @@ def get_class(pdb_id):
         return '', ''
 
 
-def search_rcsb(file_path, save_directory):
+def search_rcsb(file_path):
     """
     Read fitted_pdbs info and add classification and classification description for each entry
     file_path: path to .csv file
@@ -156,18 +157,18 @@ def search_rcsb(file_path, save_directory):
 
         file_name = os.path.basename(file_path)
         file_name = file_name.replace('.csv', '')
-        save_path = save_directory + file_name + '_classified.csv'
+        save_path = DATA_PATH + file_name + '_classified.csv'
         df.to_csv(save_path, index=False)
         os.remove(file_path)
-        print('Classification info fetched.')
+        print(f'Classification info fetched. File wrote at {save_path}')
         for index, info in df['RCSB_classification'].items():
             if info == '':
                 error_entries += str(df['emdb_id'][index]) + '\n'
         if error_entries != '':
-            print(f"Classification info not found for:\n{error_entries}")
-                #   f"--------------------------------------------------------------------------------\n")
-        # else:
-            # print("--------------------------------------------------------------------------------\n")
+            print(f"Classification info not found for:\n{error_entries}"
+                  f"--------------------------------------------------------------------------------\n")
+        else:
+            print("--------------------------------------------------------------------------------\n")
         return save_path
     else:
         print("The column 'fitted_pdbs' does not exist in the DataFrame.")
