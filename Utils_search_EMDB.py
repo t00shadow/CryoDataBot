@@ -123,7 +123,7 @@ def get_class(pdb_id):
         return '', ''
 
 
-def search_rcsb(file_path):
+def search_rcsb(file_path, save_directory):
     """
     Read fitted_pdbs info and add classification and classification description for each entry
     file_path: path to .csv file
