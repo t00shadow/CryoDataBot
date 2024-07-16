@@ -2,6 +2,7 @@ import requests
 import pandas as pd
 import os
 from tqdm import tqdm
+from concurrent.futures import ThreadPoolExecutor
 
 DATA_PATH = r'C:/Users/30105/PycharmProjects/pythonProject/'
 fields = ("emdb_id,title,structure_determination_method,resolution,resolution_method,fitted_pdbs,current_status,"
@@ -110,6 +111,17 @@ def search_emdb(
     print('--------------------------------------------------------------------------------\n')
 
 
+def get_class(emdb_id,pdb_id):
+    url = 'https://data.rcsb.org/rest/v1/core/entry/'
+    r = requests.get(url + pdb_id)
+    file = r.json()
+    try:
+        ret = [file["struct_keywords"]["pdbx_keywords"], file["struct_keywords"]["text"], '']
+    except KeyError:
+        ret = ['', '', f'{emdb_id}: {pdb_id}\n']
+    return ret
+
+
 def search_rcsb(file_path):
     """
     Read fitted_pdbs info and add classification and classification description for each entry
@@ -124,27 +136,17 @@ def search_rcsb(file_path):
         classification = []
         classification_des = []
         error_entries = ''
-
-        # Using tqdm to create a progress bar
-        for i in tqdm(range(len(df['fitted_pdbs']))):
-            pdb_id = str(df['fitted_pdbs'][i])
-            emdb_id = str(df['emdb_id'][i])
+        for index, pdb_id in tqdm(df['fitted_pdbs'].items(), total=len(df)):
+            emdb_id = df['emdb_id'][index]
             if pdb_id == 'nan':
-                classification.append('')
-                classification_des.append('')
                 continue
             else:
                 pdb_id = pdb_id.split(',')
                 pdb_id = pdb_id[0]
-            r = requests.get(url + pdb_id)
-            file = r.json()
-            try:
-                classification.append(file["struct_keywords"]["pdbx_keywords"])
-                classification_des.append(file["struct_keywords"]["text"])
-            except KeyError:
-                error_entries = error_entries + f'{emdb_id}: {pdb_id}\n'
-                classification.append('')
-                classification_des.append('')
+            dummy = get_class(emdb_id, pdb_id)
+            classification.append(dummy[0])
+            classification_des.append(dummy[1])
+            error_entries += dummy[2]
         df["RCSB_classification"] = classification
         df["RCSB_description"] = classification_des
         file_name = os.path.basename(file_path)
@@ -170,7 +172,7 @@ def get_qscore(emdb_map_id):
     response = session.get(url)
     try:
         qscore = response.json()[entry_id]["qscore"]["allmodels_average_qscore"]
-    except Exception as e:
+    except Exception:
         qscore = ''
     return qscore
 
@@ -190,7 +192,8 @@ def search_qscore(file_path):
     print('--------------------------------------------------------------------------------\nFetching Q-score...')
     tqdm.pandas()
     df = pd.read_csv(file_path)
-    df['Q-score'] = df['emdb_id'].progress_apply(get_qscore)
+    with ThreadPoolExecutor() as executor:
+        df['Q-score'] = list(tqdm(executor.map(get_qscore, df['emdb_id']), total=len(df)))
     df.to_csv(file_path, index=False)
     new_file_path = file_path.replace('.csv', '')
     new_file_path += '_qscore.csv'
@@ -205,3 +208,4 @@ def search_qscore(file_path):
         print(
             f'No Q-score fetched for {error}--------------------------------------------------------------------------------\n')
     return new_file_path
+
