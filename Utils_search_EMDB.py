@@ -4,7 +4,7 @@ import os
 from tqdm import tqdm
 import csv
 
-DATA_PATH = r'something'
+DATA_PATH = r'C:/Users/30105/PycharmProjects/pythonProject/'
 fields = ("emdb_id,title,structure_determination_method,resolution,resolution_method,fitted_pdbs,current_status,"
           "deposition_date,map_release_date,primary_citation_author_string,primary_citation_title,xref_DOI,"
           "xref_PUBMED,primary_citation_year,primary_citation_journal_name,sample_info_string,microscope_name,"
@@ -65,18 +65,15 @@ def search_emdb(
     except requests.exceptions.RequestException as e:
         print(f"Error fetching data: {e}")
 
+    # checking for file names
     if file_name is None:
-        num = 0
-        file_name = f'download_file_{num}.csv'
-        class_file_name = f'download_file_{num}_classified.csv'
+        num = 1
+        file_name = f'download_file_{num:02}.csv'
         full_path = os.path.join(save_directory, file_name)
-        class_path = os.path.join(save_directory, class_file_name)
-        while os.path.exists(full_path) or os.path.exists(class_path):
+        while any(filename.startswith(f'download_file_{num:02}') for filename in os.listdir(save_directory)):
             num += 1
-            file_name = f'download_file_{num}.csv'
-            class_file_name = f'download_file_{num}_classified.csv'
+            file_name = f'download_file_{num:02}.csv'
             full_path = os.path.join(save_directory, file_name)
-            class_path = os.path.join(save_directory, class_file_name)
     else:
         full_path = save_directory + file_name + '.csv'
     with open(full_path, 'w') as out:
@@ -244,11 +241,10 @@ def search_qscore(file_path):
     entry_ids = df['emdb_id'].tolist()
     #append_qscores_to_csv(get_average_qscores(entry_ids),filename=file_path)
     average_qscores = get_average_qscores(entry_ids)
-    with open(file_path, mode='a', newline='') as file:
-        writer = csv.writer(file)
-        # Iterate over the qscores dictionary and append each entry to the CSV file
-        for emdb_id, qscore in average_qscores.items():
-            writer.writerow([qscore])
+    # Add the new column with Q-scores
+    df['Q-score'] = df['emdb_id'].map(average_qscores)
+    # Save the updated DataFrame back to the CSV file
+    df.to_csv(file_path, index=False)
     new_file_path = file_path.replace('.csv', '')
     new_file_path += '_qscore.csv'
     os.rename(file_path, new_file_path)
