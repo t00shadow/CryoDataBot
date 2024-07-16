@@ -183,4 +183,3 @@ def search_qscore(file_path):
             error += str(df['emdb_id'][index]) + '\n'
     if error != '':
         print(f'No Q-score fetched for {error}--------------------------------------------------------------------------------\n')
-
