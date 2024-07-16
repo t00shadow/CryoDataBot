@@ -17,4 +17,4 @@ csv_path = "./"
 fetch_bool = True
 
 
-search_emdb(query, csv_path, fetch_classification=fetch_bool)
+search_emdb(query, save_directory=csv_path, fetch_classification=fetch_bool)

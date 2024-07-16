@@ -83,14 +83,14 @@ def search_emdb(
     print(f'EMDB data fetched. File wrote: {file_name} at {full_path}\nEntries fetched: {count}.')
     print('--------------------------------------------------------------------------------\n')
     if fetch_classification and not fetch_qscore:
-        _ = search_rcsb(full_path)
+        _ = search_rcsb(full_path, save_directory)
     elif fetch_qscore and not fetch_classification:
         search_qscore(full_path)
     elif fetch_classification and fetch_qscore:
-        search_qscore(search_rcsb(full_path))
+        search_qscore(search_rcsb(full_path, save_directory))
 
 
-def search_rcsb(file_path):
+def search_rcsb(file_path, save_directory):
     """
     Read fitted_pdbs info and add classification and classification description for each entry
     file_path: path to .csv file
@@ -128,7 +128,7 @@ def search_rcsb(file_path):
         df["RCSB_description"] = classification_des
         file_name = os.path.basename(file_path)
         file_name = file_name.replace('.csv', '')
-        save_path = DATA_PATH + file_name + '_classified.csv'
+        save_path = save_directory + file_name + '_classified.csv'
         df.to_csv(save_path, index=False)
         os.remove(file_path)
         print(f'Classification info fetched. File wrote: {file_name} at {save_path}')
