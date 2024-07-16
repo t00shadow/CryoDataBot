@@ -84,11 +84,11 @@ def search_emdb(
     print(f'EMDB data fetched. File wrote at {full_path}\nEntries fetched: {count}.')
     print('--------------------------------------------------------------------------------\n')
     if fetch_classification and not fetch_qscore:
-        new_path = search_rcsb(full_path, save_directory)
+        new_path = search_rcsb(full_path)
     elif fetch_qscore and not fetch_classification:
         new_path = search_qscore(full_path)
     elif fetch_classification and fetch_qscore:
-        new_path = search_qscore(search_rcsb(full_path, save_directory))
+        new_path = search_qscore(search_rcsb(full_path))
     else:
         new_path = full_path
     print('--------------------------------------------------------------------------------')
@@ -111,18 +111,19 @@ def search_emdb(
     print('--------------------------------------------------------------------------------\n')
 
 
-def get_class(emdb_id,pdb_id):
+def get_class(pdb_id):
     url = 'https://data.rcsb.org/rest/v1/core/entry/'
+    if pdb_id == '':
+        return '', ''
     r = requests.get(url + pdb_id)
     file = r.json()
     try:
-        ret = [file["struct_keywords"]["pdbx_keywords"], file["struct_keywords"]["text"], '']
-    except KeyError:
-        ret = ['', '', f'{emdb_id}: {pdb_id}\n']
-    return ret
+        return file["struct_keywords"]["pdbx_keywords"], file["struct_keywords"]["text"]
+    except Exception:
+        return '', ''
 
 
-def search_rcsb(file_path, save_directory):
+def search_rcsb(file_path):
     """
     Read fitted_pdbs info and add classification and classification description for each entry
     file_path: path to .csv file
@@ -132,29 +133,36 @@ def search_rcsb(file_path, save_directory):
     print(
         "--------------------------------------------------------------------------------\nFetching classification info...")
     if 'fitted_pdbs' in df.columns:
-        url = 'https://data.rcsb.org/rest/v1/core/entry/'
-        classification = []
-        classification_des = []
         error_entries = ''
-        for index, pdb_id in tqdm(df['fitted_pdbs'].items(), total=len(df)):
-            emdb_id = df['emdb_id'][index]
+        pdb_ids = []
+        for _, pdb_id in df['fitted_pdbs'].items():
             if pdb_id == 'nan':
-                continue
+                pdb_ids.append('')
             else:
                 pdb_id = pdb_id.split(',')
                 pdb_id = pdb_id[0]
-            dummy = get_class(emdb_id, pdb_id)
-            classification.append(dummy[0])
-            classification_des.append(dummy[1])
-            error_entries += dummy[2]
-        df["RCSB_classification"] = classification
-        df["RCSB_description"] = classification_des
+                pdb_ids.append(pdb_id)
+
+        # Use ThreadPoolExecutor to process rows in parallel
+        with ThreadPoolExecutor() as executor:
+            results = list(tqdm(executor.map(get_class, df['fitted_pdbs']), total=len(df)))
+
+        # Unpack results into separate lists
+        RCSB_classification, RCSB_description = zip(*results)
+
+        # Assign the results to the DataFrame
+        df["RCSB_classification"] = RCSB_classification
+        df["RCSB_description"] = RCSB_description
+
         file_name = os.path.basename(file_path)
         file_name = file_name.replace('.csv', '')
-        save_path = save_directory + file_name + '_classified.csv'
+        save_path = DATA_PATH + file_name + '_classified.csv'
         df.to_csv(save_path, index=False)
         os.remove(file_path)
         print(f'Classification info fetched. File wrote at {save_path}')
+        for index, info in df['RCSB_classification'].items():
+            if info == '':
+                error_entries += str(df['emdb_id'][index]) + '\n'
         if error_entries != '':
             print(f"Classification info not found for:\n{error_entries}"
                   f"--------------------------------------------------------------------------------\n")
@@ -206,6 +214,5 @@ def search_qscore(file_path):
             error += str(df['emdb_id'][index]) + '\n'
     if error != '':
         print(
-            f'No Q-score fetched for {error}--------------------------------------------------------------------------------\n')
+            f'No Q-score fetched for \n{error}--------------------------------------------------------------------------------\n')
     return new_file_path
-
