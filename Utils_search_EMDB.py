@@ -67,8 +67,8 @@ def search_emdb(
         print(f"Error fetching data: {e}")
 
     # checking for file names
+    num = 1
     if file_name is None:
-        num = 1
         file_name = f'download_file_{num:02}.csv'
         full_path = os.path.join(save_directory, file_name)
         while any(filename.startswith(f'download_file_{num:02}') for filename in os.listdir(save_directory)):
@@ -80,17 +80,37 @@ def search_emdb(
     with open(full_path, 'w') as out:
         out.write(output)
         count = output.count('\n') - 1
-    print(f'EMDB data fetched. File wrote: {file_name} at {full_path}\nEntries fetched: {count}.')
+    print(f'EMDB data fetched. File wrote at {full_path}\nEntries fetched: {count}.')
     print('--------------------------------------------------------------------------------\n')
     if fetch_classification and not fetch_qscore:
-        _ = search_rcsb(full_path, save_directory)
+        new_path = search_rcsb(full_path)
     elif fetch_qscore and not fetch_classification:
-        search_qscore(full_path)
+        new_path = search_qscore(full_path)
     elif fetch_classification and fetch_qscore:
-        search_qscore(search_rcsb(full_path, save_directory))
+        new_path = search_qscore(search_rcsb(full_path))
+    else:
+        new_path = full_path
+    print('--------------------------------------------------------------------------------')
+    print('Creating final review file...')
+    df = pd.read_csv(new_path)
+    # List of required columns
+    review_columns = ['title', 'resolution', 'emdb_id', 'fitted_pdbs', 'sample_info_string',
+                        'xref_UNIPROTKB', 'RCSB_classification', 'Q-score']
+    # Check which required columns are present in the DataFrame
+    existing_columns = [col for col in review_columns if col in df.columns]
+    # Print a message if any columns are missing
+    missing_columns = [col for col in review_columns if col not in df.columns]
+    if missing_columns:
+        print(f"Warning: Missing columns in CSV file: {', '.join(missing_columns)}")
+    # Create a new DataFrame with the existing required columns
+    new_df = df[existing_columns]
+    final_path = full_path.replace('.csv','_review.csv')
+    new_df.to_csv(final_path, index=False)
+    print(f'Final review file created at: {final_path}')
+    print('--------------------------------------------------------------------------------\n')
 
 
-def search_rcsb(file_path, save_directory):
+def search_rcsb(file_path):
     """
     Read fitted_pdbs info and add classification and classification description for each entry
     file_path: path to .csv file
@@ -129,10 +149,10 @@ def search_rcsb(file_path, save_directory):
         df["RCSB_description"] = classification_des
         file_name = os.path.basename(file_path)
         file_name = file_name.replace('.csv', '')
-        save_path = save_directory + file_name + '_classified.csv'
+        save_path = DATA_PATH + file_name + '_classified.csv'
         df.to_csv(save_path, index=False)
         os.remove(file_path)
-        print(f'Classification info fetched. File wrote: {file_name} at {save_path}')
+        print(f'Classification info fetched. File wrote at {save_path}')
         if error_entries != '':
             print(f"Classification info not found for:\n{error_entries}"
                   f"--------------------------------------------------------------------------------\n")
@@ -175,12 +195,13 @@ def search_qscore(file_path):
     new_file_path = file_path.replace('.csv', '')
     new_file_path += '_qscore.csv'
     os.rename(file_path, new_file_path)
-    print(f'Q-score fetched. File wrote: {os.path.basename(file_path)} at {new_file_path}.')
+    print(f'Q-score fetched. File wrote at {new_file_path}.')
     # output error message
     error = ''
     for index, qscore in df['Q-score'].items():
         if qscore == '':
             error += str(df['emdb_id'][index]) + '\n'
     if error != '':
-        print(f'No Q-score fetched for {error}--------------------------------------------------------------------------------\n')
-
+        print(
+            f'No Q-score fetched for {error}--------------------------------------------------------------------------------\n')
+    return new_file_path
