@@ -81,8 +81,8 @@ def search_emdb(
     with open(full_path, 'w') as out:
         out.write(output)
         count = output.count('\n') - 1
-    print(f'EMDB data fetched. File wrote at {full_path}\nEntries fetched: {count}.')
-    print('--------------------------------------------------------------------------------\n')
+    print('EMDB data fetched.')
+
     if fetch_classification and not fetch_qscore:
         new_path = search_rcsb(full_path, save_directory)
     elif fetch_qscore and not fetch_classification:
@@ -108,7 +108,7 @@ def search_emdb(
     final_path = full_path.replace('.csv','_review.csv')
     new_df.to_csv(final_path, index=False)
     print(f'Final review file created at: {final_path}')
-    print('--------------------------------------------------------------------------------\n')
+    # print('--------------------------------------------------------------------------------\n')
 
 
 def get_class(emdb_id,pdb_id):
@@ -154,12 +154,12 @@ def search_rcsb(file_path, save_directory):
         save_path = save_directory + file_name + '_classified.csv'
         df.to_csv(save_path, index=False)
         os.remove(file_path)
-        print(f'Classification info fetched. File wrote at {save_path}')
+        print('Classification info fetched.')
         if error_entries != '':
-            print(f"Classification info not found for:\n{error_entries}"
-                  f"--------------------------------------------------------------------------------\n")
-        else:
-            print("--------------------------------------------------------------------------------\n")
+            print(f"Classification info not found for:\n{error_entries}")
+                #   f"--------------------------------------------------------------------------------\n")
+        # else:
+            # print("--------------------------------------------------------------------------------\n")
         return save_path
     else:
         print("The column 'fitted_pdbs' does not exist in the DataFrame.")
