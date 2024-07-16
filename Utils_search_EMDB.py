@@ -2,7 +2,6 @@ import requests
 import pandas as pd
 import os
 from tqdm import tqdm
-import csv
 
 DATA_PATH = r'C:/Users/30105/PycharmProjects/pythonProject/'
 fields = ("emdb_id,title,structure_determination_method,resolution,resolution_method,fitted_pdbs,current_status,"
@@ -12,7 +11,9 @@ fields = ("emdb_id,title,structure_determination_method,resolution,resolution_me
           "additional_map_filename,half_map_filename,software,assembly_molecular_weight,xref_UNIPROTKB,xref_CPX,"
           "xref_EMPIAR,xref_PFAM,xref_CATH,xref_GO,xref_INTERPRO,xref_CHEBI,xref_CHEMBL,xref_DRUGBANK,xref_PDBEKB,"
           "xref_ALPHAFOLD")
-#fields = 'emdb_id,title,resolution,fitted_pdbs,xref_UNIPROTKB,xref_ALPHAFOLD'
+
+
+# fields = 'emdb_id,title,resolution,fitted_pdbs,xref_UNIPROTKB,xref_ALPHAFOLD'
 
 
 def search_emdb(
@@ -55,7 +56,6 @@ def search_emdb(
     print('\n--------------------------------------------------------------------------------\nFetching EMDB data...')
     url = 'https://www.ebi.ac.uk/emdb/api/search/'
     output = ''
-    query += ' AND xref_links:"pdb"'
     try:
         r = requests.get(url + query + ' AND xref_links:"pdb"',
                          params={'rows': rows, 'fl': fl}, headers={'accept': 'text/csv'})
@@ -97,7 +97,8 @@ def search_rcsb(file_path, save_directory):
     return: path to classified .csv file
     """
     df = pd.read_csv(file_path)
-    print("--------------------------------------------------------------------------------\nFetching classification info...")
+    print(
+        "--------------------------------------------------------------------------------\nFetching classification info...")
     if 'fitted_pdbs' in df.columns:
         url = 'https://data.rcsb.org/rest/v1/core/entry/'
         classification = []
@@ -142,87 +143,16 @@ def search_rcsb(file_path, save_directory):
         print("The column 'fitted_pdbs' does not exist in the DataFrame.")
 
 
-# This is a helper function that sends and receives requests
-def get_emdb_validation_data(entry_ids):
-    data = {}
+def get_qscore(emdb_map_id):
+    entry_id = emdb_map_id.replace('EMD-', '')
+    url = f"https://www.ebi.ac.uk/emdb/api/analysis/{entry_id}"
     session = requests.Session()
-    # Send API request for each entry ID
-    #print('Fetching EMDB validation data...')
-    for entry_id in tqdm(entry_ids, desc="Processing entries"):
-        entry_id = entry_id.replace('EMD-', '')
-        url = f"https://www.ebi.ac.uk/emdb/api/analysis/{entry_id}"
-        response = session.get(url)
-        if response.status_code == 200:
-            data[entry_id] = response.json()
-        else:
-            data[entry_id] = f"Failed to retrieve data: {response.status_code}"
-    # Close the session
-    session.close()
-    return data
-
-
-# This function retrieves the qscores from the dictionary returned from the request
-def get_average_qscores(entry_ids):
-    data = get_emdb_validation_data(entry_ids)
-    qscores = {}
-    for entry_id in entry_ids:
-        try:
-            if isinstance(data[entry_id], dict):
-                qscores[entry_id] = data[entry_id][entry_id]["qscore"]["allmodels_average_qscore"]
-            else:
-                # Contains the error response status code because a dictionary was not returned
-                qscores[entry_id] = data[entry_id]
-        except Exception as e: # Catches some strange errors. Usually won't happen
-            qscores[entry_id] = "Q-score not found in the data"
-    return qscores
-
-
-# This function writes the qscores to a CSV file
-def write_qscores_to_csv(qscores, filename="emdb_qscores.csv"):
-    with open(filename, 'w', newline='') as csvfile:
-        fieldnames = ['EMDB ID', 'Average Q-score']
-        writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
-
-        writer.writeheader()
-        for emdb_id, qscore in qscores.items():
-            writer.writerow({'EMDB ID': emdb_id, 'Average Q-score': qscore})
-
-
-# This function appends qscores to an existing CSV file with an option to include EMDB IDs
-def append_qscores_to_csv(qscores, include_ids=True, filename="emdb_qscores.csv"):
-    # Check if the file exists and read the existing data if it does
-    if os.path.exists(filename):
-        with open(filename, 'r', newline='') as csvfile:
-            reader = csv.reader(csvfile)
-            existing_data = [row for row in reader]
-    else:
-        existing_data = []
-
-    # Determine the next available column index
-    next_column = len(existing_data[0]) if existing_data else 0
-
-    # Prepare the new header if needed
-    if not existing_data:
-        if include_ids:
-            existing_data.append(['EMDB ID', 'Average Q-score'])
-        else:
-            existing_data.append(['Average Q-score'])
-
-    # Add new data to the existing data structure
-    for idx, (emdb_id, qscore) in enumerate(qscores.items()):
-        if include_ids:
-            if len(existing_data) <= idx + 1:  # Add new row if necessary
-                existing_data.append([''] * next_column)
-            existing_data[idx + 1].extend([emdb_id, qscore])
-        else:
-            if len(existing_data) <= idx + 1:  # Add new row if necessary
-                existing_data.append([''] * next_column)
-            existing_data[idx + 1].append(qscore)
-
-    # Write the updated data back to the file
-    with open(filename, 'w', newline='') as csvfile:
-        writer = csv.writer(csvfile)
-        writer.writerows(existing_data)
+    response = session.get(url)
+    try:
+        qscore = response.json()[entry_id]["qscore"]["allmodels_average_qscore"]
+    except Exception as e:
+        qscore = ''
+    return qscore
 
 
 def search_qscore(file_path):
@@ -238,16 +168,19 @@ def search_qscore(file_path):
     # for id, score in average_qscores.items():
     #     print(f"EMDB ID {id}: Q-score = {score}")
     print('--------------------------------------------------------------------------------\nFetching Q-score...')
+    tqdm.pandas()
     df = pd.read_csv(file_path)
-    entry_ids = df['emdb_id'].tolist()
-    #append_qscores_to_csv(get_average_qscores(entry_ids),filename=file_path)
-    average_qscores = get_average_qscores(entry_ids)
-    # Add the new column with Q-scores
-    df['Q-score'] = df['emdb_id'].map(average_qscores)
-    # Save the updated DataFrame back to the CSV file
+    df['Q-score'] = df['emdb_id'].progress_apply(get_qscore)
     df.to_csv(file_path, index=False)
     new_file_path = file_path.replace('.csv', '')
     new_file_path += '_qscore.csv'
     os.rename(file_path, new_file_path)
     print(f'Q-score fetched. File wrote: {os.path.basename(file_path)} at {new_file_path}.')
-    print('--------------------------------------------------------------------------------\n')
+    # output error message
+    error = ''
+    for index, qscore in df['Q-score'].items():
+        if qscore == '':
+            error += str(df['emdb_id'][index]) + '\n'
+    if error != '':
+        print(f'No Q-score fetched for {error}--------------------------------------------------------------------------------\n')
+
