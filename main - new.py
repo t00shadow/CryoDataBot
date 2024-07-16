@@ -3,11 +3,11 @@ import os
 import shutil
 
 import numpy as np
-import pandas as pd
+# import pandas as pd
 
 from Utils_search_EMDB import search_emdb, get_emdb_validation_data, get_average_qscores, write_qscores_to_csv, append_qscores_to_csv
 from Utils_preprocess import read_csv_info, fetch_map_model, normalize_raw_map
-from Utils_generate_dataset import data_to_npy
+from Utils_generate_dataset import data_to_npy, splitfolders
 
 
 temp_sample_path = "path_of_downloaded_temp_sample"  # we set a default path
@@ -28,7 +28,6 @@ def main(output_dir, csv_path):
     # 1.2 Refine entries in the csv file
 
 
-
     # Step 2. Download map and model files and do preprocessing
     # 2.1 Read map list and generate raw_map and model downloading paths
     csv_info, raw_map_paths, model_paths = read_csv_info(csv_path)
@@ -39,6 +38,7 @@ def main(output_dir, csv_path):
 
     # 2.3 Resample and normalize map files
     map_paths = normalize_raw_map(csv_info, raw_map_paths)
+
 
     # Step 3. Generate a dataset (3d numpy arraies) from map and model files
     # 3.1 Read map, model files and create lables
@@ -86,25 +86,18 @@ def main(output_dir, csv_path):
     for key, value in ratio_of_tag.items():
         print(f'{key}: {value}')
 
-    # 3.3 Split data into training and testing dataset
-    import splitfolders
-    # sample_path = os.path.join(output_dir, "TEST_with_blank", "train_val_data")
-    # sample_path = os.path.join(output_dir, "TEST_with_all", "train_val_data")
-    sample_path = os.path.join(output_dir, "TEST_20240520",
-                                "train_val_data")
 
-    os.makedirs(sample_path, exist_ok=True)
-    splitfolders.ratio(input=temp_sample_path,
-                        output=sample_path,
-                        seed=44,
-                        ratio=(.8, .2),
-                        group_prefix=None,
-                        move=True)
-    shutil.rmtree(temp_sample_path)
+
+
+
+
+
+    # 3.3 Split data into training and validation dataset
+    sample_path = os.path.join(output_dir, "dataset")
+    splitfolders(temp_sample_path, sample_path)
 
     # 3.4 Calculate weight, create weight file and save it (ratio of tags)
-    weight_path = os.path.join(sample_path,
-                                'class_weight_for_training.txt')
+    weight_path = os.path.join(sample_path, 'class_weight_for_training.txt')
     with open(weight_path, "w") as file:
         json.dump(ratio_of_tag, file)
 

@@ -10,6 +10,8 @@ import numpy as np
 import sys
 from pathlib import Path
 import random
+import splitfolders
+
 
 
 from MRC import MRC
@@ -67,12 +69,6 @@ atoms_rna_backbone = [
 # Generate taged files (num = CLASSES) of mrc format from atomic model data
 GENERATE_MRC_TEST = False
 CLASSES = 24
-
-
-def 
-
-
-
 
 
 
@@ -501,6 +497,19 @@ def atom_coord_cif_protein_secondary(structure,
     # print(coords_others1, coords_others2)
 
     return [coords_helices, coords_sheets, coords_loops]
+
+
+def splitfolders(temp_sample_path, sample_path):
+    os.makedirs(sample_path, exist_ok=True)
+    splitfolders.ratio(input=temp_sample_path,
+                        output=sample_path,
+                        seed=44,
+                        ratio=(.8, .2),          # we set the ratio / let users do it
+                        group_prefix=None,
+                        move=True)
+    shutil.rmtree(temp_sample_path)
+
+
 
 
 if __name__ == "__main__":

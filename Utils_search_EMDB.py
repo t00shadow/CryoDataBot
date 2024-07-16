@@ -40,6 +40,7 @@ def search_emdb(
     """
     url = 'https://www.ebi.ac.uk/emdb/api/search/'
     output = ''
+    query += ' AND xref_links:"pdb"'
     try:
         r = requests.get(url + query, params={'rows': rows, 'fl': fl}, headers={'accept': 'text/csv'})
         if r.status_code == 200:
