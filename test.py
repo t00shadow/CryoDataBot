@@ -14,7 +14,7 @@ output_dir = "path_of_output_dataset"
 
 query = 'ribosome AND sample_type:"complex" AND resolution:[5 TO 10}'
 csv_path = "./"
-fetch_bool = False
+fetch_bool = True
 
 
 search_emdb(query, save_directory=csv_path, fetch_classification=fetch_bool)
