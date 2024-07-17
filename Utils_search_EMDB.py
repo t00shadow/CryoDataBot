@@ -36,7 +36,7 @@ def search_emdb(
 
     # save_directory(required): string, path to save
     # Default: DATA_PATH
-    
+
     # file_names(optional): string, desired file names
     # Example: 'Ribosome'
     # Default: 'download_file_0'
@@ -82,8 +82,8 @@ def search_emdb(
     with open(full_path, 'w') as out:
         out.write(output)
         count = output.count('\n') - 1
-    print(f'EMDB data fetched. File wrote at {full_path}\nEntries fetched: {count}.')
-    print('--------------------------------------------------------------------------------\n')
+    print('EMDB data fetched.')
+
     if fetch_classification and not fetch_qscore:
         new_path = search_rcsb(full_path, save_directory)
     elif fetch_qscore and not fetch_classification:
@@ -92,8 +92,7 @@ def search_emdb(
         new_path = search_qscore(search_rcsb(full_path, save_directory))
     else:
         new_path = full_path
-    print('--------------------------------------------------------------------------------')
-    print('Creating final review file...')
+
     df = pd.read_csv(new_path)
     # List of required columns
     review_columns = ['title', 'resolution', 'emdb_id', 'fitted_pdbs', 'sample_info_string',
@@ -108,7 +107,8 @@ def search_emdb(
     new_df = df[existing_columns]
     final_path = full_path.replace('.csv','_review.csv')
     new_df.to_csv(final_path, index=False)
-    print(f'Final review file created at: {final_path}')
+    print('--------------------------------------------------------------------------------\n')
+    print(f'Final review file created: {final_path}')
     print('--------------------------------------------------------------------------------\n')
 
 
@@ -131,10 +131,9 @@ def search_rcsb(file_path, save_directory):
     return: path to classified .csv file
     """
     df = pd.read_csv(file_path)
-    print(
-        "--------------------------------------------------------------------------------\nFetching classification info...")
+    print("\nFetching classification info...")
     if 'fitted_pdbs' in df.columns:
-        error_entries = ''
+        error_entries = []
         pdb_ids = []
         for _, pdb_id in df['fitted_pdbs'].items():
             if pdb_id == 'nan':
@@ -146,7 +145,7 @@ def search_rcsb(file_path, save_directory):
 
         # Use ThreadPoolExecutor to process rows in parallel
         with ThreadPoolExecutor() as executor:
-            results = list(tqdm(executor.map(get_class, df['fitted_pdbs']), total=len(df)))
+            results = list(tqdm(executor.map(get_class, pdb_ids), total=len(df)))
 
         # Unpack results into separate lists
         RCSB_classification, RCSB_description = zip(*results)
@@ -160,15 +159,12 @@ def search_rcsb(file_path, save_directory):
         save_path = save_directory + file_name + '_classified.csv'
         df.to_csv(save_path, index=False)
         os.remove(file_path)
-        print(f'Classification info fetched. File wrote at {save_path}')
+        print(f'Classification info fetched.')
         for index, info in df['RCSB_classification'].items():
             if info == '':
-                error_entries += str(df['emdb_id'][index]) + '\n'
-        if error_entries != '':
-            print(f"Classification info not found for:\n{error_entries}"
-                  f"--------------------------------------------------------------------------------\n")
-        else:
-            print("--------------------------------------------------------------------------------\n")
+                error_entries.append(str(df['emdb_id'][index]))
+        if error_entries:
+            print(f"Classification info not found for {len(error_entries)} enteries:\n{error_entries}")
         return save_path
     else:
         print("The column 'fitted_pdbs' does not exist in the DataFrame.")
@@ -198,7 +194,7 @@ def search_qscore(file_path):
     # # Formating for terminal output
     # for id, score in average_qscores.items():
     #     print(f"EMDB ID {id}: Q-score = {score}")
-    print('--------------------------------------------------------------------------------\nFetching Q-score...')
+    print('\nFetching Q-score...')
     tqdm.pandas()
     df = pd.read_csv(file_path)
     with ThreadPoolExecutor() as executor:
@@ -207,13 +203,12 @@ def search_qscore(file_path):
     new_file_path = file_path.replace('.csv', '')
     new_file_path += '_qscore.csv'
     os.rename(file_path, new_file_path)
-    print(f'Q-score fetched. File wrote at {new_file_path}.')
+    print(f'Q-score fetched. File created: {new_file_path}.')
     # output error message
-    error = ''
+    error = []
     for index, qscore in df['Q-score'].items():
         if qscore == '':
-            error += str(df['emdb_id'][index]) + '\n'
-    if error != '':
-        print(
-            f'No Q-score fetched for \n{error}--------------------------------------------------------------------------------\n')
+            error.append(str(df['emdb_id'][index]))
+    if error:
+        print(f'No Q-score fetched for {len(error)} enteries:\n{error}')
     return new_file_path
