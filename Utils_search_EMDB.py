@@ -183,17 +183,9 @@ def get_qscore(emdb_map_id):
 
 
 def search_qscore(file_path):
-    # # Example usage with a list of EMDB IDs
-    # entry_ids = ["9964", "3000", "1010", "10778", "14864"]  # Add more IDs as needed
-    # average_qscores = get_average_qscores(entry_ids)
-    # print(average_qscores) # Returns dictionary
-
-    # # write_qscores_to_csv(average_qscores)
-    # # append_qscores_to_csv(average_qscores, include_ids=True)
-
-    # # Formating for terminal output
-    # for id, score in average_qscores.items():
-    #     print(f"EMDB ID {id}: Q-score = {score}")
+    """
+    Append Q-score to .csv file
+    """
     print('\nFetching Q-score...')
     tqdm.pandas()
     df = pd.read_csv(file_path)
