@@ -72,6 +72,7 @@ def search_emdb(
     num = 1
     if file_name is None:
         file_name = f'download_file_{num:02}.csv'
+        # file_name = query
         full_path = os.path.join(save_directory, file_name)
         while any(filename.startswith(f'download_file_{num:02}') for filename in os.listdir(save_directory)):
             num += 1

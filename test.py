@@ -12,7 +12,7 @@ from Utils_generate_dataset import data_to_npy
 
 output_dir = "path_of_output_dataset"
 
-query = 'ribosome AND sample_type:"complex" AND resolution:[5 TO 10}'
+query = 'rna AND sample_type:"complex" AND resolution:[5 TO 10}'
 csv_path = "./"
 fetch_bool = True
 
