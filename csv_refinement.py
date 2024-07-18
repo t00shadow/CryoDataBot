@@ -1,4 +1,5 @@
 import pandas as pd
+import os
 from concurrent.futures import ProcessPoolExecutor, as_completed
 from tqdm import tqdm
 from collections import Counter
@@ -62,6 +63,7 @@ def hard_pass_filter(raw_df: pd.DataFrame, threshold):
         # progress bar
         pbar.update(mask.count(False)+1)
         if len(process_df) <= 1:
+            saved_df = pd.concat([saved_df, process_df.head(1)], ignore_index=True)
             pbar.update(1)
             break
     return saved_df, dropped_df
