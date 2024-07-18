@@ -84,7 +84,7 @@ def refine_csv(file_path, save_path, threshold):
     final_path = save_path + file_name + '_filtered.csv'
     pd.concat([soft_filtered, hard_filtered]).reset_index(drop=True).\
         to_csv(final_path, index=False)
-    print(f'Refinement completed. File wrote at {final_path}')
+    print(f'Refinement completed, entries kept: {len(hard_kept)}. File wrote at {final_path}.')
     print('--------------------------------------------------------------------------------\n')
 
 
