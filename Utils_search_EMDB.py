@@ -232,8 +232,8 @@ def process_similar(uniprotkb_1, uniprotkb_2, threshold) -> bool:
 
 def hard_pass_filter(raw_df: pd.DataFrame, threshold):
     process_df = raw_df
-    saved_df = pd.DataFrame(columns=raw_df.columns)
-    dropped_df = pd.DataFrame(columns=raw_df.columns)
+    saved_df = pd.DataFrame()
+    dropped_df = pd.DataFrame()
     pbar = tqdm(total=len(raw_df))  # Progress bar
     while True:
         # Compare the aim row with other rows
@@ -262,6 +262,8 @@ def hard_pass_filter(raw_df: pd.DataFrame, threshold):
             saved_df = pd.concat([saved_df, process_df.head(1)], ignore_index=True)
             pbar.update(1)
             break
+        saved_df.columns = raw_df.columns
+        dropped_df.columns = raw_df.columns
     return saved_df, dropped_df
 
 
