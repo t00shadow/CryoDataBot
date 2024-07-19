@@ -230,6 +230,17 @@ def process_similar(uniprotkb_1, uniprotkb_2, threshold) -> bool:
         return False
 
 
+def q_score_filter(df, threshold):
+    # Sort the DataFrame by 'q_score'
+    df_sorted = df.sort_values(by='Q-score')
+
+    # Split the DataFrame into 'filtered' and 'kept'
+    filtered = df_sorted[df_sorted['Q-score'] < threshold].reset_index(drop=True)
+    kept = df_sorted[df_sorted['Q-score'] >= threshold].reset_index(drop=True)
+
+    return filtered, kept
+
+
 def hard_pass_filter(raw_df: pd.DataFrame, threshold):
     process_df = raw_df
     saved_df = pd.DataFrame()
@@ -267,25 +278,30 @@ def hard_pass_filter(raw_df: pd.DataFrame, threshold):
     return saved_df, dropped_df
 
 
-def refine_csv(file_path, save_path, threshold=100):
+def refine_csv(file_path, save_path, uni_threshold, q_threshold):
     """
     :param file_path: path to .csv file
     :param save_path:
-    :param threshold: percentage similarity
+    :param uni_threshold: percentage uniprot similarity
+    :param uni_threshold: q_score threshold
     """
     print('\n--------------------------------------------------------------------------------\nRefining .csv file...')
     file_name = os.path.basename(file_path)
     file_name = file_name.replace('.csv', '')
     raw_df = pd.read_csv(file_path)
-    #soft_kept, soft_filtered = soft_pass_filter(raw_df)
-    #hard_kept, hard_filtered = hard_pass_filter(soft_kept, threshold)
-    hard_kept, hard_filtered = hard_pass_filter(raw_df, threshold)
+
+    # filter by Q-score
+    q_kept, q_filtered = q_score_filter(raw_df,q_threshold)
+    # filter by hard_pass
+    hard_kept, hard_filtered = hard_pass_filter(q_kept, uni_threshold)
+    # join hard_pass filtered and q_score filtered
+    final_filtered = pd.concat([hard_filtered, q_filtered], ignore_index=True)
+
     kept_path = save_path + file_name + '_kept.csv'
     hard_kept.to_csv(kept_path, index=False)
     filtered_path = save_path + file_name + '_filtered.csv'
-    hard_filtered.to_csv(filtered_path, index=False)
-    #pd.concat([soft_filtered, hard_filtered]).reset_index(drop=True).\
-    #    to_csv(filter_path, index=False)
+    final_filtered.to_csv(filtered_path, index=False)
+
     print(f'Refinement completed, entries kept: {len(hard_kept)}. File wrote at {kept_path}.')
     print('--------------------------------------------------------------------------------\n')
 
