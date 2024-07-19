@@ -93,5 +93,3 @@ if __name__ == '__main__':
     csv_path = r'C:/Users/30105/PycharmProjects/pythonProject/download_file_01_review.csv'
     save_dir = r'C:/Users/30105/PycharmProjects/pythonProject/'
     refine_csv(csv_path, save_dir, threshold=50)
-
-

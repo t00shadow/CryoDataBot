@@ -11,7 +11,7 @@ from Utils_generate_dataset import data_to_npy, splitfolders
 
 
 temp_sample_path = "path_of_downloaded_temp_sample"  # we set a default path
-csv_path = "path_of_downloaded_csv_file"  # we set a default path
+csv_download_path = "directory_for_downloading_csv_file"  # we set a default path
 
 output_dir = "path_of_output_dataset"  # user input for path of all datasets
 query = "ribosome"  # user input for EMDB search
@@ -19,11 +19,11 @@ fetch_bool = False  # user input for RCSB search
 MODEL_PARTS = ["a", "b", "c", ...]  # user input as datastes' name
 
 
-def main(output_dir, csv_path):
+def main(output_dir, csv_download_path):
 
     # Step 1. Read search queries for EMDB search, download the information and refine it
     # 1.1 Search EMDB and download the csv file
-    search_emdb(query, csv_path, fetch_classification=fetch_bool)
+    csv_path = search_emdb(query, csv_download_path, fetch_classification=fetch_bool)
 
     # 1.2 Refine entries in the csv file
     refine_csv(csv_path, output_dir, threshold=100)

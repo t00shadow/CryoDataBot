@@ -21,7 +21,7 @@ fields = ("emdb_id,title,structure_determination_method,resolution,resolution_me
 
 def search_emdb(
         query,
-        save_directory=DATA_PATH,
+        save_path=DATA_PATH,
         file_name=None,
         fl=fields,
         rows=9999999,
@@ -36,7 +36,7 @@ def search_emdb(
     # The query can also be composed by multiple search terms concatenated by AND or OR terms
     # Example: 'sample_type:"virus" and resolution [* TO 3]'
 
-    # save_directory(required): string, path to save
+    # save_path(required): string, path to save
     # Default: DATA_PATH
 
     # file_names(optional): string, desired file names
@@ -75,24 +75,24 @@ def search_emdb(
     if file_name is None:
         file_name = f'download_file_{num:02}.csv'
         # file_name = query
-        full_path = os.path.join(save_directory, file_name)
-        while any(filename.startswith(f'download_file_{num:02}') for filename in os.listdir(save_directory)):
+        full_path = os.path.join(save_path, file_name)
+        while any(filename.startswith(f'download_file_{num:02}') for filename in os.listdir(save_path)):
             num += 1
             file_name = f'download_file_{num:02}.csv'
-            full_path = os.path.join(save_directory, file_name)
+            full_path = os.path.join(save_path, file_name)
     else:
-        full_path = save_directory + file_name + '.csv'
+        full_path = save_path + file_name + '.csv'
     with open(full_path, 'w') as out:
         out.write(output)
         count = output.count('\n') - 1
     print('EMDB data fetched.')
 
     if fetch_classification and not fetch_qscore:
-        new_path = search_rcsb(full_path, save_directory)
+        new_path = search_rcsb(full_path, save_path)
     elif fetch_qscore and not fetch_classification:
         new_path = search_qscore(full_path)
     elif fetch_classification and fetch_qscore:
-        new_path = search_qscore(search_rcsb(full_path, save_directory))
+        new_path = search_qscore(search_rcsb(full_path, save_path))
     else:
         new_path = full_path
 
@@ -114,6 +114,8 @@ def search_emdb(
     print(f'Final review file created: {final_path}')
     print('--------------------------------------------------------------------------------\n')
 
+    return final_path
+
 
 def get_class(pdb_id):
     url = 'https://data.rcsb.org/rest/v1/core/entry/'
@@ -127,7 +129,7 @@ def get_class(pdb_id):
         return '', ''
 
 
-def search_rcsb(file_path, save_directory):
+def search_rcsb(file_path, save_path):
     """
     Read fitted_pdbs info and add classification and classification description for each entry
     file_path: path to .csv file
@@ -159,7 +161,7 @@ def search_rcsb(file_path, save_directory):
 
         file_name = os.path.basename(file_path)
         file_name = file_name.replace('.csv', '')
-        save_path = save_directory + file_name + '_classified.csv'
+        save_path = save_path + file_name + '_classified.csv'
         df.to_csv(save_path, index=False)
         os.remove(file_path)
         print(f'Classification info fetched.')
@@ -228,7 +230,7 @@ def process_similar(uniprotkb_1, uniprotkb_2, threshold) -> bool:
         return False
 
 
-def hard_pass_filter(raw_df: pd.DataFrame, threshold=100):
+def hard_pass_filter(raw_df: pd.DataFrame, threshold):
     process_df = raw_df
     saved_df = pd.DataFrame(columns=raw_df.columns)
     dropped_df = pd.DataFrame(columns=raw_df.columns)
@@ -263,7 +265,7 @@ def hard_pass_filter(raw_df: pd.DataFrame, threshold=100):
     return saved_df, dropped_df
 
 
-def refine_csv(file_path, save_path, threshold):
+def refine_csv(file_path, save_path, threshold=100):
     """
     :param file_path: path to .csv file
     :param save_path:
@@ -278,10 +280,11 @@ def refine_csv(file_path, save_path, threshold):
     hard_kept, hard_filtered = hard_pass_filter(raw_df, threshold)
     kept_path = save_path + file_name + '_kept.csv'
     hard_kept.to_csv(kept_path, index=False)
-    filter_path = save_path + file_name + '_filtered.csv'
-    hard_filtered.to_csv(filter_path, index=False)
+    filtered_path = save_path + file_name + '_filtered.csv'
+    hard_filtered.to_csv(filtered_path, index=False)
     #pd.concat([soft_filtered, hard_filtered]).reset_index(drop=True).\
     #    to_csv(filter_path, index=False)
     print(f'Refinement completed, entries kept: {len(hard_kept)}. File wrote at {kept_path}.')
     print('--------------------------------------------------------------------------------\n')
 
+    return kept_path, filtered_path
