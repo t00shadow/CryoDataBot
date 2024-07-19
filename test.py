@@ -17,6 +17,9 @@ csv_download_path = "./"
 fetch_bool = False
 
 
-csv_path = search_emdb(query, save_path=csv_download_path, fetch_classification=fetch_bool)
+# csv_path = search_emdb(query, save_path=csv_download_path, fetch_classification=fetch_bool)
 
+
+
+csv_path = '/home/qiboxu/MyProject/CryoDataBot/download_file_01_review.csv'
 kept_path, filtered_path = refine_csv(csv_path, csv_download_path, threshold=100)
