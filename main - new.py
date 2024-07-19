@@ -5,7 +5,7 @@ import shutil
 import numpy as np
 # import pandas as pd
 
-from Utils_search_EMDB import search_emdb
+from Utils_search_EMDB import search_emdb, refine_csv
 from Utils_preprocess import read_csv_info, fetch_map_model, normalize_raw_map
 from Utils_generate_dataset import data_to_npy, splitfolders
 
@@ -26,7 +26,7 @@ def main(output_dir, csv_path):
     search_emdb(query, csv_path, fetch_classification=fetch_bool)
 
     # 1.2 Refine entries in the csv file
-
+    refine_csv(csv_path, output_dir, threshold=100)
 
     # Step 2. Download map and model files and do preprocessing
     # 2.1 Read map list and generate raw_map and model downloading paths
