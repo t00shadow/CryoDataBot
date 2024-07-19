@@ -5,15 +5,6 @@ from tqdm import tqdm
 from collections import Counter
 
 
-def soft_path_filter(raw_df):
-    non_unique_mask = raw_df.duplicated(subset='xref_UNIPROTKB', keep=False)
-    # Gives you a dataframe that has all the duplicates
-    non_unique_df = raw_df[non_unique_mask].reset_index(drop=True)
-    # Drops the rows that are not unique based on previous dataframe
-    unique_df = raw_df.drop(non_unique_df.index).reset_index(drop=True)
-    return unique_df, non_unique_df
-
-
 def process_similar(uniprotkb_1, uniprotkb_2, threshold) -> bool:
     # change df to lists
     list1 = str(uniprotkb_1).split(',')
