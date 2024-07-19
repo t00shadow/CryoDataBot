@@ -230,17 +230,6 @@ def process_similar(uniprotkb_1, uniprotkb_2, threshold) -> bool:
         return False
 
 
-def q_score_filter(df, threshold):
-    # Sort the DataFrame by 'q_score'
-    df_sorted = df.sort_values(by='Q-score')
-
-    # Split the DataFrame into 'filtered' and 'kept'
-    filtered = df_sorted[df_sorted['Q-score'] < threshold].reset_index(drop=True)
-    kept = df_sorted[df_sorted['Q-score'] >= threshold].reset_index(drop=True)
-
-    return filtered, kept
-
-
 def hard_pass_filter(raw_df: pd.DataFrame, threshold):
     process_df = raw_df
     saved_df = pd.DataFrame()
@@ -276,6 +265,19 @@ def hard_pass_filter(raw_df: pd.DataFrame, threshold):
         saved_df.columns = raw_df.columns
         dropped_df.columns = raw_df.columns
     return saved_df, dropped_df
+
+
+
+
+def q_score_filter(df, threshold):
+    # Sort the DataFrame by 'q_score'
+    df_sorted = df.sort_values(by='Q-score')
+
+    # Split the DataFrame into 'filtered' and 'kept'
+    filtered = df_sorted[df_sorted['Q-score'] < threshold].reset_index(drop=True)
+    kept = df_sorted[df_sorted['Q-score'] >= threshold].reset_index(drop=True)
+
+    return kept, filtered 
 
 
 def refine_csv(file_path, save_path, uni_threshold, q_threshold):

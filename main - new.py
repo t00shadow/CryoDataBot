@@ -28,7 +28,7 @@ def main(output_dir=OUTPUT_DIR, csv_download_path=CSV_DOWNLOAD_PATH):
     csv_path = search_emdb(query=QUERY, save_path=csv_download_path, fetch_classification=FETCH_BOOL)
 
     # 1.2 Refine entries in the csv file
-    kept_path, filtered_path = refine_csv(csv_path, csv_download_path, threshold=THRE_UNI_SIMILARITY)
+    kept_path, filtered_path = refine_csv(csv_path, csv_download_path, uni_threshold=THRE_UNI_SIMILARITY, q_threshold=THRE_Q_SCORE)
 
     # Step 2. Download map and model files and do preprocessing
     # 2.1 Read map list and generate raw_map and model downloading paths
