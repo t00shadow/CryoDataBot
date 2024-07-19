@@ -11,26 +11,28 @@ from Utils_generate_dataset import data_to_npy, splitfolders
 
 
 temp_sample_path = "path_of_downloaded_temp_sample"  # we set a default path
-csv_download_path = "directory_for_downloading_csv_file"  # we set a default path
+CSV_DOWNLOAD_PATH = "directory_for_downloading_csv_file"  # we set a default path
 
-output_dir = "path_of_output_dataset"  # user input for path of all datasets
-query = "ribosome"  # user input for EMDB search
-fetch_bool = False  # user input for RCSB search
+OUTPUT_DIR = "path_of_output_dataset"  # user input for path of all datasets
+QUERY = "ribosome"  # user input for EMDB search
+FETCH_BOOL = False  # user input for RCSB search
 MODEL_PARTS = ["a", "b", "c", ...]  # user input as datastes' name
+THRE_UNI_SIMILARITY = 100  # user input for check UniportID similarity
+THRE_Q_SCORE = 0  # user input for check Q-score values
 
 
-def main(output_dir, csv_download_path):
+def main(output_dir=OUTPUT_DIR, csv_download_path=CSV_DOWNLOAD_PATH):
 
     # Step 1. Read search queries for EMDB search, download the information and refine it
     # 1.1 Search EMDB and download the csv file
-    csv_path = search_emdb(query, csv_download_path, fetch_classification=fetch_bool)
+    csv_path = search_emdb(query=QUERY, save_path=csv_download_path, fetch_classification=FETCH_BOOL)
 
     # 1.2 Refine entries in the csv file
-    refine_csv(csv_path, output_dir, threshold=100)
+    kept_path, filtered_path = refine_csv(csv_path, csv_download_path, threshold=THRE_UNI_SIMILARITY)
 
     # Step 2. Download map and model files and do preprocessing
     # 2.1 Read map list and generate raw_map and model downloading paths
-    csv_info, raw_map_paths, model_paths = read_csv_info(csv_path)
+    csv_info, raw_map_paths, model_paths = read_csv_info(kept_path)
     emdbs, pdbs, resolutions, emdb_ids = csv_info
 
     # 2.2 Download map and model files
