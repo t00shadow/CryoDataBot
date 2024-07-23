@@ -267,8 +267,6 @@ def hard_pass_filter(raw_df: pd.DataFrame, threshold):
     return saved_df, dropped_df
 
 
-
-
 def q_score_filter(df, threshold):
     # Sort the DataFrame by 'q_score'
     df_sorted = df.sort_values(by='Q-score')
