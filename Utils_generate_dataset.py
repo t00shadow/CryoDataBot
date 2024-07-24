@@ -469,7 +469,9 @@ def splitfolders(temp_sample_path, sample_path):
 if __name__ == "__main__":
     map_path = '/home/qiboxu/Database/U_NET/EMDB_PDB_for_U_Net/Filtered_Dateset/Raw/EMD-11893_re_3.33/emd_11893_normalized.mrc'
     model_path = '/home/qiboxu/Database/U_NET/EMDB_PDB_for_U_Net/Filtered_Dateset/Raw/EMD-11893_re_3.33/7ase.cif'
-    model_parts = ['secondary_strctures', 'key_atoms', 'residue_types']
+    # model_parts = [{'secondary_type': 'Helix', 'residue_type': 'ALA', 'atom_type': 'CA', 'tag': 1}]
+    # model_parts = [{'secondary_type': 'Helix', 'residue_type': 'ALA', 'atom_type': 'N', 'tag': 2}]
+    model_parts = [{'secondary_type': '', 'residue_type': 'ALA', 'atom_type': 'CA', 'tag': 3}]
     sample_dir = '/home/qiboxu/Database/U_NET/EMDB_PDB_for_U_Net/Filtered_Dateset/Training/ready_to_train_and_val'
     npy_size = 64
 
