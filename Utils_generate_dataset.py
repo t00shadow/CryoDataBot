@@ -127,6 +127,11 @@ def data_to_npy(map_path: str,
         dis_array = np.array([])
         part_coords = None
         
+        if residue_type == ['']:
+            residue_type = None
+        if atom_type == ['']:
+            atom_type = None
+
         if secondary_type == ['']:
             part_coords = atom_coord_cif(structure, residue_type, atom_type)
             model_data, dis_array = tag_npy(model_data, part_coords, tag, dis_array)
@@ -424,26 +429,28 @@ def atom_coord_cif_protein_secondary(structure,
                     continue
                 chain_info = helices[index]
                 for residue in chain:
-                    if residue.seqid.num in range(chain_info[1], chain_info[2] + 1)\
-                            and residue.name in RESIDUE:
-                        for atom in residue:
-                            if ATOM is not None and atom.name not in ATOM:
+                    if residue.seqid.num in range(chain_info[1], chain_info[2] + 1):
+                            if RESIDUE is not None and residue.name not in RESIDUE:
                                 continue
-                            atom_coord = [atom.pos.z, atom.pos.y, atom.pos.x]
-                            coords_helices.append(atom_coord)
+                            for atom in residue:
+                                if ATOM is not None and atom.name not in ATOM:
+                                    continue
+                                atom_coord = [atom.pos.z, atom.pos.y, atom.pos.x]
+                                coords_helices.append(atom_coord)
             # sheets
             for index, sheet_chian_name in enumerate(chain_sheets):
                 if chain.name != sheet_chian_name:
                     continue
                 chain_info = sheets[index]
                 for residue in chain:
-                    if residue.seqid.num in range(chain_info[1], chain_info[2] + 1)\
-                            and residue.name in RESIDUE:
-                        for atom in residue:
-                            if ATOM is not None and atom.name not in ATOM:
+                    if residue.seqid.num in range(chain_info[1], chain_info[2] + 1):
+                            if RESIDUE is not None and residue.name not in RESIDUE:
                                 continue
-                            atom_coord = [atom.pos.z, atom.pos.y, atom.pos.x]
-                            coords_sheets.append(atom_coord)
+                            for atom in residue:
+                                if ATOM is not None and atom.name not in ATOM:
+                                    continue
+                                atom_coord = [atom.pos.z, atom.pos.y, atom.pos.x]
+                                coords_sheets.append(atom_coord)
 
     coords_loops = [
         x for x in coords if not (x in coords_sheets or x in coords_helices)
@@ -469,9 +476,13 @@ def splitfolders(temp_sample_path, sample_path):
 if __name__ == "__main__":
     map_path = '/home/qiboxu/Database/U_NET/EMDB_PDB_for_U_Net/Filtered_Dateset/Raw/EMD-11893_re_3.33/emd_11893_normalized.mrc'
     model_path = '/home/qiboxu/Database/U_NET/EMDB_PDB_for_U_Net/Filtered_Dateset/Raw/EMD-11893_re_3.33/7ase.cif'
-    # model_parts = [{'secondary_type': 'Helix', 'residue_type': 'ALA', 'atom_type': 'CA', 'tag': 1}]
-    # model_parts = [{'secondary_type': 'Helix', 'residue_type': 'ALA', 'atom_type': 'N', 'tag': 2}]
-    model_parts = [{'secondary_type': '', 'residue_type': 'ALA', 'atom_type': 'CA', 'tag': 3}]
+    # for testing
+    #model_parts = [{'secondary_type': 'Helix', 'residue_type': 'ALA', 'atom_type': 'CA', 'tag': 1}]
+    #model_parts = [{'secondary_type': 'Helix', 'residue_type': 'ALA', 'atom_type': 'N', 'tag': 2}]
+    #model_parts = [{'secondary_type': '', 'residue_type': 'ALA', 'atom_type': 'CA', 'tag': 3}]
+    #model_parts = [{'secondary_type': 'Loop', 'residue_type': '', 'atom_type': '', 'tag': 4}]
+    model_parts = [{'secondary_type': 'Sheet', 'residue_type': '', 'atom_type': '', 'tag': 5}]
+
     sample_dir = '/home/qiboxu/Database/U_NET/EMDB_PDB_for_U_Net/Filtered_Dateset/Training/ready_to_train_and_val'
     npy_size = 64
 
