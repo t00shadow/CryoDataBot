@@ -71,10 +71,6 @@ GENERATE_MRC_TEST = False
 CLASSES = 24
 
 
-
-
-
-
 def data_to_npy(map_path: str,
                 model_path: str,
                 model_parts: list,
@@ -340,36 +336,6 @@ def split_to_npy(data,
     return num_tags, sample_num
 
 
-def atom_coord_cif(structure, RESIDUE=None, ATOM=None):
-    """
-    Returns the atomic coordinates from a PDB structure for specific residues and atoms.
-
-    Args:
-        structure (Structure): PDB structure.
-        RESIDUE (list, optional): List of residue names to select. Defaults to None (all residues).
-        ATOM (list, optional): List of atom names to select. Defaults to None (all atoms).
-
-    Returns:
-        list: List of atomic coordinates as lists [z, y, x].
-    """
-    coords = []
-    for model in structure:
-        for chain in model:
-            for residue in chain:
-                if RESIDUE is not None and residue.name not in RESIDUE:
-                    continue
-                for atom in residue:
-                    if ATOM is not None and atom.name not in ATOM:
-                        continue
-                    # coords.append(
-                    #     (int(round(atom.pos.z)), int(round(atom.pos.y)),
-                    #      int(round(atom.pos.x)))
-                    # )
-                    # coords.append(atom.pos),
-                    coords.append([atom.pos.z, atom.pos.y, atom.pos.x])
-    return coords
-
-
 def tag_npy(model_data,
             part_coords,
             tag_id,
@@ -419,6 +385,36 @@ def tag_npy(model_data,
                           around_coord[2]] = dist
 
     return model_data, dis_array
+
+
+def atom_coord_cif(structure, RESIDUE=None, ATOM=None):
+    """
+    Returns the atomic coordinates from a PDB structure for specific residues and atoms.
+
+    Args:
+        structure (Structure): PDB structure.
+        RESIDUE (list, optional): List of residue names to select. Defaults to None (all residues).
+        ATOM (list, optional): List of atom names to select. Defaults to None (all atoms).
+
+    Returns:
+        list: List of atomic coordinates as lists [z, y, x].
+    """
+    coords = []
+    for model in structure:
+        for chain in model:
+            for residue in chain:
+                if RESIDUE is not None and residue.name not in RESIDUE:
+                    continue
+                for atom in residue:
+                    if ATOM is not None and atom.name not in ATOM:
+                        continue
+                    # coords.append(
+                    #     (int(round(atom.pos.z)), int(round(atom.pos.y)),
+                    #      int(round(atom.pos.x)))
+                    # )
+                    # coords.append(atom.pos),
+                    coords.append([atom.pos.z, atom.pos.y, atom.pos.x])
+    return coords
 
 
 def protein_2nd_structure_lists(structure):
@@ -508,8 +504,6 @@ def splitfolders(temp_sample_path, sample_path):
                         group_prefix=None,
                         move=True)
     shutil.rmtree(temp_sample_path)
-
-
 
 
 if __name__ == "__main__":

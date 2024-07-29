@@ -267,8 +267,6 @@ def hard_pass_filter(raw_df: pd.DataFrame, threshold):
     return saved_df, dropped_df
 
 
-
-
 def q_score_filter(df, threshold):
     # Sort the DataFrame by 'q_score'
     df_sorted = df.sort_values(by='Q-score')
@@ -277,7 +275,7 @@ def q_score_filter(df, threshold):
     filtered = df_sorted[df_sorted['Q-score'] < threshold].reset_index(drop=True)
     kept = df_sorted[df_sorted['Q-score'] >= threshold].reset_index(drop=True)
 
-    return kept, filtered 
+    return kept, filtered
 
 
 def refine_csv(file_path, save_path, uni_threshold, q_threshold):
