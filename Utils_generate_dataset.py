@@ -1,4 +1,5 @@
 # import math
+import concurrent.futures
 import os
 import shutil
 
@@ -11,8 +12,6 @@ import sys
 from pathlib import Path
 import random
 import splitfolders
-
-
 
 from MRC import MRC
 
@@ -46,7 +45,9 @@ atoms_threonine_THR = ['CB', 'OG1', 'CG2']
 atoms_tryptophan_TRP = ['CB', 'CG', 'CD1', 'CD2', 'NE1', 'CE2', 'CE3', 'CZ2', 'CZ3', 'CH2']
 atoms_tyrosine_TYR = ['CB', 'CG', 'CD1', 'CD2', 'CE1', 'CE2', 'CZ']
 atoms_valine_VAL = ['CB', 'CG1', 'CG2']
-atoms_protein_residue = ['CE2', 'CD1', 'SG', 'OG1', 'OD2', 'OD1', 'CZ3', 'CD2', 'NZ', 'NE1', 'CG1', 'ND1', 'CG', 'CZ2', 'CE', 'SD', 'NE2', 'OE2', 'CG2', 'OE1', 'CE3', 'CH2', 'NE', 'ND2', 'CB', 'CZ', 'CE1', 'NH2', 'NH1', 'CD', 'OG']
+atoms_protein_residue = ['CE2', 'CD1', 'SG', 'OG1', 'OD2', 'OD1', 'CZ3', 'CD2', 'NZ', 'NE1', 'CG1', 'ND1', 'CG', 'CZ2',
+                         'CE', 'SD', 'NE2', 'OE2', 'CG2', 'OE1', 'CE3', 'CH2', 'NE', 'ND2', 'CB', 'CZ', 'CE1', 'NH2',
+                         'NH1', 'CD', 'OG']
 
 # Protein and rna residues
 residues_protein = [
@@ -64,10 +65,8 @@ atoms_rna_backbone = [
     "C1'"
 ]
 
-
-
 # Generate taged files (num = CLASSES) of mrc format from atomic model data
-GENERATE_MRC_TEST = False
+GENERATE_MRC_TEST = True
 CLASSES = 24
 
 
@@ -83,7 +82,7 @@ def data_to_npy(map_path: str,
     Args:
     - map_path (str): path to the MRC map file
     - model_path (str): path to the PDB model file
-    - model_parts (list): list of strings representing the parts of the model to sample (e.g., ["key_atoms", "nitrogenous_bases"])
+    - model_parts (list): list of dict representing parts and tag groups
     - sample_dir (str): path to a directory where the samples will be saved
     - sample_num (int): used to name the out put samples
     - npy_size (int = 64):
@@ -107,7 +106,7 @@ def data_to_npy(map_path: str,
     box_min = list(box.minimum)[::-1]
     box_max = list(box.maximum)[::-1]
     if box_max[2] > map_size[2] or box_max[1] > map_size[2] or box_max[
-            0] > map_size[0]:
+        0] > map_size[0]:
         raise ValueError("The model box size exceeds that of the map.")
 
     # Compute the grid parameters for splitting the volume
@@ -117,70 +116,36 @@ def data_to_npy(map_path: str,
     # Sample the selected parts of the model to create the numpy array, record the number of each tag in each part
     num_of_tag_in_each_part = {}  # Save number of each tag in each part
 
-    for part_name in model_parts:
-        model_data = np.zeros(map_size, np.int8)
-        part_coords = None
+    # Creating tags
+    helices, sheets = protein_2nd_structure_lists(structure)
+    for part_name in range(len(model_parts)):
+        secondary_type, residue_type, atom_type, tag = model_parts[part_name]['secondary_type'].split(','), \
+            model_parts[part_name]['residue_type'].split(','), model_parts[part_name]['atom_type'].split(','),\
+            model_parts[part_name]['tag']
+
+        model_data = np.zeros(map_size, np.int8)  
         dis_array = np.array([])
+        part_coords = None
+        
+        if residue_type == ['']:
+            residue_type = None
+        if atom_type == ['']:
+            atom_type = None
 
-        print(f"Sampling part: {part_name}")
-
-        # Tag protein backbone atoms(CA+C+N) in helices with 1, in sheets with 2, in loops with 3
-        # Tag protein backbone atoms in rna with 4
-        if part_name == "secondary_strctures":
-            # for helices, sheets and loops
-            helices, sheets = protein_2nd_structure_lists(structure)
-            protein_2nd_structure_coords = atom_coord_cif_protein_secondary(
-                structure, helices, sheets, residues_protein,
-                atoms_protein_backbone)
-            for tag in range(1, len(protein_2nd_structure_coords) + 1):
-                part_coords = protein_2nd_structure_coords[tag - 1]
-                model_data, dis_array = tag_npy(model_data, part_coords, tag,
-                                                dis_array)
-
-            # for rna
-            part_coords = atom_coord_cif(structure, residues_rna,
-                                         atoms_rna_backbone)
-            model_data, dis_array = tag_npy(model_data, part_coords, 4,
-                                            dis_array)
-            data.append(model_data)
-            part_names.append(part_name)
-
-        # Tag CA, P, sugar, rna base, protein side chain atoms with 1, 2, 3, 4, 5 repectively
-        elif part_name == "key_atoms":
-            for tag in range(1, len(key_atoms) + 1):
-                if key_atoms[tag - 1] in [["CA"]] or key_atoms[tag - 1] in [atoms_protein_residue]:
-                    part_coords = atom_coord_cif(structure, residues_protein,
-                                                 key_atoms[tag - 1])
-                else:
-                    part_coords = atom_coord_cif(structure, residues_rna,
-                                                 key_atoms[tag - 1])
-                model_data, dis_array = tag_npy(model_data, part_coords, tag,
-                                                dis_array)
-            data.append(model_data)
-            part_names.append(part_name)
-
-        # Tag key atoms with 1-24 for different residue types
-        elif part_name == "residue_types":
-            # Tag CA atoms with 1, 2, 3, ..., 20 for 20 types of amino acids repectively
-            for tag in range(1, len(residues_protein) + 1):
-                part_coords = atom_coord_cif(structure,
-                                             [residues_protein[tag - 1]],
-                                             ['CA'])
-                model_data, dis_array = tag_npy(model_data, part_coords, tag,
-                                                dis_array)
-            # Tag sugar_ring atoms with 21, ..., 24 for 4 types of rna bases repectively
-            for base_tag in range(1, len(residues_rna) + 1):
-                tag = base_tag + len(residues_protein)
-                part_coords = atom_coord_cif(structure,
-                                             [residues_rna[base_tag - 1]],
-                                             atoms_sugar_ring_new)
-                model_data, dis_array = tag_npy(model_data, part_coords, tag,
-                                                dis_array)
-            data.append(model_data)
-            part_names.append(part_name)
-
+        if secondary_type == ['']:
+            part_coords = atom_coord_cif(structure, residue_type, atom_type)
+            model_data, dis_array = tag_npy(model_data, part_coords, tag, dis_array)
         else:
-            raise ValueError(f"Unknown model part: {part_name}")
+            protein_2nd_structure_coords = atom_coord_cif_protein_secondary(
+                    structure, helices, sheets, residue_type, atom_type)
+            if 'Helix' in secondary_type:
+                model_data, dis_array = tag_npy(model_data, protein_2nd_structure_coords[0], tag, dis_array)
+            if 'Sheet' in secondary_type:
+                model_data, dis_array = tag_npy(model_data, protein_2nd_structure_coords[1], tag, dis_array)
+            if 'Loop' in secondary_type:
+                model_data, dis_array = tag_npy(model_data, protein_2nd_structure_coords[2], tag, dis_array)
+        data.append(model_data)
+        part_names.append(part_name)
 
         if GENERATE_MRC_TEST is True:
             # # Generate TEST.mrc for one part
@@ -206,7 +171,7 @@ def data_to_npy(map_path: str,
                     # mrc.header.mz = model_data.shape[0]
                 print("New map is writen.")
                 continue
-            exit
+            exit()
 
     # Create npy files from model_data of each part and map_data
     # Calcutate num of different tags
@@ -299,8 +264,8 @@ def split_to_npy(data,
                 # ratio_tags = []
                 for idx in range(0, len(data) - 1):
                     sample = data[idx][idx_z:idx_z + npy_size,
-                                       idx_y:idx_y + npy_size,
-                                       idx_x:idx_x + npy_size]
+                             idx_y:idx_y + npy_size,
+                             idx_x:idx_x + npy_size]
                     samples.append(sample)
                     count = np.bincount(sample.flatten())
                     counts.append(count)
@@ -325,8 +290,8 @@ def split_to_npy(data,
 
                 # Save seperated files for map data
                 sample = data[len(data) - 1][idx_z:idx_z + npy_size,
-                                             idx_y:idx_y + npy_size,
-                                             idx_x:idx_x + npy_size]
+                         idx_y:idx_y + npy_size,
+                         idx_x:idx_x + npy_size]
                 file_name = os.path.join(sample_dir, part_names[len(data) - 1],
                                          f"map.{sample_num}.npy")
                 np.save(file_name, sample)
@@ -355,7 +320,7 @@ def tag_npy(model_data,
         dis_array (ndarray): The modified model data with the tagged points.
     """
 
-    dis_array = np.full(model_data.shape, atom_grid_radius**2)
+    dis_array = np.full(model_data.shape, atom_grid_radius ** 2)
 
     index_grid = int(atom_grid_radius) + 1
     extension = range(-index_grid, index_grid + 1)
@@ -363,8 +328,8 @@ def tag_npy(model_data,
     for dz in extension:
         for dy in extension:
             for dx in extension:
-                dist = dz**2 + dy**2 + dx**2
-                if dist <= atom_grid_radius**2:
+                dist = dz ** 2 + dy ** 2 + dx ** 2
+                if dist <= atom_grid_radius ** 2:
                     arounds.append([dz, dy, dx])
     arounds = np.array(arounds)
     arounds = np.vstack((arounds, arounds + np.array([0, 0, 1])))
@@ -376,13 +341,13 @@ def tag_npy(model_data,
         floor_coord = np.floor(coord).astype(int)
         for around in arounds:
             around_coord = floor_coord + around
-            dist = np.sum((around_coord - coord)**2)
+            dist = np.sum((around_coord - coord) ** 2)
             if dist <= dis_array[around_coord[0], around_coord[1],
-                                 around_coord[2]]:
+            around_coord[2]]:
                 model_data[around_coord[0], around_coord[1],
-                           around_coord[2]] = tag_id
+                around_coord[2]] = tag_id
                 dis_array[around_coord[0], around_coord[1],
-                          around_coord[2]] = dist
+                around_coord[2]] = dist
 
     return model_data, dis_array
 
@@ -464,26 +429,28 @@ def atom_coord_cif_protein_secondary(structure,
                     continue
                 chain_info = helices[index]
                 for residue in chain:
-                    if residue.seqid.num in range(chain_info[1],
-                                                  chain_info[2] + 1):
-                        for atom in residue:
-                            if ATOM is not None and atom.name not in ATOM:
+                    if residue.seqid.num in range(chain_info[1], chain_info[2] + 1):
+                            if RESIDUE is not None and residue.name not in RESIDUE:
                                 continue
-                            atom_coord = [atom.pos.z, atom.pos.y, atom.pos.x]
-                            coords_helices.append(atom_coord)
+                            for atom in residue:
+                                if ATOM is not None and atom.name not in ATOM:
+                                    continue
+                                atom_coord = [atom.pos.z, atom.pos.y, atom.pos.x]
+                                coords_helices.append(atom_coord)
             # sheets
             for index, sheet_chian_name in enumerate(chain_sheets):
                 if chain.name != sheet_chian_name:
                     continue
                 chain_info = sheets[index]
                 for residue in chain:
-                    if residue.seqid.num in range(chain_info[1],
-                                                  chain_info[2] + 1):
-                        for atom in residue:
-                            if ATOM is not None and atom.name not in ATOM:
+                    if residue.seqid.num in range(chain_info[1], chain_info[2] + 1):
+                            if RESIDUE is not None and residue.name not in RESIDUE:
                                 continue
-                            atom_coord = [atom.pos.z, atom.pos.y, atom.pos.x]
-                            coords_sheets.append(atom_coord)
+                            for atom in residue:
+                                if ATOM is not None and atom.name not in ATOM:
+                                    continue
+                                atom_coord = [atom.pos.z, atom.pos.y, atom.pos.x]
+                                coords_sheets.append(atom_coord)
 
     coords_loops = [
         x for x in coords if not (x in coords_sheets or x in coords_helices)
@@ -498,18 +465,24 @@ def atom_coord_cif_protein_secondary(structure,
 def splitfolders(temp_sample_path, sample_path):
     os.makedirs(sample_path, exist_ok=True)
     splitfolders.ratio(input=temp_sample_path,
-                        output=sample_path,
-                        seed=44,
-                        ratio=(.8, .2),          # we set the ratio / let users do it
-                        group_prefix=None,
-                        move=True)
+                       output=sample_path,
+                       seed=44,
+                       ratio=(.8, .2),  # we set the ratio / let users do it
+                       group_prefix=None,
+                       move=True)
     shutil.rmtree(temp_sample_path)
 
 
 if __name__ == "__main__":
     map_path = '/home/qiboxu/Database/U_NET/EMDB_PDB_for_U_Net/Filtered_Dateset/Raw/EMD-11893_re_3.33/emd_11893_normalized.mrc'
     model_path = '/home/qiboxu/Database/U_NET/EMDB_PDB_for_U_Net/Filtered_Dateset/Raw/EMD-11893_re_3.33/7ase.cif'
-    model_parts = ['secondary_strctures', 'key_atoms', 'residue_types']
+    # for testing
+    #model_parts = [{'secondary_type': 'Helix', 'residue_type': 'ALA', 'atom_type': 'CA', 'tag': 1}]
+    #model_parts = [{'secondary_type': 'Helix', 'residue_type': 'ALA', 'atom_type': 'N', 'tag': 2}]
+    #model_parts = [{'secondary_type': '', 'residue_type': 'ALA', 'atom_type': 'CA', 'tag': 3}]
+    #model_parts = [{'secondary_type': 'Loop', 'residue_type': '', 'atom_type': '', 'tag': 4}]
+    model_parts = [{'secondary_type': 'Sheet', 'residue_type': '', 'atom_type': '', 'tag': 5}]
+
     sample_dir = '/home/qiboxu/Database/U_NET/EMDB_PDB_for_U_Net/Filtered_Dateset/Training/ready_to_train_and_val'
     npy_size = 64
 

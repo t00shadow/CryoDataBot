@@ -99,7 +99,7 @@ def search_emdb(
     df = pd.read_csv(new_path)
     # List of required columns
     review_columns = ['title', 'resolution', 'emdb_id', 'fitted_pdbs', 'sample_info_string',
-                        'xref_UNIPROTKB', 'RCSB_classification', 'Q-score']
+                        'xref_UNIPROTKB', 'RCSB_classification', 'Q-score', 'atom_inclusion']
     # Check which required columns are present in the DataFrame
     existing_columns = [col for col in review_columns if col in df.columns]
     # Print a message if any columns are missing
@@ -178,12 +178,17 @@ def search_rcsb(file_path, save_path):
 def get_qscore(emdb_map_id):
     entry_id = emdb_map_id.replace('EMD-', '')
     url = f"https://www.ebi.ac.uk/emdb/api/analysis/{entry_id}"
-    response = requests.get(url)
+    file = requests.get(url).json()
     try:
-        qscore = response.json()[entry_id]["qscore"]["allmodels_average_qscore"]
+        qscore = file[entry_id]["qscore"]["allmodels_average_qscore"]
     except Exception:
         qscore = ''
-    return qscore
+    try:
+        atom_inclusion = file[entry_id]["atom_inclusion_by_level"]["average_ai_allmodels"]
+    except Exception:
+        atom_inclusion = ''
+
+    return qscore, atom_inclusion
 
 
 def search_qscore(file_path):
@@ -194,19 +199,25 @@ def search_qscore(file_path):
     tqdm.pandas()
     df = pd.read_csv(file_path)
     with ThreadPoolExecutor() as executor:
-        df['Q-score'] = list(tqdm(executor.map(get_qscore, df['emdb_id']), total=len(df)))
+        results = list(tqdm(executor.map(get_qscore, df['emdb_id']), total=len(df)))
+    df['Q-score'], df['atom_inclusion'] = zip(*results)
     df.to_csv(file_path, index=False)
     new_file_path = file_path.replace('.csv', '')
     new_file_path += '_qscore.csv'
     os.rename(file_path, new_file_path)
     print(f'Q-score fetched. File created: {new_file_path}.')
     # output error message
-    error = []
+    q_error = []
+    a_error = []
     for index, qscore in df['Q-score'].items():
         if qscore == '':
-            error.append(str(df['emdb_id'][index]))
-    if error:
-        print(f'No Q-score fetched for {len(error)} enteries:\n{error}')
+            q_error.append(str(df['emdb_id'][index]))
+        if str(df['atom_inclusion'][index]) == '':
+            a_error.append(str(df['emdb_id'][index]))
+    if q_error:
+        print(f'No Q-score fetched for {len(q_error)} enteries:\n{q_error}')
+    if a_error:
+        print(f'No atom_inclusion fetched for {len(a_error)} enteries:\n{a_error}')
     return new_file_path
 
 
@@ -306,3 +317,4 @@ def refine_csv(file_path, save_path, uni_threshold, q_threshold):
     print('--------------------------------------------------------------------------------\n')
 
     return kept_path, filtered_path
+
