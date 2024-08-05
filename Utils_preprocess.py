@@ -143,5 +143,3 @@ def map_output(input_map, map_data, output_map, is_model=False):
         mrc.header.ispg = 1  #401
         mrc.print_header()
         print("=> New map written successfully.")
-
-
