@@ -548,10 +548,10 @@ def q_score_filter(df, threshold):
 
 
 
-def refine_csv(uni_threshold: float = 0.5):
+def refine_csv(file_path, DATA_PATH, uni_threshold: float = 0.5):
     """
     :param file_path: path to .csv file
-    :param save_path:
+    :param DATA_PATH: path to where refine directories get outputed
     :param uni_threshold: percentage uniprot similarity
     :param uni_threshold: q_score threshold
     """
@@ -560,7 +560,7 @@ def refine_csv(uni_threshold: float = 0.5):
     
     save_path = os.path.join("r",DATA_PATH, "Refined_Entries")
     os.makedirs(save_path, exist_ok=True)
-    file_path = os.path.join("r",DATA_PATH,"download_file_09_review.csv")
+   
     
     manual_check_num, toFilter_num = clean_input_data(file_path, save_path)
     print(f'Entries to Manually Check: {manual_check_num} entries. Entries to be filtered: {toFilter_num} entries.')
