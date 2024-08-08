@@ -5,7 +5,7 @@ import shutil
 import numpy as np
 # import pandas as pd
 
-from Utils_search_EMDB import search_emdb, refine_csv
+from backup.Utils_search_EMDB import search_emdb, refine_csv
 from Utils_preprocess import read_csv_info, fetch_map_model, normalize_raw_map
 from Utils_generate_dataset import data_to_npy, splitfolders
 

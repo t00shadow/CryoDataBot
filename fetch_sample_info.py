@@ -1,26 +1,18 @@
 import os
-import shutil
-
-import numpy as np
-# import pandas as pd
-
 import requests
 import pandas as pd
-import os
 from tqdm import tqdm
 from concurrent.futures import ThreadPoolExecutor
-from concurrent.futures import ProcessPoolExecutor, as_completed
-from collections import Counter
 
 
-# temp_sample_path = "path_of_downloaded_temp_sample"  # we set a default path
 CSV_DOWNLOAD_PATH = "directory_for_downloading_csv_file"  # we set a default path
 
 # Fetch from user's input
-QUERY = "ribosome"  # user input for EMDB search
-THRE_UNI_SIMILARITY = 100  # user input for check UniportID similarity
-THRE_Q_SCORE = 0  # user input for check Q-score values
+QUERY = ""  # user input for EMDB search
 FETCH_BOOL = False  # user input for RCSB search
+
+# THRE_UNI_SIMILARITY = 100  # user input for check UniportID similarity
+# THRE_Q_SCORE = 0  # user input for check Q-score values
 
 
 fields = ("emdb_id,title,structure_determination_method,resolution,resolution_method,fitted_pdbs,current_status,"
@@ -235,4 +227,3 @@ def search_qscore(file_path):
     if a_error:
         print(f'No atom_inclusion fetched for {len(a_error)} enteries:\n{a_error}')
     return new_file_path
-
