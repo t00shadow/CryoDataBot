@@ -13,15 +13,15 @@ from concurrent.futures import ProcessPoolExecutor, as_completed
 from collections import Counter
 
 
-temp_sample_path = "path_of_downloaded_temp_sample"  # we set a default path
+# temp_sample_path = "path_of_downloaded_temp_sample"  # we set a default path
 CSV_DOWNLOAD_PATH = "directory_for_downloading_csv_file"  # we set a default path
 
-OUTPUT_DIR = "path_of_output_dataset"  # user input for path of all datasets
+# Fetch from user's input
 QUERY = "ribosome"  # user input for EMDB search
-FETCH_BOOL = False  # user input for RCSB search
-MODEL_PARTS = ["a", "b", "c", ...]  # user input as datastes' name
 THRE_UNI_SIMILARITY = 100  # user input for check UniportID similarity
 THRE_Q_SCORE = 0  # user input for check Q-score values
+FETCH_BOOL = False  # user input for RCSB search
+
 
 fields = ("emdb_id,title,structure_determination_method,resolution,resolution_method,fitted_pdbs,current_status,"
           "deposition_date,map_release_date,primary_citation_author_string,primary_citation_title,xref_DOI,"

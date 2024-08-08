@@ -7,7 +7,36 @@ from concurrent.futures import ProcessPoolExecutor, as_completed
 from collections import Counter
 import numpy as np
 
-DATA_PATH = r'C:\Users\micha\OneDrive\Desktop\QIBO\DATA_GEN_08012024'
+
+import os
+import shutil
+
+
+temp_sample_path = "path_of_downloaded_temp_sample"  # we set a default path
+CSV_DOWNLOAD_PATH = "directory_for_downloading_csv_file"  # we set a default path
+
+OUTPUT_DIR = "path_of_output_dataset"  # user input for path of all datasets
+QUERY = "ribosome"  # user input for EMDB search
+FETCH_BOOL = False  # user input for RCSB search
+MODEL_PARTS = ["a", "b", "c", ...]  # user input as datastes' name
+THRE_UNI_SIMILARITY = 100  # user input for check UniportID similarity
+THRE_Q_SCORE = 0  # user input for check Q-score values
+
+
+
+# fields = 'emdb_id,title,resolution,fitted_pdbs,xref_UNIPROTKB,xref_ALPHAFOLD'
+
+
+def main(csv_download_path=CSV_DOWNLOAD_PATH):
+
+    # Step 1. Read search queries for EMDB search, download the information and refine it
+    # 1.1 Search EMDB and download the csv file
+    csv_path = search_emdb(query=QUERY, save_path=csv_download_path, fetch_classification=FETCH_BOOL)
+
+    # 1.2 Refine entries in the csv file
+    kept_path = refine_csv(csv_path, save_path=csv_download_path, q_threshold=THRE_Q_SCORE, uni_threshold=THRE_UNI_SIMILARITY)
+
+
 fields = ("emdb_id,title,structure_determination_method,resolution,resolution_method,fitted_pdbs,current_status,"
           "deposition_date,map_release_date,primary_citation_author_string,primary_citation_title,xref_DOI,"
           "xref_PUBMED,primary_citation_year,primary_citation_journal_name,sample_info_string,microscope_name,"
@@ -15,7 +44,6 @@ fields = ("emdb_id,title,structure_determination_method,resolution,resolution_me
           "additional_map_filename,half_map_filename,software,assembly_molecular_weight,xref_UNIPROTKB,xref_CPX,"
           "xref_EMPIAR,xref_PFAM,xref_CATH,xref_GO,xref_INTERPRO,xref_CHEBI,xref_CHEMBL,xref_DRUGBANK,xref_PDBEKB,"
           "xref_ALPHAFOLD")
-
 
 def fixDataFrame(input_df_path: pd.DataFrame) -> pd.DataFrame:
     """
@@ -37,7 +65,6 @@ def fixDataFrame(input_df_path: pd.DataFrame) -> pd.DataFrame:
                                                      'nanNanNanNanNanNanNanNanNan', 'N'])
 
     return input_df
-
 
 def clean_input_data(input_csv_path: str, output_dir: str) -> tuple:
     # Read CSV as DataFrame and log the number of original entries    
@@ -63,7 +90,6 @@ def clean_input_data(input_csv_path: str, output_dir: str) -> tuple:
     toBeFiltered_num_entries = len(raw_data_with_xREF)
     
     return (manualCheck_numEntries, toBeFiltered_num_entries)
-
 
 def process_similar(uniprotkb_1: str, uniprotkb_2: str, threshold: float) -> bool:
     """
@@ -95,8 +121,7 @@ def process_similar(uniprotkb_1: str, uniprotkb_2: str, threshold: float) -> boo
         return False
     else:
         return True
-
-
+    
 def evaluate_resoloution(df: pd.DataFrame, dTest: list, row: int) -> int:
     """
     Helper function to evaluate the resolution of a DataFrame based on a given list of indices.
@@ -129,8 +154,7 @@ def evaluate_resoloution(df: pd.DataFrame, dTest: list, row: int) -> int:
         excluded = [row]
 
     return new_min_index, excluded
-
-
+        
 def compute_similarity(i, mask, switch, first_filter_df, threshold):
     target = first_filter_df.at[i, switch[mask[i]]]
     results = []
@@ -143,10 +167,8 @@ def compute_similarity(i, mask, switch, first_filter_df, threshold):
             results.append((i, j, q))
     return results
 
-
 def update_dict_test(corr_matrix, i):
     return (i, [j for j in range(len(corr_matrix[i])) if corr_matrix[i][j]])
-
 
 def count_IDs(df: pd.DataFrame) -> bool:
     """
@@ -166,8 +188,7 @@ def count_IDs(df: pd.DataFrame) -> bool:
         return True
     else:
         return False
-
-
+    
 def second_filter (output_dir:str, threshold: float = 0.50):   
     from multiprocessing import Pool
     from tqdm import tqdm
@@ -178,9 +199,10 @@ def second_filter (output_dir:str, threshold: float = 0.50):
     mask = []
     for i, row in first_filter_df.iterrows():
         mask.append(count_IDs(row))
+    
 
     corr_matrix = np.full((len(mask), len(mask)), False)    
-
+    
     with ProcessPoolExecutor() as executor:
         futures = [executor.submit(compute_similarity, i, mask, switch, first_filter_df, threshold) for i in range(len(mask))]
 
@@ -188,6 +210,8 @@ def second_filter (output_dir:str, threshold: float = 0.50):
             results = future.result()
             for i, j, value in results:
                 corr_matrix[i][j] = value
+
+                    
 
     corr_matrix_csv = pd.DataFrame(corr_matrix)
     corr_matrix_csv.to_csv(os.path.join("r",output_dir,"Correlation_Matrix.csv"), index = False)
@@ -222,7 +246,6 @@ def second_filter (output_dir:str, threshold: float = 0.50):
     
     
     return (final_filter_num_entries, initial_filter_num_entries)
-
 
 # def first_filter(output_dir: str):
 #     # Get CSV as DataFrame
@@ -540,7 +563,6 @@ def process_similar(uniprotkb_1, uniprotkb_2, threshold) -> bool:
         return False
 
 
-
 def q_score_filter(df, threshold):
     # Sort the DataFrame by 'q_score'
     df_sorted = df.sort_values(by='Q-score')
@@ -554,7 +576,7 @@ def q_score_filter(df, threshold):
 
 
 
-def refine_csv(uni_threshold: float = 0.5):
+def refine_csv(input_csv, DATA_PATH, q_threshold: float = .5,uni_threshold: float = 0.5):
     """
     :param file_path: path to .csv file
     :param save_path:
@@ -562,11 +584,16 @@ def refine_csv(uni_threshold: float = 0.5):
     :param uni_threshold: q_score threshold
     """
     print('\n--------------------------------------------------------------------------------\nRefining .csv file...')
-    
-    
+        
+    #Q-Score filter
     save_path = os.path.join("r",DATA_PATH, "Refined_Entries")
     os.makedirs(save_path, exist_ok=True)
-    file_path = os.path.join("r",DATA_PATH,"download_file_09_review.csv")
+    #make df from csv path
+    df = pd.read_csv(input_csv)
+    
+    kept_df, filtered_df = q_score_filter(df, q_threshold)    
+    kept_df.to_csv(os.path.join("r",save_path,"Q_Score_Kept.csv"), index=False)
+    new_file_path = os.path.join("r",save_path,"Q_Score_Kept.csv")
     
     manual_check_num, toFilter_num = clean_input_data(file_path, save_path)
     print(f'Entries to Manually Check: {manual_check_num} entries. Entries to be filtered: {toFilter_num} entries.')
@@ -578,4 +605,4 @@ def refine_csv(uni_threshold: float = 0.5):
     print(f'Refinement completed, entries kept: {final_filter_num_entries}. File wrote at {os.path.join("r",save_path,"Final_Filter.csv")}.')
     print('--------------------------------------------------------------------------------\n')
 
-    return
+    return (os.path.join("r",save_path,"Final_Filter.csv"))
