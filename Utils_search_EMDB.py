@@ -548,19 +548,24 @@ def q_score_filter(df, threshold):
 
 
 
-def refine_csv(file_path, DATA_PATH, uni_threshold: float = 0.5):
+def refine_csv(input_csv, DATA_PATH, q_threshold: float = .5,uni_threshold: float = 0.5):
     """
     :param file_path: path to .csv file
-    :param DATA_PATH: path to where refine directories get outputed
+    :param save_path:
     :param uni_threshold: percentage uniprot similarity
     :param uni_threshold: q_score threshold
     """
     print('\n--------------------------------------------------------------------------------\nRefining .csv file...')
-    
-    
+        
+    #Q-Score filter
     save_path = os.path.join("r",DATA_PATH, "Refined_Entries")
     os.makedirs(save_path, exist_ok=True)
-   
+    #make df from csv path
+    df = pd.read_csv(input_csv)
+    
+    kept_df, filtered_df = q_score_filter(df, q_threshold)    
+    kept_df.to_csv(os.path.join("r",save_path,"Q_Score_Kept.csv"), index=False)
+    new_file_path = os.path.join("r",save_path,"Q_Score_Kept.csv")
     
     manual_check_num, toFilter_num = clean_input_data(file_path, save_path)
     print(f'Entries to Manually Check: {manual_check_num} entries. Entries to be filtered: {toFilter_num} entries.')
@@ -573,3 +578,4 @@ def refine_csv(file_path, DATA_PATH, uni_threshold: float = 0.5):
     print('--------------------------------------------------------------------------------\n')
 
     return 
+
