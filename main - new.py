@@ -32,9 +32,9 @@ def main(output_dir=OUTPUT_DIR, csv_download_path=CSV_DOWNLOAD_PATH):
 
     # Step 2. Download map and model files and do preprocessing
     # 2.1 Read map list and generate raw_map and model downloading paths
-    csv_info, raw_map_paths, model_paths = read_csv_info(kept_path)
+    csv_info, path_info = read_csv_info(kept_path)
     emdbs, pdbs, resolutions, emdb_ids = csv_info
-
+    raw_map_paths, model_paths = path_info
     # 2.2 Download map and model files
     fetch_map_model(csv_info)
 

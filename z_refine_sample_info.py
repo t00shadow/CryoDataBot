@@ -68,6 +68,7 @@ def fixDataFrame(input_df_path: pd.DataFrame) -> pd.DataFrame:
 
     return input_df
 
+
 def clean_input_data(input_csv_path: str, output_dir: str) -> tuple:
     # Read CSV as DataFrame and log the number of original entries    
     csv_df = pd.read_csv(input_csv_path)

@@ -8,7 +8,7 @@ import urllib.request
 import gzip
 
 
-DATA_PATH = "path_to_save_downloaded_map_and_model"
+DATA_PATH = "~/Database/U_NET/EMDB_PDB_for_U_Net/Filtered_Dateset/Raw"  # user input
 
 
 # 1.1 Read map list and generate raw_map and model downloading paths

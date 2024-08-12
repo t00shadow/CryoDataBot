@@ -1,18 +1,18 @@
 import numpy as np
-import multiprocessing as mp
+# import multiprocessing as mp
 import mrcfile
 from tqdm import tqdm
-from scipy.spatial import KDTree
+# from scipy.spatial import KDTree
 import os
 from Bio import PDB
-import shutil
+# import shutil
 from scipy.ndimage import zoom
 from datetime import datetime
 
-now = datetime.now() # current date and time
+now = datetime.now()  # current date and time
 text = now.strftime("%Y-%m-%d_%H-%M-%S")
 
-SavePath = r'C:\Users\micha\OneDrive\Desktop\QIBO\CRYOEM_Data'
+# SavePath = r'D:/Database/U_NET/EMDB_PDB_for_U_Net/Filtered_Dateset/Raw'
 
 def map_normalizing(map_path):
     with mrcfile.mmap(map_path) as mrc:
@@ -38,14 +38,13 @@ def map_normalizing(map_path):
     return map_data
 
 
-
 class MRC_FILE(object):
     def __init__(self):
         self.xdim, self.ydim, self.zdim = 0, 0, 0
         self.angstromX, self.angstromY, self.angstromZ = 0, 0, 0
         self.origin = 0
         self.orientation = 0
-    
+
     def read_mrc(self, mrc_file_path):
         with mrcfile.open(mrc_file_path) as mrc:
             self.angstromX, self.angstromY, self.angstromZ = float(mrc.header.cella.x.item()), float(mrc.header.cella.y.item()), float(mrc.header.cella.z.item())  # cell dimensions
@@ -54,7 +53,7 @@ class MRC_FILE(object):
             self.origin = [mrc.header.nxstart.item(), mrc.header.nystart.item(), mrc.header.nzstart.item()]
             self.original_density = np.array(mrc.data)
             mrc.close()
-        
+
         print("=== MRC File Read ===")
         print(f"EM_map Shape: {self.original_density.shape}")
         print(f"Cell Dimensions (angstroms): {self.angstromX, self.angstromY, self.angstromZ}")
@@ -62,7 +61,7 @@ class MRC_FILE(object):
         print(f"Orientation (MAPC, MAPR, MAPS): {self.orientation}")
         print(f"Origin: {self.origin}")
         print("=======================")
-        
+
         return self.original_density
 
 def map_model_corr(map_F, model_path: str):
@@ -73,7 +72,7 @@ def map_model_corr(map_F, model_path: str):
     s = p.get_structure(name, pdb)
     coord = np.concatenate([atom.get_coord() for atom in s.get_atoms()])
     coord = np.round(coord).astype(int)
-                    
+
     coord = np.array(coord).reshape(-1, 3)
     sample_tag = np.zeros(np.shape(map_F), dtype=np.int8)        
     # for x, y, z in tqdm(coord):
@@ -104,30 +103,49 @@ def map_model_corr(map_F, model_path: str):
     
     print("END")
     
-    print(f"Correlation: {corr}")
-       
-    
-    
-    
+    print(f"Correlation: {corr}")   
+
     return(actual,corr,sample_tag)
 
-    
 #function that plots a 3d array
 #with multiprocessing
 
 
 
 
-def check(map_path, model_path):
-    map_A = map_normalizing(map_path)
-    
-    
-    actual,corr, sampl = map_model_corr(map_A, model_path)
-    with mrcfile.new(os.path.join(SavePath, f'testing{text}.mrc')) as mrc:
-        mrc.set_data(sampl)
-    with mrcfile.new(os.path.join(SavePath,f'actual{text}.mrc')) as mrc:
-        mrc.set_data(actual)
-    
-pdb_s = r'C:\Users\micha\Downloads\2b4c.pdb'
-model = r'C:\Users\micha\Downloads\emd_0128 (1).map\emd_0128.mrc'
+
+
+
+
+def check(map_paths, model_paths):
+    corrs = []
+    # map_A = map_normalizing(map_path)
+    for map_path, model_path in zip(map_paths, model_paths):
+        actual, corr, sampl = map_model_corr(map_path, model_path)
+        corrs.append(corr)
+    # with mrcfile.new(os.path.join(SavePath, f'testing{text}.mrc')) as mrc:
+    #     mrc.set_data(sampl)
+    # with mrcfile.new(os.path.join(SavePath,f'actual{text}.mrc')) as mrc:
+    #     mrc.set_data(actual)
+
+    return corrs
+
+
+
+
+from backup.Utils_preprocess import read_csv_info
+
+kept_path = "~/Database/U_NET/EMDB_PDB_for_U_Net/Filtered_Dateset/Raw/final-20240212.csv"
+
+csv_info, path_info = read_csv_info(kept_path)
+raw_map_paths, model_paths = path_info
+map_paths = [f"{raw_map_path.split('.map')[0]}_normalized.mrc" for raw_map_path in raw_map_paths]
+
+corrs = check(map_paths, model_paths)
+print(corrs)
+
+
+
+# pdb_s = r'C:\Users\micha\Downloads\2b4c.pdb'
+# model = r'C:\Users\micha\Downloads\emd_0128 (1).map\emd_0128.mrc'
 #pdb_s = r'C:\Users\micha\Downloads\pdb6h25\pdb6h25.pdb'
