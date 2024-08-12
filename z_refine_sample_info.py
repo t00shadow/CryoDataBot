@@ -11,16 +11,41 @@ THRE_UNI_SIMILARITY = 100  # user input for check UniportID similarity
 THRE_Q_SCORE = 0  # user input for check Q-score values
 
 
-# fields = 'emdb_id,title,resolution,fitted_pdbs,xref_UNIPROTKB,xref_ALPHAFOLD'
 
 
-fields = ("emdb_id,title,structure_determination_method,resolution,resolution_method,fitted_pdbs,current_status,"
-          "deposition_date,map_release_date,primary_citation_author_string,primary_citation_title,xref_DOI,"
-          "xref_PUBMED,primary_citation_year,primary_citation_journal_name,sample_info_string,microscope_name,"
-          "illumination_mode,imaging_mode,electron_source,specimen_holder_name,segmentation_filename,slice_filename,"
-          "additional_map_filename,half_map_filename,software,assembly_molecular_weight,xref_UNIPROTKB,xref_CPX,"
-          "xref_EMPIAR,xref_PFAM,xref_CATH,xref_GO,xref_INTERPRO,xref_CHEBI,xref_CHEMBL,xref_DRUGBANK,xref_PDBEKB,"
-          "xref_ALPHAFOLD")
+
+def refine_csv(input_csv, save_path, q_threshold: float = THRE_Q_SCORE, uni_threshold: float = THRE_UNI_SIMILARITY):
+    """
+    :param file_path: path to .csv file
+    :param save_path:
+    :param uni_threshold: percentage uniprot similarity
+    :param uni_threshold: q_score threshold
+    """
+    print('\n--------------------------------------------------------------------------------\nRefining .csv file...')
+        
+    #Q-Score filter
+    save_path_new = os.path.join(save_path, "Refined_Entries")
+    os.makedirs(save_path_new, exist_ok=True)
+    
+    #make df from csv path
+    df = pd.read_csv(input_csv)
+    
+    kept_df, filtered_df = q_score_filter(df, q_threshold)    
+    kept_df.to_csv(os.path.join(save_path_new,"Q_Score_Kept.csv"), index=False)
+    new_file_path = os.path.join(save_path_new,"Q_Score_Kept.csv")
+    
+    manual_check_num, toFilter_num = clean_input_data(new_file_path, save_path_new)
+    print(f'Entries to Manually Check: {manual_check_num} entries. Entries to be filtered: {toFilter_num} entries.')
+    print(f'Files saved at {os.path.join("r",save_path_new)}')
+    postFirstFilter_num = first_filter(save_path_new)
+    print(f'Entries after first filter: {postFirstFilter_num} entries.')
+    final_filter_num_entries, initial_filter_num_entries = second_filter(save_path_new, uni_threshold)
+    print(f'Entries after second filter: {final_filter_num_entries} entries.')
+    print(f'Refinement completed, entries kept: {final_filter_num_entries}. File wrote at {os.path.join("r",save_path_new,"Final_Filter.csv")}.')
+    print('--------------------------------------------------------------------------------\n')
+
+    return (os.path.join("r",save_path_new,"Final_Filter.csv"))
+
 
 def fixDataFrame(input_df_path: pd.DataFrame) -> pd.DataFrame:
     """
@@ -324,36 +349,4 @@ def q_score_filter(df, threshold):
 
     return kept, filtered 
 
-
-def refine_csv(input_csv, save_path, q_threshold: float = THRE_Q_SCORE,uni_threshold: float = THRE_UNI_SIMILARITY):
-    """
-    :param file_path: path to .csv file
-    :param save_path:
-    :param uni_threshold: percentage uniprot similarity
-    :param uni_threshold: q_score threshold
-    """
-    print('\n--------------------------------------------------------------------------------\nRefining .csv file...')
-        
-    #Q-Score filter
-    save_path_new = os.path.join(save_path, "Refined_Entries")
-    os.makedirs(save_path_new, exist_ok=True)
-    
-    #make df from csv path
-    df = pd.read_csv(input_csv)
-    
-    kept_df, filtered_df = q_score_filter(df, q_threshold)    
-    kept_df.to_csv(os.path.join(save_path_new,"Q_Score_Kept.csv"), index=False)
-    new_file_path = os.path.join(save_path_new,"Q_Score_Kept.csv")
-    
-    manual_check_num, toFilter_num = clean_input_data(new_file_path, save_path_new)
-    print(f'Entries to Manually Check: {manual_check_num} entries. Entries to be filtered: {toFilter_num} entries.')
-    print(f'Files saved at {os.path.join("r",save_path_new)}')
-    postFirstFilter_num = first_filter(save_path_new)
-    print(f'Entries after first filter: {postFirstFilter_num} entries.')
-    final_filter_num_entries, initial_filter_num_entries = second_filter(save_path_new, uni_threshold)
-    print(f'Entries after second filter: {final_filter_num_entries} entries.')
-    print(f'Refinement completed, entries kept: {final_filter_num_entries}. File wrote at {os.path.join("r",save_path_new,"Final_Filter.csv")}.')
-    print('--------------------------------------------------------------------------------\n')
-
-    return (os.path.join("r",save_path_new,"Final_Filter.csv"))
 
