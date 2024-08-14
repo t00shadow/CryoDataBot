@@ -851,7 +851,6 @@ class Ui_MainWindow(object):
 "<p style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\"><span style=\" color:#616161;\">     - xref_UNIPROTKB</span></p>\n"
 "<p style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\"><span style=\" color:#616161;\">     - xref_ALPHAFOLD<br /></span><span style=\" font-style:italic; color:#616161;\">  *CSV files are downloaded from EMDB</span></p></body></html>"))
         self.tabWidget_2.setTabText(self.tabWidget_2.indexOf(self.tab_2), _translate("MainWindow", "Page"))
-import resources_rc
 
 
 if __name__ == "__main__":
