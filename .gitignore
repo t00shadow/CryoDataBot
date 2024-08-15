@@ -1,3 +1,4 @@
-/CryoDataBot
 /test.py
 /__pycache__
+.venv/
+cryodatabot.egg-info/
