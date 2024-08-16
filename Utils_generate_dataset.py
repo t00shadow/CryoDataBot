@@ -462,7 +462,7 @@ def atom_coord_cif_protein_secondary(structure,
     return [coords_helices, coords_sheets, coords_loops]
 
 
-def splitfolders(temp_sample_path, sample_path):
+def split_folders(temp_sample_path, sample_path):
     os.makedirs(sample_path, exist_ok=True)
     splitfolders.ratio(input=temp_sample_path,
                        output=sample_path,

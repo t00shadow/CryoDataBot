@@ -3,7 +3,7 @@ import numpy as np
 import mrcfile
 from tqdm import tqdm
 # from scipy.spatial import KDTree
-import os
+# import os
 from Bio import PDB
 # import shutil
 from scipy.ndimage import zoom
@@ -13,6 +13,7 @@ now = datetime.now()  # current date and time
 text = now.strftime("%Y-%m-%d_%H-%M-%S")
 
 # SavePath = r'D:/Database/U_NET/EMDB_PDB_for_U_Net/Filtered_Dateset/Raw'
+
 
 def map_normalizing(map_path):
     with mrcfile.mmap(map_path) as mrc:
@@ -64,6 +65,7 @@ class MRC_FILE(object):
 
         return self.original_density
 
+
 def map_model_corr(map_F, model_path: str):
     print("Start")
     pdb = model_path
@@ -111,12 +113,6 @@ def map_model_corr(map_F, model_path: str):
 #with multiprocessing
 
 
-
-
-
-
-
-
 def check(map_paths, model_paths):
     corrs = []
     # map_A = map_normalizing(map_path)
@@ -129,6 +125,9 @@ def check(map_paths, model_paths):
     #     mrc.set_data(actual)
 
     return corrs
+
+
+
 
 
 
@@ -148,4 +147,4 @@ print(corrs)
 
 # pdb_s = r'C:\Users\micha\Downloads\2b4c.pdb'
 # model = r'C:\Users\micha\Downloads\emd_0128 (1).map\emd_0128.mrc'
-#pdb_s = r'C:\Users\micha\Downloads\pdb6h25\pdb6h25.pdb'
+# pdb_s = r'C:\Users\micha\Downloads\pdb6h25\pdb6h25.pdb'

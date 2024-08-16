@@ -5,11 +5,11 @@ from tqdm import tqdm
 from concurrent.futures import ThreadPoolExecutor
 
 
-CSV_DOWNLOAD_PATH = "directory_for_downloading_csv_file"  # we set a default path
+CSV_DOWNLOAD_PATH = "/home/qiboxu/MyProject/CryoDataBot/EVALUATION"  # we set a default path
 
 # Fetch from user's input
-QUERY = ""  # user input for EMDB search
-FETCH_BOOL = False  # user input for RCSB search
+QUERY = "ribosome AND resolution:[1 TO 4}"  # user input for EMDB search
+FETCH_CLASS = False  # user input for RCSB search
 
 # THRE_UNI_SIMILARITY = 100  # user input for check UniportID similarity
 # THRE_Q_SCORE = 0  # user input for check Q-score values
@@ -29,7 +29,7 @@ fields = ("emdb_id,title,structure_determination_method,resolution,resolution_me
 
 def search_emdb(
         query,
-        save_path,
+        save_path=CSV_DOWNLOAD_PATH,
         file_name=None,
         fl=fields,
         rows=9999999,
@@ -78,49 +78,50 @@ def search_emdb(
     except requests.exceptions.RequestException as e:
         print(f"Error fetching data: {e}")
 
+    save_path = os.path.join(save_path, file_name)
+    os.makedirs(save_path, exist_ok=True)
+
     # checking for file names
     num = 1
     if file_name is None:
-        file_name = f'download_file_{num:02}.csv'
+        file_name = f'download_file_{num:02}'
         # file_name = query
-        full_path = os.path.join(save_path, file_name)
+        full_path = os.path.join(save_path, f'{file_name}.csv')
         while any(filename.startswith(f'download_file_{num:02}') for filename in os.listdir(save_path)):
             num += 1
-            file_name = f'download_file_{num:02}.csv'
-            full_path = os.path.join(save_path, file_name)
+            file_name = f'download_file_{num:02}'
+            full_path = os.path.join(save_path, f'{file_name}.csv')
     else:
-        full_path = save_path + file_name + '.csv'
+        full_path = os.path.join(save_path, f'{file_name}_full.csv')
     with open(full_path, 'w') as out:
         out.write(output)
         count = output.count('\n') - 1
     print('EMDB data fetched.')
 
-    if fetch_classification and not fetch_qscore:
-        new_path = search_rcsb(full_path, save_path)
-    elif fetch_qscore and not fetch_classification:
-        new_path = search_qscore(full_path)
-    elif fetch_classification and fetch_qscore:
-        new_path = search_qscore(search_rcsb(full_path, save_path))
-    else:
-        new_path = full_path
+    if fetch_classification:
+        search_rcsb(full_path, save_path)
+    if fetch_qscore:
+        search_qscore(full_path)
 
-    df = pd.read_csv(new_path)
+    df = pd.read_csv(full_path)
     # List of required columns
     review_columns = ['title', 'resolution', 'emdb_id', 'fitted_pdbs', 'sample_info_string',
-                        'xref_UNIPROTKB', 'RCSB_classification', 'Q-score', 'atom_inclusion']
+                        'xref_UNIPROTKB', 'xref_ALPHAFOLD', 'Q-score', 'atom_inclusion']
     # Check which required columns are present in the DataFrame
     existing_columns = [col for col in review_columns if col in df.columns]
     # Print a message if any columns are missing
     missing_columns = [col for col in review_columns if col not in df.columns]
+    if 'RCSB_classification' in missing_columns:
+        missing_columns.remove('RCSB_classification')
     if missing_columns:
         print(f"Warning: Missing columns in CSV file: {', '.join(missing_columns)}")
+
     # Create a new DataFrame with the existing required columns
     new_df = df[existing_columns]
-    final_path = full_path.replace('.csv','_review.csv')
+    final_path = os.path.join(save_path, f'{file_name}.csv')
     new_df.to_csv(final_path, index=False)
-    print('--------------------------------------------------------------------------------\n')
-    print(f'Final review file created: {final_path}')
-    print('--------------------------------------------------------------------------------\n')
+    print('\n--------------------------------------------------------------------------------\n')
+    print('Entries file created.')
 
     return final_path
 
@@ -167,18 +168,18 @@ def search_rcsb(file_path, save_path):
         df["RCSB_classification"] = RCSB_classification
         df["RCSB_description"] = RCSB_description
 
-        file_name = os.path.basename(file_path)
-        file_name = file_name.replace('.csv', '')
-        save_path = save_path + file_name + '_classified.csv'
-        df.to_csv(save_path, index=False)
-        os.remove(file_path)
-        print(f'Classification info fetched.')
+        # file_name = os.path.basename(file_path)
+        # file_name = file_name.replace('.csv', '_classified.csv')
+        # save_path = save_path + file_name + '_classified.csv'
+        df.to_csv(file_path, index=False)
+        # os.remove(file_path)
+        print('Classification info fetched.')
         for index, info in df['RCSB_classification'].items():
             if info == '':
                 error_entries.append(str(df['emdb_id'][index]))
         if error_entries:
             print(f"Classification info not found for {len(error_entries)} enteries:\n{error_entries}")
-        return save_path
+        # return file_path
     else:
         print("The column 'fitted_pdbs' does not exist in the DataFrame.")
 
@@ -201,19 +202,18 @@ def get_qscore(emdb_map_id):
 
 def search_qscore(file_path):
     """
-    Append Q-score to .csv file
+    Append Q-score and atom inclusion to .csv file
     """
-    print('\nFetching Q-score...')
+    print('\nFetching Q-score and atom inclusion...')
     tqdm.pandas()
     df = pd.read_csv(file_path)
     with ThreadPoolExecutor() as executor:
         results = list(tqdm(executor.map(get_qscore, df['emdb_id']), total=len(df)))
     df['Q-score'], df['atom_inclusion'] = zip(*results)
     df.to_csv(file_path, index=False)
-    new_file_path = file_path.replace('.csv', '')
-    new_file_path += '_qscore.csv'
-    os.rename(file_path, new_file_path)
-    print(f'Q-score fetched. File created: {new_file_path}.')
+    # new_file_path = file_path.replace('.csv', '_qscore.csv')
+    # os.rename(file_path, new_file_path)
+    print('Q-score and atom inclusion fetched.')
     # output error message
     q_error = []
     a_error = []
@@ -226,4 +226,10 @@ def search_qscore(file_path):
         print(f'No Q-score fetched for {len(q_error)} enteries:\n{q_error}')
     if a_error:
         print(f'No atom_inclusion fetched for {len(a_error)} enteries:\n{a_error}')
-    return new_file_path
+    # return file_path
+
+
+
+QUERY = "ribosome AND resolution:[4 TO 9}"  # user input for EMDB search
+
+csv_path = search_emdb(query=QUERY, save_path=CSV_DOWNLOAD_PATH, file_name="ribosome_res_4-9", fetch_classification=FETCH_CLASS)

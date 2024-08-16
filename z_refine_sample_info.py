@@ -5,34 +5,34 @@ from collections import Counter
 import numpy as np
 
 
-SAVE_PATH = "./"  # user input for output files
+# SAVE_PATH = "./"  # user input for output files
 INPUT_CSV = ""  # user input for inout csv file
-THRE_UNI_SIMILARITY = 100  # user input for check UniportID similarity
-THRE_Q_SCORE = 0  # user input for check Q-score values
+THRE_UNI_SIMILARITY = 100  # user input for check UniportID similarity, 100 means loosest 
+THRE_Q_SCORE = 0  # user input for check Q-score values, 0 means loosest
 
 
 
 
 
-def refine_csv(input_csv, save_path, q_threshold: float = THRE_Q_SCORE, uni_threshold: float = THRE_UNI_SIMILARITY):
+def refine_csv(input_csv, q_threshold: float = THRE_Q_SCORE, uni_threshold: float = THRE_UNI_SIMILARITY):
     """
     :param file_path: path to .csv file
-    :param save_path:
     :param uni_threshold: percentage uniprot similarity
     :param uni_threshold: q_score threshold
     """
-    print('\n--------------------------------------------------------------------------------\nRefining .csv file...')
-        
-    #Q-Score filter
+    print('\n--------------------------------------------------------------------------------\nRefining EMDB entries...')
+
+    # Q-Score filter
+    save_path = os.path.dirname(input_csv)
     save_path_new = os.path.join(save_path, "Refined_Entries")
     os.makedirs(save_path_new, exist_ok=True)
-    
-    #make df from csv path
+
+    # make df from csv path
     df = pd.read_csv(input_csv)
-    
+
     kept_df, filtered_df = q_score_filter(df, q_threshold)    
-    kept_df.to_csv(os.path.join(save_path_new,"Q_Score_Kept.csv"), index=False)
-    new_file_path = os.path.join(save_path_new,"Q_Score_Kept.csv")
+    kept_df.to_csv(os.path.join(save_path_new, "Q_Score_Kept.csv"), index=False)
+    new_file_path = os.path.join(save_path_new, "Q_Score_Kept.csv")
     
     manual_check_num, toFilter_num = clean_input_data(new_file_path, save_path_new)
     print(f'Entries to Manually Check: {manual_check_num} entries. Entries to be filtered: {toFilter_num} entries.')
@@ -44,7 +44,7 @@ def refine_csv(input_csv, save_path, q_threshold: float = THRE_Q_SCORE, uni_thre
     print(f'Refinement completed, entries kept: {final_filter_num_entries}. File wrote at {os.path.join("r",save_path_new,"Final_Filter.csv")}.')
     print('--------------------------------------------------------------------------------\n')
 
-    return (os.path.join("r",save_path_new,"Final_Filter.csv"))
+    return (os.path.join("r", save_path_new, "Final_Filter.csv"))
 
 
 def fixDataFrame(input_df_path: pd.DataFrame) -> pd.DataFrame:
@@ -351,3 +351,10 @@ def q_score_filter(df, threshold):
     return kept, filtered 
 
 
+
+
+INPUT_CSV = "/home/qiboxu/MyProject/CryoDataBot/EVALUATION/ribosome_res_4-9/ribosome_res_4-9.csv"  # user input for inout csv file
+THRE_UNI_SIMILARITY = 10  # user input for check UniportID similarity
+THRE_Q_SCORE = 0  # user input for check Q-score values
+
+refine_csv(input_csv=INPUT_CSV, q_threshold=THRE_Q_SCORE, uni_threshold=THRE_UNI_SIMILARITY)

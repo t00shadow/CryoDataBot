@@ -82,24 +82,6 @@ CLASSES = 24
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 def data_to_npy(map_path: str,
                 model_path: str,
                 model_parts: list,
@@ -492,7 +474,7 @@ def atom_coord_cif_protein_secondary(structure,
     return [coords_helices, coords_sheets, coords_loops]
 
 
-def splitfolders(temp_sample_path, sample_path):
+def split_folders(temp_sample_path, sample_path):
     os.makedirs(sample_path, exist_ok=True)
     splitfolders.ratio(input=temp_sample_path,
                        output=sample_path,
@@ -553,7 +535,7 @@ def generate_dataset():
 
     # 3.3 Split data into training and validation dataset
     sample_path = os.path.join(output_dir, "dataset")
-    splitfolders(temp_sample_path, sample_path)
+    split_folders(temp_sample_path, sample_path)
 
     # 3.4 Calculate weight, create weight file and save it (ratio of tags)
     weight_path = os.path.join(sample_path, 'class_weight_for_training.txt')
