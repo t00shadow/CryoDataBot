@@ -1,5 +1,8 @@
+# TODO: rename this file to distinguish it from the z_... files. Maybe g_ as prefix? g_TagTextEdit.py or just TagTextEdit.py
+
 import sys
-from PyQt5.QtWidgets import QApplication, QMainWindow, QTextEdit, QVBoxLayout, QWidget, QLabel, QHBoxLayout, QPushButton, QLineEdit, QScrollArea
+from PyQt5.QtWidgets import QApplication, QMainWindow, QTextEdit, QVBoxLayout, QWidget, QLabel, QHBoxLayout, \
+    QPushButton, QLineEdit, QScrollArea, QSpacerItem, QSizePolicy
 from PyQt5.QtCore import Qt, pyqtSignal
 
 class TagLabel(QWidget):
@@ -60,6 +63,8 @@ class TagTextEdit(QTextEdit):
         self.initUI()
 
     def initUI(self):
+        TESTFEATURE = "v2"  # v2 seems a bit better than v1
+
         self.setReadOnly(True)
         self.setVerticalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
         self.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
@@ -69,6 +74,8 @@ class TagTextEdit(QTextEdit):
         self.containerLayout = QVBoxLayout(self.container)
         self.containerLayout.setContentsMargins(2, 2, 2, 2)
         self.containerLayout.setSpacing(5)
+        if TESTFEATURE == "v1":
+            self.containerLayout.setAlignment(Qt.AlignTop)
 
         self.scrollArea = QScrollArea()
         self.scrollArea.setWidgetResizable(True)
@@ -82,11 +89,15 @@ class TagTextEdit(QTextEdit):
         self.textInput.installEventFilter(self)
 
         self.containerLayout.addWidget(self.textInput)
+        if TESTFEATURE == 'v2':
+            verticalSpacer = QSpacerItem(20, 40, QSizePolicy.Minimum, QSizePolicy.Expanding)
+            self.containerLayout.addSpacerItem(verticalSpacer)
 
 
         self.junk_val = 5    # only for testing, delete this later
         self.junk_arr = [1, 2, 3, 4]
         self.keywords = []      # considered using set, but i think emdb would let you use the same keyword twice (like resolution 3: AND resolution :6). idk why anyeone would want to do that but ig u can
+
 
     def eventFilter(self, source, event):
         if event.type() == event.KeyPress and source is self.textInput:
