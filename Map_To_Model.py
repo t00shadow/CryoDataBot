@@ -8,7 +8,7 @@ import gemmi
 
 #Help With Saving Files
 now = datetime.now() # current date and time
-text = now.strftime("_%m%d%Y_%H%M%S")
+text = now.strftime("_%m-%d%Y_%H%M%S")
 
 #Paths
 SAVE_PATH = r'C:\Users\micha\OneDrive\Desktop\QIBO\CRYOEM_Data'
@@ -72,30 +72,47 @@ def atom_coord_cif(structure):
 
 
 def main_map_model_corr(map_path: str, cif_path: str, GIVE_MAP: bool=True):
+    
     #Sample Name    
     PROTEIN_ID = os.path.basename(cif_path).split(".")[0]
     MAP_ID = os.path.basename(map_path).split(".")[0]    
     
+    out_text =(
+        f'RUNNING MAP TO MODEL CORRELATION\n================================\n'
+        f'Started At:{datetime.now()}\n\n'
+        f'FITTED_PDB: {PROTEIN_ID}\nEMDB_ID: {MAP_ID}\n\n'
+        f'PARAMETERS:\n{PROTEIN_TAG_DIST=}\n{MAP_THRESHOLD=}\n{PROTEIN_TAG_DIST=}Angstroms\n\n'        
+        )     
+    
     if GIVE_MAP:
         NEW_SAVE_FOLDER = os.path.join(SAVE_PATH,f'{MAP_ID}{text}')
         os.makedirs(NEW_SAVE_FOLDER, exist_ok=True)
-      
+        out_text += f'GENERATED MRC MAPS SAVED: {GIVE_MAP}\n\n'
+    
+    else:
+        out_text += f'GENERATED MRC MAPS SAVED: {GIVE_MAP}\n\n'
+    
+    print(out_text)
+    out_text = ''
+    
     #Load the map
     map_F, origin_info, orientation_info = map_normalizing(map_path)
+    out_text += f'Successfully Loaded Voxel Data from {MAP_ID}\n'
     MAP_BOUNDARY = np.shape(map_F)
     protein = gemmi.read_structure(CIF_PATH)
+    out_text += f'Successfuly Loaded Coordinate Data from "{PROTEIN_ID}.cif"\n'
     protein_coords = np.array(atom_coord_cif(protein)).reshape(-1, 3)
     
     if origin_info[0] != 0 or origin_info[1] != 0 or origin_info[2] != 0:
-        print(f'The start of axis of {MAP_ID} is not 0!!\nAdjusting the coordinates of {PROTEIN_ID} to match the map...')
+        out_text += f'The start of axis of {MAP_ID} is not 0!!\nAdjusting the coordinates of {PROTEIN_ID} to match the map...'
         protein_coords -= origin_info
     
     if orientation_info[0] != 1 or orientation_info[1] != 2 or orientation_info[2] != 3:
         raise ValueError(f'The orientation of {MAP_ID} is not 1, 2, 3!!')
     
-    # np.reshape(protein_coords, (-1, 3))
+    
     # print("Type:",type(protein_coords))
-    # print("Shape:",np.shape(protein_coords))
+    out_text += f'Number of Atoms in CIF:{len(protein_coords)}'
     
     #Check if any of the coordinates are out of bounds with the bounds of the map as 338, 338, 338
     # MAP_BOUNDARY = [np.shape(map_F)[0], np.shape(map_F)[1], np.shape(map_F)[2]]
@@ -104,10 +121,12 @@ def main_map_model_corr(map_path: str, cif_path: str, GIVE_MAP: bool=True):
         if protein_coords[i][0] > MAP_BOUNDARY[0] or protein_coords[i][1] > MAP_BOUNDARY[1] or protein_coords[i][2] > MAP_BOUNDARY[2]:
             print("Out of bounds:",protein_coords[i])
             raise ValueError(f'For PDB:{PROTEIN_ID} the atom at position {protein_coords[i]} is out of bounds with the {MAP_ID} Boundary:{MAP_BOUNDARY}')
-            
+    
+    print(out_text)
+    out_text = ''
     
     # out_of_bounds = np.array(out_of_bounds).reshape(-1, 3)
-    # print("Number of out of bounds coordinates:",len(out_of_bounds))
+    # out_text += f'Number CIF atoms not in MRC Bounds:{len(out_of_bounds)}'
     # print("Out of bounds coordinates:",out_of_bounds)
     
     
@@ -132,9 +151,11 @@ def main_map_model_corr(map_path: str, cif_path: str, GIVE_MAP: bool=True):
                     #     continue
                     protein_tag[x+j, y+k, z+l] = 1
 
+    
     if GIVE_MAP:
         with mrcfile.new(os.path.join(NEW_SAVE_FOLDER,f'NORMALIZED_{MAP_ID}.mrc')) as mrc:
             mrc.set_data(map_F)
+            out_text += f'Normalized Map Saved as "NORMALIZED_{MAP_ID}.mrc"\n'
                     
     map_F[map_F > 0.05] = 1
     map_F[map_F <= 0.05] = 0
@@ -148,50 +169,67 @@ def main_map_model_corr(map_path: str, cif_path: str, GIVE_MAP: bool=True):
     total_voxels_union = np.sum(np.logical_or(protein_tag, map_F))
     vof = overlap_count / total_voxels_union
     
-    print(f"Volume overlap fraction (VOF): {vof}")
+    out_text += f'Volume overlap fraction (VOF): {(vof*100):.4f}%\n'
+    
+    print(out_text)
+    out_text = ''
     
     if GIVE_MAP:
         with mrcfile.new(os.path.join(NEW_SAVE_FOLDER, f'CIF_{PROTEIN_ID}.mrc')) as mrc:
             mrc.set_data(protein_tag)
-        # print("Saved")
+        print(f'Binary Map of {MAP_ID} Saved as "BINARY_{MAP_ID}.mrc"\n')
         with mrcfile.new(os.path.join(NEW_SAVE_FOLDER,f'BINARY_{MAP_ID}.mrc')) as mrc:
             mrc.set_data(map_F)
-            
-        np_to_xyz(protein_coords, PROTEIN_ID, NEW_SAVE_FOLDER)
-    
-    return 1
-
-
-def np_to_xyz(coords: np.ndarray, sample_name: str, save_folder) -> str:
-    """
-    Convert np.array of Coordinates to XYZ format.
-
-    Args:
-        coords (np.ndarray): Nx3 array of atomic coordinates.
-
-    Returns:
-        str: XYZ format string.
-    """
-    xyz = []
-    num_atoms = len(coords)
-    for i in range(num_atoms):
-        for j in range(num_atoms):
-            for k in range(num_atoms):
-                xyz.append((float(i), float(j), float(k)))
-    
-    xyz = np.array(xyz).reshape(-1, 3)
-    
-    
-    
-    with open(os.path.join(save_folder, f'{sample_name}.xyz'), 'w') as f:
-        f.write(f'{sample_name} 0 {num_atoms}\n')        
-        # Write atom coordinates
-        for i in range(num_atoms):
-            x, y, z = xyz[i]
-            f.write(f"C    {x:>12.6f}    {y:>12.6f}    {z:>12.6f}\n")
+        print(f'Estimated Volume Data of {PROTEIN_ID} Saved as "CIF_{PROTEIN_ID}.mrc"\n')
         
-        # Ending line
-        f.write("*\n")   
+        # np_to_xyz(protein_coords, PROTEIN_ID, NEW_SAVE_FOLDER)
+        # print(f'Estimated Volume Data of {PROTEIN_ID} Saved as "{PROTEIN_ID}.xyz"\n')
+        # # out_text += (
+        #     f'Binary Map of {MAP_ID} Saved as "BINARY_{MAP_ID}.mrc"\n'
+        #     f'Estimated Volume Data of {PROTEIN_ID} Saved as "CIF_{PROTEIN_ID}.mrc"\n'
+        #     f'Estimated Volume Data of {PROTEIN_ID} Saved as "{PROTEIN_ID}.xyz"\n'
+        # )
+        # print(out_text)
+        # out_text = ''
+        # write_OUT_FILE(os.path.join(NEW_SAVE_FOLDER, f'MAP_TO_MODEL_CORRELATION_{MAP_ID}.txt'), out_text)
+    return
+
+# def write_OUT_FILE(file_path, text):
+#     # with open(file_path, 'w') as f:
+#     #     f.write(text)
+#     print(text)
+#     return
+
+# def np_to_xyz(coords: np.ndarray, sample_name: str, save_folder) -> str:
+#     """
+#     Convert np.array of Coordinates to XYZ format.
+
+#     Args:
+#         coords (np.ndarray): Nx3 array of atomic coordinates.
+
+#     Returns:
+#         str: XYZ format string.
+#     """
+#     xyz = []
+#     num_atoms = len(coords)
+#     for i in range(num_atoms):
+#         for j in range(num_atoms):
+#             for k in range(num_atoms):
+#                 xyz.append((float(i), float(j), float(k)))
+    
+#     xyz = np.array(xyz).reshape(-1, 3)
+    
+    
+    
+#     with open(os.path.join(save_folder, f'{sample_name}.xyz'), 'w') as f:
+#         f.write(f'{sample_name} 0 {num_atoms}\n')        
+#         # Write atom coordinates
+#         for i in tqdm(range(num_atoms)):
+#             x, y, z = xyz[i]
+#             f.write(f"C    {x:>12.6f}    {y:>12.6f}    {z:>12.6f}\n")
+        
+#         # Ending line
+#         f.write("*\n")   
                     
 
-    return 
+#     return 
