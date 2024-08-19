@@ -562,7 +562,7 @@ def refine_csv(input_csv, DATA_PATH, q_threshold: float = .5,uni_threshold: floa
     :param uni_threshold: q_score threshold
     """
     print('\n--------------------------------------------------------------------------------\nRefining .csv file...')
-        
+
     #Q-Score filter
     save_path = os.path.join("r",DATA_PATH, "Refined_Entries")
     os.makedirs(save_path, exist_ok=True)
@@ -573,7 +573,7 @@ def refine_csv(input_csv, DATA_PATH, q_threshold: float = .5,uni_threshold: floa
     kept_df.to_csv(os.path.join("r",save_path,"Q_Score_Kept.csv"), index=False)
     new_file_path = os.path.join("r",save_path,"Q_Score_Kept.csv")
     
-    manual_check_num, toFilter_num = clean_input_data(file_path, save_path)
+    manual_check_num, toFilter_num = clean_input_data(new_file_path, save_path)
     print(f'Entries to Manually Check: {manual_check_num} entries. Entries to be filtered: {toFilter_num} entries.')
     print(f'Files saved at {os.path.join("r",save_path)}')
     postFirstFilter_num = first_filter(save_path)
@@ -583,9 +583,5 @@ def refine_csv(input_csv, DATA_PATH, q_threshold: float = .5,uni_threshold: floa
     print(f'Refinement completed, entries kept: {final_filter_num_entries}. File wrote at {os.path.join("r",save_path,"Final_Filter.csv")}.')
     print('--------------------------------------------------------------------------------\n')
 
-<<<<<<< HEAD
-    return
-=======
     return 
 
->>>>>>> 6203230ba3f655175146c630e8a6a853407ff41f
