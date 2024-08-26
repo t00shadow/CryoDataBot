@@ -1,18 +1,17 @@
 import os
 import requests
+from requests.adapters import HTTPAdapter
+from urllib3.util.retry import Retry
 import pandas as pd
 from tqdm import tqdm
 from concurrent.futures import ThreadPoolExecutor
 
 
-CSV_DOWNLOAD_PATH = "/home/qiboxu/MyProject/CryoDataBot/EVALUATION"  # we set a default path
+CSV_DOWNLOAD_PATH = "./"  # we set a default path
 
 # Fetch from user's input
 QUERY = "ribosome AND resolution:[1 TO 4}"  # user input for EMDB search
-FETCH_CLASS = False  # user input for RCSB search
-
-# THRE_UNI_SIMILARITY = 100  # user input for check UniportID similarity
-# THRE_Q_SCORE = 0  # user input for check Q-score values
+FETCH_CLASS = True  # user input for RCSB search
 
 
 fields = ("emdb_id,title,structure_determination_method,resolution,resolution_method,fitted_pdbs,current_status,"
@@ -95,11 +94,11 @@ def search_emdb(
         full_path = os.path.join(save_path, f'{file_name}_full.csv')
     with open(full_path, 'w') as out:
         out.write(output)
-        count = output.count('\n') - 1
+        #count = output.count('\n') - 1
     print('EMDB data fetched.')
 
     if fetch_classification:
-        search_rcsb(full_path, save_path)
+        search_rcsb(full_path)
     if fetch_qscore:
         search_qscore(full_path)
 
@@ -130,15 +129,15 @@ def get_class(pdb_id):
     url = 'https://data.rcsb.org/rest/v1/core/entry/'
     if pdb_id == '':
         return '', ''
-    r = requests.get(url + pdb_id)
-    file = r.json()
     try:
+        r = session.get(url + pdb_id)
+        file = r.json()
         return file["struct_keywords"]["pdbx_keywords"], file["struct_keywords"]["text"]
     except Exception:
         return '', ''
 
 
-def search_rcsb(file_path, save_path):
+def search_rcsb(file_path):
     """
     Read fitted_pdbs info and add classification and classification description for each entry
     file_path: path to .csv file
@@ -155,9 +154,9 @@ def search_rcsb(file_path, save_path):
             else:
                 pdb_id = pdb_id.split(',')
                 pdb_id = pdb_id[0]
-                pdb_ids.append(pdb_id)
+                pdb_ids.append(pdb_id)      
 
-        # Use ThreadPoolExecutor to process rows in parallel
+         # Use ThreadPoolExecutor to process rows in parallel
         with ThreadPoolExecutor() as executor:
             results = list(tqdm(executor.map(get_class, pdb_ids), total=len(df)))
 
@@ -187,7 +186,11 @@ def search_rcsb(file_path, save_path):
 def get_qscore(emdb_map_id):
     entry_id = emdb_map_id.replace('EMD-', '')
     url = f"https://www.ebi.ac.uk/emdb/api/analysis/{entry_id}"
-    file = requests.get(url).json()
+    try:
+        file = session.get(url).json()
+    except:
+        return '', ''
+        
     try:
         qscore = file[entry_id]["qscore"]["allmodels_average_qscore"]
     except Exception:
@@ -230,6 +233,19 @@ def search_qscore(file_path):
 
 
 
-QUERY = "ribosome AND resolution:[4 TO 9}"  # user input for EMDB search
+#QUERY = "ribosome AND resolution:[4 TO 9}"  # user input for EMDB search
+session = requests.Session()
+retry = Retry(connect=3, backoff_factor=0.5)
+adapter = HTTPAdapter(max_retries=retry)
+session.mount('http://', adapter)
+session.mount('https://', adapter)
+search_emdb(query=QUERY, save_path=CSV_DOWNLOAD_PATH, file_name="ribosome_res_1-4",\
+                       fetch_qscore= True, fetch_classification=FETCH_CLASS)
 
-csv_path = search_emdb(query=QUERY, save_path=CSV_DOWNLOAD_PATH, file_name="ribosome_res_4-9", fetch_classification=FETCH_CLASS)
+# for testing
+#for i in range(20):
+#    try:
+#        search_emdb(query=QUERY, save_path=CSV_DOWNLOAD_PATH, file_name="ribosome_res_1-4",\
+#                       fetch_qscore= True, fetch_classification=FETCH_CLASS)
+#    except Exception:
+#        print(Exception)
