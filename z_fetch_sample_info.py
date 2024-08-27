@@ -9,7 +9,9 @@ CSV_DOWNLOAD_PATH = "/home/qiboxu/MyProject/CryoDataBot/EVALUATION"  # we set a 
 
 # Fetch from user's input
 QUERY = "ribosome AND resolution:[1 TO 4}"  # user input for EMDB search
+FILE_NAME = None  # user input for the name of the generated csv file
 FETCH_CLASS = False  # user input for RCSB search
+
 
 # THRE_UNI_SIMILARITY = 100  # user input for check UniportID similarity
 # THRE_Q_SCORE = 0  # user input for check Q-score values
@@ -30,7 +32,7 @@ fields = ("emdb_id,title,structure_determination_method,resolution,resolution_me
 def search_emdb(
         query,
         save_path=CSV_DOWNLOAD_PATH,
-        file_name=None,
+        file_name=FILE_NAME,
         fl=fields,
         rows=9999999,
         fetch_classification=False,
@@ -231,5 +233,6 @@ def search_qscore(file_path):
 
 
 QUERY = "ribosome AND resolution:[4 TO 9}"  # user input for EMDB search
+FILE_NAME = "ribosome_res_4-9"
 
-csv_path = search_emdb(query=QUERY, save_path=CSV_DOWNLOAD_PATH, file_name="ribosome_res_4-9", fetch_classification=FETCH_CLASS)
+csv_path = search_emdb(query=QUERY, save_path=CSV_DOWNLOAD_PATH, file_name=FILE_NAME, fetch_classification=FETCH_CLASS)

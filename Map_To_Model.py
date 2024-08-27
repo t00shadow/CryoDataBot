@@ -69,7 +69,8 @@ def atom_coord_cif(structure):
             for residue in chain:
                 for atom in residue:
                     coords.append((int(round(atom.pos.z)), int(round(atom.pos.y)), int(round(atom.pos.x))))            # coords.append(atom.pos), # coords.append([atom.pos.x, atom.pos.y, atom.pos.z])
-    return coords                                                                                       # return np.array(coords)
+    return coords                                                                           # return np.array(coords)
+
 
 def write_updates(file_path: str, message_queue):
     """
@@ -90,6 +91,7 @@ def write_updates(file_path: str, message_queue):
             file.write(message + '\n')
             message_queue.task_done()
             
+
 def main_map_model_corr(map_path: str, cif_path: str, GIVE_MAP: bool=True, PROTEIN_TAG_DIST: float=2, MAP_THRESHOLD: float=0.01):
     """
     Main function for mapping a model to a cryo-EM density map with correlation analysis.
@@ -192,7 +194,7 @@ def map_model_corr(map_path: str, cif_path: str, out_text: queue, NEW_SAVE_FOLDE
     
     ATOM_RADIUS = range(-1*PROTEIN_TAG_DIST, PROTEIN_TAG_DIST)
     for i in tqdm(range(len(protein_coords))):
-        x, y, z = protein_coords[i]       
+        x, y, z = protein_coords[i]
         protein_tag[x, y, z] = 1
         for j in ATOM_RADIUS:
             # if x+j > origin_info[0]+(MAP_BOUNDARY[0]/2) or x+j < origin_info[0]-(MAP_BOUNDARY[0]/2):
@@ -250,6 +252,7 @@ def map_model_corr(map_path: str, cif_path: str, out_text: queue, NEW_SAVE_FOLDE
         
     out_text.put(f'Finished At:{datetime.now()}')
     return
+
 
 if __name__ == '__main__':
     print("Starting Program")
