@@ -71,8 +71,8 @@ transition_metal_dict = {'MG': [], 'CU': [],}
 
 
 # Generate taged files (num = CLASSES) of mrc format from atomic model data
-#GENERATE_MRC_TEST = False
-GENERATE_MRC_TEST = True
+GENERATE_MRC_TEST = False
+#GENERATE_MRC_TEST = True
 CLASSES = 24
 
 
@@ -486,7 +486,7 @@ def atom_coord_cif_protein_secondary(structure,
     return [coords_helices, coords_sheets, coords_loops]
 
 
-def splitfolders(temp_sample_path, sample_path):
+def split_folders(temp_sample_path, sample_path):
     os.makedirs(sample_path, exist_ok=True)
     splitfolders.ratio(input=temp_sample_path,
                        output=sample_path,
@@ -555,7 +555,7 @@ def tag_maps(model_parts,map_paths,model_paths,temp_sample_path,emdb_ids,output_
 
     # 3.3 Split data into training and validation dataset
     sample_path = os.path.join(output_dir, "dataset")
-    splitfolders(temp_sample_path, sample_path)
+    split_folders(temp_sample_path, sample_path)
 
     # 3.4 Calculate weight, create weight file and save it (ratio of tags)
     weight_path = os.path.join(sample_path, 'class_weight_for_training.txt')
@@ -575,7 +575,7 @@ if __name__ == "__main__":
     #model_parts = [{'secondary_type': 'Loop', 'residue_type': '', 'atom_type': '', 'element_type': '', 'metal_type': '', 'tag': 4}]
     #model_parts = [{'secondary_type': 'Sheet', 'residue_type': '', 'atom_type': '', 'element_type': '', 'metal_type': '', 'tag': 5}]
     #model_parts = [{'secondary_type': 'Sheet,Helix', 'residue_type': 'ALA', 'atom_type': 'CA', 'element_type': '', 'metal_type': '', 'tag': 6}]
-    #model_parts = [{'secondary_type': '', 'residue_type': 'A,C,G,U,DA,DC,DG,DT', 'atom_type': '', 'element_type': 'N', 'tag': 7}]
+    #model_parts = [{'secondary_type': '', 'residue_type': 'A,C,G,U,DA,DC,DG,DT', 'atom_type': '', 'element_type': 'N', 'metal_type': '', 'tag': 7}]
     model_parts = [{'secondary_type': '', 'residue_type': '', 'atom_type': '', 'element_type': '', 'metal_type': 'Mg', 'tag': 8}]
     sample_dir = 'ready_to_train_and_val'
     npy_size = 64
