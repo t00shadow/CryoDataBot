@@ -319,6 +319,11 @@ def search_qscore(file_path):
 #        or Retry is not working, and it keeps requesting at the same rate, hence the continuous 429 status codes.
 #
 #        TLDR: seems like it's scenario 1: Retry doesn't work
+#
+#     EDIT 2:
+#        The requests are def not retrying since if you let the 429 error print messages just go to stdout, 
+#        they go in the same order as the entries in the CSV file without pause. They print out so fast they
+#        cause the tqdm progressbar to print as multiple lines.
 
 ##### TLDR: this is a debugging version of z_fetch_sample_info.py
 #     Change the debug flags/variables (at top of file) to suppress some prints or use more threads for the request.
