@@ -17,21 +17,23 @@ FETCH_CLASS = True  # user input for RCSB search
 
 ##### ------- DEBUG FLAGS/VARIABLES -------
 PRINT_429_MSG = True   # prints every single 429 status code message
-#  might spam ur command line
+#  might spam ur command line. Turn this off if it annoys you.
 #  If the retry thing is set up properly, 429 messages wont be the end of the world since itll just... retry
 #       In that case, you can turn this flag back on since it shouldn't spam anymore.
 
 LOG_RCSB_RESULTS_VARIABLE = True    # if set to True, dump the results variable inside search_rcsb into a file
-
-LOOPS = 1              # number of times to run search_emdb
-#  I dont think loops rly do anything in terms of pushing the api limit
-#  Time btwn loops is much slower than btwn rcsb requests since there's extra print statements after all the requests finish and probably some loop overhead too.
 
 MAXWORKERS = None      # for setting Thread_Pool_Executor's max_workers parameter.
 #  The higher this value, the faster the query (b/c it creates more threads), but consumes more sources.
 #  From Thread_Pool_Executor's docstring: max_workers is "the maximum number of threads that can be used to execute the given calls".
 #       By default max_workers is set as min(32, (os.cpu_count() or 1) + 4). For me it's 12.
 #       Crank this value up to like 25 to simulate a faster internet connection.
+
+LOOPS = 1              # number of times to run search_emdb
+#  Useless imo, just ignore this one for now
+#  I dont think loops rly do anything in terms of pushing the api limit since the time btwn loops 
+#  is much slower than btwn rcsb requests since there's extra print statements after all the requests finish and probably some loop overhead too.
+
 
 
 
@@ -152,17 +154,21 @@ def search_emdb(
 def get_class(pdb_id):
     url = 'https://data.rcsb.org/rest/v1/core/entry/'
     if pdb_id == '':
-        return '', ''
+        # return '', ''
+        ##### made this on more verbose too. Make sure doesnt mess with the empty string check in search_rcsb
+        return '', '', 'empty pdb_id'
     try:
         r = session.get(url + pdb_id)
-        if PRINT_429_MSG and r.status_code == 429:
-            print(f"DEBUGGING > 429 code encountered for {pdb_id}")
         file = r.json()
         return file["struct_keywords"]["pdbx_keywords"], file["struct_keywords"]["text"]
     except Exception:
-        return '', ''
-        ##### empty pdb_id returns the same value as the Exception, so change to something different to be 100% sure (example below)
-        # return str(r.status_code), ''
+        if PRINT_429_MSG and r.status_code == 429:
+            print(f"DEBUGGING > 429 code encountered for {pdb_id}")
+        else:
+            print(f"DEBUGGING > other error code: {r.status_code}, entry: {pdb_id}")
+        # return '', ''
+        ##### empty pdb_id returns the same value as the Exception, so added status_code as 3rd element to differentiate. Make sure doesnt mess with the empty string check in search_rcsb
+        return '', '', str(r.status_code)
 
 
 def search_rcsb(file_path):
@@ -324,6 +330,18 @@ def search_qscore(file_path):
 #        The requests are def not retrying since if you let the 429 error print messages just go to stdout, 
 #        they go in the same order as the entries in the CSV file without pause. They print out so fast they
 #        cause the tqdm progressbar to print as multiple lines.
+#
+#     EDIT 3:
+#        Made the rcsb result values for exceptions more verbose. Also moved the 429 error print statement from the try block 
+#        into the except block (only check for 429 status code if an exception happens). And then also added a print statement for other errors.
+#        Since most of our errors are 429's currently, it made sense to have 2 separate print statements for errors.
+#        
+#        If you set MAXWORKERS to 1 (aka single thread), you can see what the results would look like with no 429 errors (don't actually do this in the final code). 
+#        All the values are fetched (except 1, but that's due to a 404 not found error so that entry literally doesnt exist).
+#        It was 6ek0 (the 1354th entry/row) that gave the 404. If you manually go to the link, you get a 404 too (https://data.rcsb.org/rest/v1/core/entry/6ek0)        
+#        BUT we don't want to set MAXWORKERS to 1 because then you're not taking advantage of multiple threads, and its slowww.
+#        
+#        But yeah, haven't fixed it yet. Might take a look at the requests package later and see how their Retry works.
 
 ##### TLDR: this is a debugging version of z_fetch_sample_info.py
 #     Change the debug flags/variables (at top of file) to suppress some prints or use more threads for the request.
