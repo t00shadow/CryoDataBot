@@ -1,81 +1,26 @@
-# import math
-import concurrent.futures
 import os
 import shutil
-
 import gemmi
-# import matplotlib.pyplot as plt
 import mrcfile
 import numpy as np
-
-import sys
-from pathlib import Path
-import random
 import splitfolders
-
 from MRC import MRC
+import json
+import logging
 
-# import pandas as pd
-
-# RNA bases
-atoms_base_A = ['N9', 'C8', 'N7', 'C5', 'C6', 'N6', 'N1', 'C2', 'N3', 'C4']
-atoms_base_G = ['N9', 'C8', 'N7', 'C5', 'C6', 'O6', 'N1', 'C2', 'N2', 'N3', 'C4']
-atoms_base_C = ['N1', 'C2', 'O2', 'N3', 'C4', 'N4', 'C5', 'C6']
-atoms_base_U = ['N1', 'C2', 'O2', 'N3', 'C4', 'O4', 'C5', 'C6']
-atoms_nuc_base = ['N9', 'N1', 'N2', 'N7', 'C6', 'N4', 'C5', 'N6', 'C2', 'C4', 'C8', 'N3', 'O6', 'O4', 'O2']
-
-# Protein_residue_side_chains
-atoms_alanine_ALA = ['CB']
-atoms_arginine_ARG = ['CB', 'CG', 'CD', 'NE', 'CZ', 'NH1', 'NH2']
-atoms_asparagine_ASN = ['CB', 'CG', 'OD1', 'ND2']
-atoms_aspartic_acid_ASP = ['CB', 'CG', 'OD1', 'OD2']
-atoms_cysteine_CYS = ['CB', 'SG']
-atoms_glutamic_acid_GLU = ['CB', 'CG', 'CD', 'OE1', 'OE2']
-atoms_glutamine_GLN = ['CB', 'CG', 'CD', 'OE1', 'NE2']
-atoms_glycine_GLY = []
-atoms_histidine_HIS = ['CB', 'CG', 'ND1', 'CD2', 'CE1', 'NE2']
-atoms_isoleucine_ILE = ['CB', 'CG1', 'CG2', 'CD1']
-atoms_leucine_LEU = ['CB', 'CG', 'CD1', 'CD2']
-atoms_lysine_LYS = ['CB', 'CG', 'CD', 'CE', 'NZ']
-atoms_methionine_MET = ['CB', 'CG', 'SD', 'CE']
-atoms_phenylalanine_PHE = ['CB', 'CG', 'CD1', 'CD2', 'CE1', 'CE2', 'CZ']
-atoms_proline_PRO = ['CB', 'CG', 'CD']
-atoms_serine_SER = ['CB', 'OG']
-atoms_threonine_THR = ['CB', 'OG1', 'CG2']
-atoms_tryptophan_TRP = ['CB', 'CG', 'CD1', 'CD2', 'NE1', 'CE2', 'CE3', 'CZ2', 'CZ3', 'CH2']
-atoms_tyrosine_TYR = ['CB', 'CG', 'CD1', 'CD2', 'CE1', 'CE2', 'CZ']
-atoms_valine_VAL = ['CB', 'CG1', 'CG2']
-atoms_protein_residue = ['CE2', 'CD1', 'SG', 'OG1', 'OD2', 'OD1', 'CZ3', 'CD2', 'NZ', 'NE1', 'CG1', 'ND1', 'CG', 'CZ2',
-                         'CE', 'SD', 'NE2', 'OE2', 'CG2', 'OE1', 'CE3', 'CH2', 'NE', 'ND2', 'CB', 'CZ', 'CE1', 'NH2',
-                         'NH1', 'CD', 'OG']
-
-# Protein and rna residues
-residues_protein = [
-    'ALA', 'ARG', 'ASN', 'ASP', 'CYS', 'GLU', 'GLN', 'GLY', 'HIS', 'ILE',
-    'LEU', 'LYS', 'MET', 'PHE', 'PRO', 'SER', 'THR', 'TRP', 'TYR', 'VAL'
-]
-residues_rna = ['A', 'G', 'C', 'U']
-
-# Tagged atom groups
-atoms_sugar_ring_new = ["C4'", "O4'", "C3'", "C2'", "C1'"]
-key_atoms = [["CA"], ['P'], atoms_sugar_ring_new, atoms_nuc_base, atoms_protein_residue]
-atoms_protein_backbone = ['CA', 'C', 'N']
-atoms_rna_backbone = [
-    "P", "OP1", "OP2", "O5'", "C5'", "C4'", "O4'", "C3'", "O3'", "C2'", "O2'",
-    "C1'"
-]
-
-# Generate taged files (num = CLASSES) of mrc format from atomic model data
-GENERATE_MRC_TEST = True
-CLASSES = 24
-
+# for logging
+logger = logging.getLogger(__name__)
+logging.basicConfig(filename='generate_dataset.log', encoding='utf-8', level=logging.INFO,\
+                    format='%(asctime)s %(levelname)s: %(message)s', datefmt='%m/%d/%Y %I:%M:%S %p')
 
 def data_to_npy(map_path: str,
                 model_path: str,
                 model_parts: list,
                 sample_dir: str,
                 sample_num: int = 0,
-                npy_size: int = 64):
+                npy_size: int = 64,
+                generate_test: bool = False,
+                classes: int = 24):
     """
     Read an MRC map file and a PDB model file, and create 3D numpy arraies with data from them.
 
@@ -119,9 +64,10 @@ def data_to_npy(map_path: str,
     # Creating tags
     helices, sheets = protein_2nd_structure_lists(structure)
     for part_name in range(len(model_parts)):
-        secondary_type, residue_type, atom_type, tag = model_parts[part_name]['secondary_type'].split(','), \
+        secondary_type, residue_type, atom_type, element_type, metal_type, tag = model_parts[part_name]['secondary_type'].split(','), \
             model_parts[part_name]['residue_type'].split(','), model_parts[part_name]['atom_type'].split(','),\
-            model_parts[part_name]['tag']
+            model_parts[part_name]['element_type'].split(','), model_parts[part_name]['metal_type'].split(','),\
+                  model_parts[part_name]['tag']
 
         model_data = np.zeros(map_size, np.int8)  
         dis_array = np.array([])
@@ -132,66 +78,75 @@ def data_to_npy(map_path: str,
         if atom_type == ['']:
             atom_type = None
 
-        if secondary_type == ['']:
-            part_coords = atom_coord_cif(structure, residue_type, atom_type)
-            model_data, dis_array = tag_npy(model_data, part_coords, tag, dis_array)
-        else:
-            protein_2nd_structure_coords = atom_coord_cif_protein_secondary(
-                    structure, helices, sheets, residue_type, atom_type)
-            if 'Helix' in secondary_type:
-                model_data, dis_array = tag_npy(model_data, protein_2nd_structure_coords[0], tag, dis_array)
-            if 'Sheet' in secondary_type:
-                model_data, dis_array = tag_npy(model_data, protein_2nd_structure_coords[1], tag, dis_array)
-            if 'Loop' in secondary_type:
-                model_data, dis_array = tag_npy(model_data, protein_2nd_structure_coords[2], tag, dis_array)
+        logger.info('Calculating and tagging atom coordinates.')
+        try:
+            if secondary_type == ['']:
+                if element_type == [''] and metal_type == ['']:
+                    part_coords = atom_coord_cif(structure, residue_type, atom_type)
+                    model_data, dis_array = tag_npy(model_data, part_coords, tag, dis_array)
+                elif element_type != [''] and metal_type == ['']:
+                    part_coords = element_coord_cif(structure, residue_type, element_type)
+                    model_data, dis_array = tag_npy(model_data, part_coords, tag, dis_array)
+                elif element_type == [''] and metal_type != ['']:
+                    for metal in metal_type:
+                        part_coords = element_coord_cif(structure, residue_type, metal)
+                        model_data, dis_array = tag_npy(model_data, part_coords, tag, dis_array, gemmi.Element(metal).vdw_r)
+            else:   
+                protein_2nd_structure_coords = atom_coord_cif_protein_secondary(
+                        structure, helices, sheets, residue_type, atom_type)
+                if 'Helix' in secondary_type:
+                    model_data, dis_array = tag_npy(model_data, protein_2nd_structure_coords[0], tag, dis_array)
+                if 'Sheet' in secondary_type:
+                    model_data, dis_array = tag_npy(model_data, protein_2nd_structure_coords[1], tag, dis_array)
+                if 'Loop' in secondary_type:
+                    model_data, dis_array = tag_npy(model_data, protein_2nd_structure_coords[2], tag, dis_array)
+            logger.info('Successfully calculated and tagged atom coordinates.')
+        except Exception as e:
+            logger.error(f'Calculation failed. Exception: {e}.')
         data.append(model_data)
-        part_names.append(part_name)
+        part_names.append(str(part_name+1))
 
-        if GENERATE_MRC_TEST is True:
-            # # Generate TEST.mrc for one part
-            # out_map = f"{map_path.split('.mrc')[0]}_EXAMPLE_{part_name}.mrc"
-            # print("=> Writing new map")
-            # shutil.copy(map_path, out_map)
-            # with mrcfile.open(out_map, mode='r+') as mrc:
-            #     TEST_data = model_data
-            #     mrc.set_data(TEST_data)
-            #     # mrc.header.mz = model_data.shape[0]
-            # print("New map is writen.")
-            # continue
-
+        if generate_test is True:
             # Generate TEST.mrc for every value in one part
-            for tag in range(1, CLASSES + 1):
-                out_map = f"{map_path.split('.mrc')[0]}_EXAMPLE_{part_name}_{tag}.mrc"
-                print("=> Writing new map")
-                shutil.copy(map_path, out_map)
-                with mrcfile.open(out_map, mode='r+') as mrc:
-                    TEST_data = np.zeros_like(model_data)
-                    TEST_data = np.where(model_data == tag, model_data, 0)
-                    mrc.set_data(TEST_data)
-                    # mrc.header.mz = model_data.shape[0]
-                print("New map is writen.")
-                continue
+            logger.info('Generating test mrc(s).')
+            try:
+                for tag in range(1, classes + 1):
+                    out_map = f"{map_path.split('.mrc')[0]}_EXAMPLE_{part_name}_{tag}.mrc"
+                    print("=> Writing new map")
+                    shutil.copy(map_path, out_map)
+                    with mrcfile.open(out_map, mode='r+') as mrc:
+                        TEST_data = np.zeros_like(model_data)
+                        TEST_data = np.where(model_data == tag, model_data, 0)
+                        mrc.set_data(TEST_data)
+                        # mrc.header.mz = model_data.shape[0]
+                    print("New map is writen.")
+                    continue
+                logger.info('Successfully generated test mrc(s).')
+            except Exception as e:
+                logger.error(f'Generation failed. Exception: {e}.')
             exit()
 
     # Create npy files from model_data of each part and map_data
     # Calcutate num of different tags
     data.append(map_data)
     part_names.append('map_sample')
-    num_tags, sample_num = split_to_npy(data, sample_dir, start_coords,
+    logger.info('Splitting tagged files into small cubes.')
+    try:
+        num_tags, sample_num = split_to_npy(data, sample_dir, start_coords,
                                         n_samples, npy_size, sample_num,
                                         part_names)
-
+        logger.info('Splitting successful.')
+    except Exception as e:
+        logger.error(f'Splitting failed. Exception: {e}')
+    
     for idx in range(len(part_names) - 1):
-        part_name = part_names[idx]
-        num_of_tag_in_each_part[part_name] = num_tags[idx]
-
-    # print(num_of_tag_in_each_part)
+        num_of_tag_in_each_part[part_names[idx]] = num_tags[idx]
 
     return sample_num, num_of_tag_in_each_part
 
 
 def compute_grid_params(box_min_list, box_max_list, axis_length_list,
-                        grid_size):  #
+                        grid_size): 
     """
     Computes the starting coordinate and number of grid samples along three axis for a given box.
 
@@ -247,7 +202,7 @@ def split_to_npy(data,
     Returns:
         None
     """
-    num_tags = [0, 0, 0]
+    num_tags = [0] * len(data)
     sample_start_z, sample_start_y, sample_start_x = start_coords
     for i in range(3):
         n_samples[i] = int(n_samples[i] * npy_size / extract_stride) - 1
@@ -259,33 +214,16 @@ def split_to_npy(data,
             idx_y = sample_start_y + extract_stride * n_y
             for n_x in range(n_samples[2]):
                 idx_x = sample_start_x + extract_stride * n_x
-                samples = []
-                counts = []
-                # ratio_tags = []
                 for idx in range(0, len(data) - 1):
                     sample = data[idx][idx_z:idx_z + npy_size,
                              idx_y:idx_y + npy_size,
                              idx_x:idx_x + npy_size]
-                    samples.append(sample)
-                    count = np.bincount(sample.flatten())
-                    counts.append(count)
-                #     ratio_tag = 1 - count[0] / count.sum()
-                #     ratio_tags.append(ratio_tag)
-                # # print(ratio_tags)
-                # if max(ratio_tags) < 0.01:
-                #     random_number = random.randint(1, 10)
-                #     if random_number < 6:
-                #         continue
-                # Save seperated files for model tags
-                for idx in range(0, len(data) - 1):
                     file_name = os.path.join(
                         sample_dir, part_names[idx],
                         f"model_{part_names[idx]}.{sample_num}.npy")
-                    np.save(file_name, samples[idx])
-                    # print(np.max(samples[idx]))
-                    count = counts[idx]
-                    count = np.pad(count, (0, max(0, 27 - len(count))),
-                                   'constant')
+                    np.save(file_name, sample)
+
+                    count = np.count_nonzero(sample)
                     num_tags[idx] += count
 
                 # Save seperated files for map data
@@ -372,6 +310,35 @@ def atom_coord_cif(structure, RESIDUE=None, ATOM=None):
                     continue
                 for atom in residue:
                     if ATOM is not None and atom.name not in ATOM:
+                        continue
+                    # coords.append(
+                    #     (int(round(atom.pos.z)), int(round(atom.pos.y)),
+                    #      int(round(atom.pos.x)))
+                    # )
+                    # coords.append(atom.pos),
+                    coords.append([atom.pos.z, atom.pos.y, atom.pos.x])
+    return coords
+
+def element_coord_cif(structure, RESIDUE=None, ATOM=None):
+    """
+    Returns the atomic coordinates from a PDB structure for specific residues and atoms.
+
+    Args:
+        structure (Structure): PDB structure.
+        RESIDUE (list, optional): List of residue names to select. Defaults to None (all residues).
+        ATOM (list, optional): List of atom names to select. Defaults to None (all atoms).
+
+    Returns:
+        list: List of atomic coordinates as lists [z, y, x].
+    """
+    coords = []
+    for model in structure:
+        for chain in model:
+            for residue in chain:
+                if RESIDUE is not None and residue.name not in RESIDUE:
+                    continue
+                for atom in residue:
+                    if ATOM is not None and atom.element.name not in ATOM:
                         continue
                     # coords.append(
                     #     (int(round(atom.pos.z)), int(round(atom.pos.y)),
@@ -473,20 +440,122 @@ def split_folders(temp_sample_path, sample_path):
     shutil.rmtree(temp_sample_path)
 
 
-if __name__ == "__main__":
-    map_path = '/home/qiboxu/Database/U_NET/EMDB_PDB_for_U_Net/Filtered_Dateset/Raw/EMD-11893_re_3.33/emd_11893_normalized.mrc'
-    model_path = '/home/qiboxu/Database/U_NET/EMDB_PDB_for_U_Net/Filtered_Dateset/Raw/EMD-11893_re_3.33/7ase.cif'
-    # for testing
-    #model_parts = [{'secondary_type': 'Helix', 'residue_type': 'ALA', 'atom_type': 'CA', 'tag': 1}]
-    #model_parts = [{'secondary_type': 'Helix', 'residue_type': 'ALA', 'atom_type': 'N', 'tag': 2}]
-    #model_parts = [{'secondary_type': '', 'residue_type': 'ALA', 'atom_type': 'CA', 'tag': 3}]
-    #model_parts = [{'secondary_type': 'Loop', 'residue_type': '', 'atom_type': '', 'tag': 4}]
-    model_parts = [{'secondary_type': 'Sheet', 'residue_type': '', 'atom_type': '', 'tag': 5}]
+def tag_maps(model_parts,map_paths,model_paths,temp_sample_path,emdb_ids,output_dir):
+    # Step 3. Generate a dataset (3d numpy arraies) from map and model files
+    # 3.1 Read map, model files and create lables
+    logger.info('-'*5+'Generating dataset'+'-'*5)
+    logger.info(f'Model parts: {model_parts}')
+    # idx of npy file
+    sample_num = 0
 
-    sample_dir = '/home/qiboxu/Database/U_NET/EMDB_PDB_for_U_Net/Filtered_Dateset/Training/ready_to_train_and_val'
-    npy_size = 64
+    # num of tag in each part for all models
+    num_of_tag_in_each_part_for_all_models = {}
+    for part in range(len(model_parts)):
+        num_of_tag_in_each_part_for_all_models[str(part+1)] = 0
+
+    for idx, emdb_id in enumerate(emdb_ids):
+        # test for idx in [0,1]
+        # for idx, emdb_id in enumerate(emdb_ids[0:1]):
+        print(
+            f"[{idx+1}/{len(emdb_ids)}] Generating dataset from EMDB-{emdb_id}... "
+        )
+        logger.info(f'[{idx+1}/{len(emdb_ids)}] Generating tagged file(s) from EMDB-{emdb_id}.')
+        try:
+            sample_num, num_of_tag_in_each_part = data_to_npy(
+                map_paths[idx], model_paths[idx], model_parts,
+                temp_sample_path, sample_num)
+            logger.info(f'Successfully generated tagged file(s) from EMDB-{emdb_id}.')
+        except Exception as e:
+            logger.error(f'Generating tagged file(s) failed. Exception: {e}.')
+        # Add number of each tag in new sampled model
+        num_of_tag_in_each_part_for_all_models = {key: num_of_tag_in_each_part[key] + num_of_tag_in_each_part_for_all_models[key]\
+                                                   for key in num_of_tag_in_each_part}
+
+    # Delete 0s in tag number list and calculate 1/ratio of tag number
+    ratio_of_tag = {}
+    sum_tags = sum(num_of_tag_in_each_part_for_all_models.values())
+    for key, val in num_of_tag_in_each_part_for_all_models.items():
+        if val == 0:
+            print(
+                f'There is missing groups in part {key}, numbers of each class are {val}.'
+            )
+        ratio_of_tag[key] = val/sum_tags
+
+    '''for key, value_list in num_of_tag_in_each_part_for_all_models.items():
+        value_list = np.trim_zeros(value_list)
+        num_of_tag_in_each_part_for_all_models[key] = value_list
+        if 0 in value_list:
+            print(
+                f'There is missing groups in part {key}, numbers of each class are {value_list}.'
+            )
+        ratio_of_tag[key] = [
+            int(value_list[0] // value_x) for value_x in value_list
+            if value_x != 0
+        ]'''
+
+    # Print statistical results
+    print(f"The number of .npy file: {sample_num}")
+    print("Num of each tag: ")
+    for key, value in num_of_tag_in_each_part_for_all_models.items():
+        print(f'{key}: {value}')
+    logger.info(f'Num of each tag: {num_of_tag_in_each_part_for_all_models}.')
+    print("\nRatio of tags: ")
+    for key, value in ratio_of_tag.items():
+        formatted_value = "{:.2%}".format(value)
+        print(f'{key}: {formatted_value}')
+    logger.info(f'Ratio of tags: {ratio_of_tag}.')
+
+    # 3.3 Split data into training and validation dataset
+    sample_path = os.path.join(output_dir, "dataset")
+    split_folders(temp_sample_path, sample_path)
+
+    # 3.4 Calculate weight, create weight file and save it (ratio of tags)
+    weight_path = os.path.join(sample_path, 'class_weight_for_training.txt')
+    with open(weight_path, "w") as file:
+        json.dump(ratio_of_tag, file)
+    logger.info('-'*5+'Dataset generation completed'+'-'*5)
+
+def generate_test_mrcs(generate_test = False, classes = 24):
+    sample_num, num_of_tag_in_each_part = data_to_npy(map_path, model_path,
+                                                    model_parts, sample_dir,
+                                                    generate_test, classes)
+    print(sample_num)
+    print(num_of_tag_in_each_part)
+
+
+if __name__ == "__main__":
+    '''
+    raw_map_paths = ["path_to_save_downloaded_map_and_model/EMD-37007_re_3.3/emd_37007.map",\
+                     "path_to_save_downloaded_map_and_model/EMD-3145_re_3.3/emd_3145.map",\
+                        'path_to_save_downloaded_map_and_model/EMD-41587_re_2.92/emd_41587.map']
+    model_paths = ["path_to_save_downloaded_map_and_model/EMD-37007_re_3.3/8kab.cif",\
+                   "path_to_save_downloaded_map_and_model/EMD-3145_re_3.3/5an9.cif",\
+                    'path_to_save_downloaded_map_and_model/EMD-41587_re_2.92/8ts1.cif']
+    emdb_ids = [37007, 3145, 41587]
+    map_paths = normalize_raw_map(raw_map_paths)
+
+    # this is the only function that needs to be called
+    tag_maps(model_parts,map_paths,model_paths,temp_sample_path,emdb_ids,output_dir)
+    '''
+
+    # for testing data_to_npy()
+    #map_path = r'path_to_save_downloaded_map_and_model/EMD-3145_re_3.3/emd_3145_normalized.mrc'
+    #model_path = r'path_to_save_downloaded_map_and_model/EMD-3145_re_3.3/5an9.cif'
+    map_path = r'path_to_save_downloaded_map_and_model/EMD-41587_re_2.92/emd_41587_normalized.mrc'
+    model_path = r'path_to_save_downloaded_map_and_model/EMD-41587_re_2.92/8ts1.cif'
+    # different model_parts
+    #model_parts = [{'secondary_type': 'Helix', 'residue_type': 'ALA', 'atom_type': 'CA', 'element_type': '', 'metal_type': '', 'tag': 1}]
+    #model_parts = [{'secondary_type': 'Helix', 'residue_type': 'ALA', 'atom_type': 'N', 'element_type': '', 'metal_type': '', 'tag': 2}]
+    #model_parts = [{'secondary_type': '', 'residue_type': 'ALA', 'atom_type': 'CA', 'element_type': '', 'metal_type': '', 'tag': 3}]
+    #model_parts = [{'secondary_type': 'Loop', 'residue_type': '', 'atom_type': '', 'element_type': '', 'metal_type': '', 'tag': 4}]
+    #model_parts = [{'secondary_type': 'Sheet', 'residue_type': '', 'atom_type': '', 'element_type': '', 'metal_type': '', 'tag': 5}]
+    #model_parts = [{'secondary_type': 'Sheet,Helix', 'residue_type': 'ALA', 'atom_type': 'CA', 'element_type': '', 'metal_type': '', 'tag': 6}]
+    #model_parts = [{'secondary_type': '', 'residue_type': 'A,C,G,U,DA,DC,DG,DT', 'atom_type': '', 'element_type': 'N', 'metal_type': '', 'tag': 7}]
+    model_parts = [{'secondary_type': '', 'residue_type': '', 'atom_type': '', 'element_type': '', 'metal_type': 'Mg', 'tag': 8}]
+    sample_dir = 'testing_data_to_npy'
 
     sample_num, num_of_tag_in_each_part = data_to_npy(map_path, model_path,
-                                                      model_parts, sample_dir)
+                                                      model_parts, sample_dir,
+                                                      generate_test=True)
     print(sample_num)
     print(num_of_tag_in_each_part)
