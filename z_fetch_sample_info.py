@@ -5,34 +5,32 @@ from urllib3.util.retry import Retry
 import pandas as pd
 from tqdm import tqdm
 from concurrent.futures import ThreadPoolExecutor
+import logging
+
+# for handling api calls
+session = requests.Session()
+retry = Retry(connect=3, backoff_factor=0.5)
+adapter = HTTPAdapter(max_retries=retry)
+session.mount('http://', adapter)
+session.mount('https://', adapter)
+
+# for logging
+logger = logging.getLogger(__name__)
+logging.basicConfig(filename='fetch_sample_info.log', encoding='utf-8', level=logging.INFO,\
+                    format='%(asctime)s %(levelname)s: %(message)s', datefmt='%m/%d/%Y %I:%M:%S %p')
 
 
-CSV_DOWNLOAD_PATH = "./"  # we set a default path
-
-# Fetch from user's input
-QUERY = "ribosome AND resolution:[1 TO 4}"  # user input for EMDB search
-FILE_NAME = None  # user input for the name of the generated csv file
-FETCH_CLASS = True  # user input for RCSB search
-
-
-
-fields = ("emdb_id,title,structure_determination_method,resolution,resolution_method,fitted_pdbs,current_status,"
+def search_emdb(
+        query,
+        save_path='./CSV',
+        file_name=None,
+        fl=("emdb_id,title,structure_determination_method,resolution,resolution_method,fitted_pdbs,current_status,"
           "deposition_date,map_release_date,primary_citation_author_string,primary_citation_title,xref_DOI,"
           "xref_PUBMED,primary_citation_year,primary_citation_journal_name,sample_info_string,microscope_name,"
           "illumination_mode,imaging_mode,electron_source,specimen_holder_name,segmentation_filename,slice_filename,"
           "additional_map_filename,half_map_filename,software,assembly_molecular_weight,xref_UNIPROTKB,xref_CPX,"
           "xref_EMPIAR,xref_PFAM,xref_CATH,xref_GO,xref_INTERPRO,xref_CHEBI,xref_CHEMBL,xref_DRUGBANK,xref_PDBEKB,"
-          "xref_ALPHAFOLD")
-
-
-# fields = 'emdb_id,title,resolution,fitted_pdbs,xref_UNIPROTKB,xref_ALPHAFOLD'
-
-
-def search_emdb(
-        query,
-        save_path=CSV_DOWNLOAD_PATH,
-        file_name=FILE_NAME,
-        fl=fields,
+          "xref_ALPHAFOLD"),
         rows=9999999,
         fetch_classification=False,
         fetch_qscore=True):
@@ -66,43 +64,57 @@ def search_emdb(
     # fetch_qscore: bool, fetching Q-score or not
     # Default: True
     """
+    logger.info('-'*5+f'Log for "{query}".'+'-'*5)
     print('\n--------------------------------------------------------------------------------\nFetching EMDB data...')
     url = 'https://www.ebi.ac.uk/emdb/api/search/'
     output = ''
     try:
-        r = requests.get(url + query + ' AND xref_links:"pdb"',
+        r = session.get(url + query + ' AND xref_links:"pdb"',
                          params={'rows': rows, 'fl': fl}, headers={'accept': 'text/csv'})
         if r.status_code == 200:
             output += r.text
         else:
             print(f"Error fetching data query: {query}. Unexpected error.")
+            logger.error(f"Error fetching data. Unexpected error.")
     except requests.exceptions.RequestException as e:
-        print(f"Error fetching data: {e}")
+        print(f"Error fetching data query: {query}. Exception: {e}.")
+        logger.error(f"Error fetching data. Exception: {e}.")
 
-    save_path = os.path.join(save_path, file_name)
+    #save_path = os.path.join(save_path, file_name)
     os.makedirs(save_path, exist_ok=True)
 
     # checking for file names
     num = 1
     if file_name is None:
-        file_name = f'download_file_{num:02}'
-        # file_name = query
+        file_name = f'download_file_{num:02}_full'
         full_path = os.path.join(save_path, f'{file_name}.csv')
-        while any(filename.startswith(f'download_file_{num:02}') for filename in os.listdir(save_path)):
+        while any(filename.startswith(f'download_file_{num:02}_full') for filename in os.listdir(save_path)):
             num += 1
-            file_name = f'download_file_{num:02}'
+            file_name = f'download_file_{num:02}_full'
             full_path = os.path.join(save_path, f'{file_name}.csv')
     else:
         full_path = os.path.join(save_path, f'{file_name}_full.csv')
     with open(full_path, 'w') as out:
         out.write(output)
-        #count = output.count('\n') - 1
     print('EMDB data fetched.')
+    logger.info('Successfully fetched EMDB data.')
 
+    # classification info
     if fetch_classification:
-        search_rcsb(full_path)
+        try:
+            logger.info('Fetching classification info.')
+            search_rcsb(full_path)
+            logger.info('Successfully fetched classification info.')
+        except Exception as e:
+            logger.error(f'Unexpected exception while fetching classification info: {e}.')
+    # q_score and atom_inclusion
     if fetch_qscore:
-        search_qscore(full_path)
+        try:
+            logger.info('Fetching q_score and atom_inclusion.')
+            search_qscore(full_path)
+            logger.info('Successfully fetched q_score and atom_inclusion.')
+        except Exception as e:
+            logger.error(f'Unexpected exception while fetching q_score and atom_inclusion: {e}.')
 
     df = pd.read_csv(full_path)
     # List of required columns
@@ -116,6 +128,7 @@ def search_emdb(
         missing_columns.remove('RCSB_classification')
     if missing_columns:
         print(f"Warning: Missing columns in CSV file: {', '.join(missing_columns)}")
+        logger.warning(f"Missing columns in CSV file: {', '.join(missing_columns)}.")
 
     # Create a new DataFrame with the existing required columns
     new_df = df[existing_columns]
@@ -123,7 +136,7 @@ def search_emdb(
     new_df.to_csv(final_path, index=False)
     print('\n--------------------------------------------------------------------------------\n')
     print('Entries file created.')
-
+    logger.info('-'*5+f'Successfully fetched sample info.'+'-'*5)
     return final_path
 
 
@@ -143,7 +156,6 @@ def search_rcsb(file_path):
     """
     Read fitted_pdbs info and add classification and classification description for each entry
     file_path: path to .csv file
-    return: path to classified .csv file
     """
     df = pd.read_csv(file_path)
     print("\nFetching classification info...")
@@ -180,9 +192,11 @@ def search_rcsb(file_path):
                 error_entries.append(str(df['emdb_id'][index]))
         if error_entries:
             print(f"Classification info not found for {len(error_entries)} enteries:\n{error_entries}")
+            logger.warning(f"Classification info not found for {len(error_entries)} enteries:\n{error_entries}")
         # return file_path
     else:
         print("The column 'fitted_pdbs' does not exist in the DataFrame.")
+        logger.warning(f"The column 'fitted_pdbs' does not exist in the DataFrame.")
 
 
 def get_qscore(emdb_map_id):
@@ -208,6 +222,7 @@ def get_qscore(emdb_map_id):
 def search_qscore(file_path):
     """
     Append Q-score and atom inclusion to .csv file
+    file_path: path to .csv file
     """
     print('\nFetching Q-score and atom inclusion...')
     tqdm.pandas()
@@ -216,9 +231,8 @@ def search_qscore(file_path):
         results = list(tqdm(executor.map(get_qscore, df['emdb_id']), total=len(df)))
     df['Q-score'], df['atom_inclusion'] = zip(*results)
     df.to_csv(file_path, index=False)
-    # new_file_path = file_path.replace('.csv', '_qscore.csv')
-    # os.rename(file_path, new_file_path)
     print('Q-score and atom inclusion fetched.')
+
     # output error message
     q_error = []
     a_error = []
@@ -229,25 +243,20 @@ def search_qscore(file_path):
             a_error.append(str(df['emdb_id'][index]))
     if q_error:
         print(f'No Q-score fetched for {len(q_error)} enteries:\n{q_error}')
+        logger.warning(f'No Q-score fetched for {len(q_error)} enteries:\n{q_error}')
     if a_error:
         print(f'No atom_inclusion fetched for {len(a_error)} enteries:\n{a_error}')
-    # return file_path
+        logger.warning(f'No atom_inclusion fetched for {len(a_error)} enteries:\n{a_error}')
 
 
+if __name__ == '__main__':
+    search_emdb(query="ribosome AND resolution:[1 TO 4}", save_path='./CSV', file_name="ribosome_res_1-4",\
+                       fetch_qscore= True, fetch_classification=True)
 
-#QUERY = "ribosome AND resolution:[4 TO 9}"  # user input for EMDB search
-session = requests.Session()
-retry = Retry(connect=3, backoff_factor=0.5)
-adapter = HTTPAdapter(max_retries=retry)
-session.mount('http://', adapter)
-session.mount('https://', adapter)
-search_emdb(query=QUERY, save_path=CSV_DOWNLOAD_PATH, file_name="ribosome_res_1-4",\
-                       fetch_qscore= True, fetch_classification=FETCH_CLASS)
-
-# for testing
-#for i in range(20):
-#    try:
-#        search_emdb(query=QUERY, save_path=CSV_DOWNLOAD_PATH, file_name="ribosome_res_1-4",\
-#                       fetch_qscore= True, fetch_classification=FETCH_CLASS)
-#    except Exception:
-#        print(Exception)
+    '''# for testing RCSB function
+    for i in range(20):
+        try:
+            search_emdb(query="ribosome AND resolution:[1 TO 4}", save_path='./CSV', file_name="ribosome_res_1-4",\
+                        fetch_qscore= False, fetch_classification=True)
+        except Exception:
+            print(Exception)'''
