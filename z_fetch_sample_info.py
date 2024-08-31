@@ -171,7 +171,7 @@ def search_rcsb(file_path):
                 pdb_ids.append(pdb_id)      
 
          # Use ThreadPoolExecutor to process rows in parallel
-        with ThreadPoolExecutor() as executor:
+        with ThreadPoolExecutor(max_workers=10) as executor:
             results = list(tqdm(executor.map(get_class, pdb_ids), total=len(df)))
 
         # Unpack results into separate lists
@@ -227,7 +227,7 @@ def search_qscore(file_path):
     print('\nFetching Q-score and atom inclusion...')
     tqdm.pandas()
     df = pd.read_csv(file_path)
-    with ThreadPoolExecutor() as executor:
+    with ThreadPoolExecutor(max_workers=10) as executor:
         results = list(tqdm(executor.map(get_qscore, df['emdb_id']), total=len(df)))
     df['Q-score'], df['atom_inclusion'] = zip(*results)
     df.to_csv(file_path, index=False)
