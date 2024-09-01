@@ -69,8 +69,10 @@ def search_emdb(
     url = 'https://www.ebi.ac.uk/emdb/api/search/'
     output = ''
     try:
-        r = session.get(url + query + ' AND xref_links:"pdb"',
+        logging.disable(logging.WARNING)
+        r = requests.get(url + query + ' AND xref_links:"pdb"',
                          params={'rows': rows, 'fl': fl}, headers={'accept': 'text/csv'})
+        logging.disable(logging.NOTSET)
         if r.status_code == 200:
             output += r.text
         else:
@@ -171,8 +173,10 @@ def search_rcsb(file_path):
                 pdb_ids.append(pdb_id)      
 
          # Use ThreadPoolExecutor to process rows in parallel
+        logging.disable(logging.WARNING)
         with ThreadPoolExecutor() as executor:
             results = list(tqdm(executor.map(get_class, pdb_ids), total=len(df)))
+        logging.disable(logging.NOTSET)
 
         # Unpack results into separate lists
         RCSB_classification, RCSB_description = zip(*results)
@@ -191,8 +195,8 @@ def search_rcsb(file_path):
             if info == '':
                 error_entries.append(str(df['emdb_id'][index]))
         if error_entries:
-            print(f"Classification info not found for {len(error_entries)} enteries:\n{error_entries}")
-            logger.warning(f"Classification info not found for {len(error_entries)} enteries:\n{error_entries}")
+            print(f"Classification info not found for {len(error_entries)} enterie(s):\n{error_entries}")
+            logger.warning(f"Classification info not found for {len(error_entries)} enterie(s):\n{error_entries}")
         # return file_path
     else:
         print("The column 'fitted_pdbs' does not exist in the DataFrame.")
@@ -227,8 +231,10 @@ def search_qscore(file_path):
     print('\nFetching Q-score and atom inclusion...')
     tqdm.pandas()
     df = pd.read_csv(file_path)
+    logging.disable(logging.WARNING)
     with ThreadPoolExecutor() as executor:
         results = list(tqdm(executor.map(get_qscore, df['emdb_id']), total=len(df)))
+    logging.disable(logging.NOTSET)
     df['Q-score'], df['atom_inclusion'] = zip(*results)
     df.to_csv(file_path, index=False)
     print('Q-score and atom inclusion fetched.')
@@ -242,11 +248,11 @@ def search_qscore(file_path):
         if str(df['atom_inclusion'][index]) == '':
             a_error.append(str(df['emdb_id'][index]))
     if q_error:
-        print(f'No Q-score fetched for {len(q_error)} enteries:\n{q_error}')
-        logger.warning(f'No Q-score fetched for {len(q_error)} enteries:\n{q_error}')
+        print(f'No Q-score fetched for {len(q_error)} enterie(s):\n{q_error}')
+        logger.warning(f'No Q-score fetched for {len(q_error)} enterie(s):\n{q_error}')
     if a_error:
-        print(f'No atom_inclusion fetched for {len(a_error)} enteries:\n{a_error}')
-        logger.warning(f'No atom_inclusion fetched for {len(a_error)} enteries:\n{a_error}')
+        print(f'No atom_inclusion fetched for {len(a_error)} enterie(s):\n{a_error}')
+        logger.warning(f'No atom_inclusion fetched for {len(a_error)} enterie(s):\n{a_error}')
 
 
 if __name__ == '__main__':
