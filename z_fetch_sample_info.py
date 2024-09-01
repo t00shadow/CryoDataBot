@@ -9,7 +9,7 @@ import logging
 
 # for handling api calls
 session = requests.Session()
-retry = Retry(connect=3, backoff_factor=0.5)
+retry = Retry(connect=3, backoff_factor=0.1)
 adapter = HTTPAdapter(max_retries=retry)
 session.mount('http://', adapter)
 session.mount('https://', adapter)
@@ -64,7 +64,7 @@ def search_emdb(
     # fetch_qscore: bool, fetching Q-score or not
     # Default: True
     """
-    logger.info('-'*5+f'Log for "{query}".'+'-'*5)
+    logger.info('-'*5+f'Log for "{query}"'+'-'*5)
     print('\n--------------------------------------------------------------------------------\nFetching EMDB data...')
     url = 'https://www.ebi.ac.uk/emdb/api/search/'
     output = ''
@@ -136,7 +136,7 @@ def search_emdb(
     new_df.to_csv(final_path, index=False)
     print('\n--------------------------------------------------------------------------------\n')
     print('Entries file created.')
-    logger.info('-'*5+f'Successfully fetched sample info.'+'-'*5)
+    logger.info('-'*5+f'Successfully fetched sample info'+'-'*5)
     return final_path
 
 
@@ -171,7 +171,7 @@ def search_rcsb(file_path):
                 pdb_ids.append(pdb_id)      
 
          # Use ThreadPoolExecutor to process rows in parallel
-        with ThreadPoolExecutor(max_workers=10) as executor:
+        with ThreadPoolExecutor() as executor:
             results = list(tqdm(executor.map(get_class, pdb_ids), total=len(df)))
 
         # Unpack results into separate lists
@@ -227,7 +227,7 @@ def search_qscore(file_path):
     print('\nFetching Q-score and atom inclusion...')
     tqdm.pandas()
     df = pd.read_csv(file_path)
-    with ThreadPoolExecutor(max_workers=10) as executor:
+    with ThreadPoolExecutor() as executor:
         results = list(tqdm(executor.map(get_qscore, df['emdb_id']), total=len(df)))
     df['Q-score'], df['atom_inclusion'] = zip(*results)
     df.to_csv(file_path, index=False)
