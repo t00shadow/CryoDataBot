@@ -98,7 +98,15 @@ class MainWindow(qtw.QMainWindow):    # Make sure the root widget/class is the r
     #     self.ui.statusBar.showMessage(string)
 
     # this fxn needs to be updated
-    def make_csv(self):
+    def make_csv(self) -> None:
+        """
+        No return value (this is just a toy function). Creates a new file.
+
+        Parameters
+        ----------
+        None
+        """
+
         query = self.ui.lineEdit_p2.text()    # change this to the custom widget like in gen_dataset_quick()
         #processedstring = stringutil.process_string(query)   # TODO, concatenate array of keywords into a string (not sure how to implement and and or logic with keywords)
         processed_query = query     # placeholder

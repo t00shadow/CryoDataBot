@@ -5,4 +5,6 @@ cryodatabot.egg-info/
 # /EVALUATION
 JUNK_DONT_COMMIT.py
 
+/CSV
 *.csv
+*.log
