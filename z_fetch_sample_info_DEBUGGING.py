@@ -7,7 +7,8 @@ from tqdm import tqdm
 from concurrent.futures import ThreadPoolExecutor
 
 
-CSV_DOWNLOAD_PATH = "./"  # we set a default path
+# CSV_DOWNLOAD_PATH = "./"  # we set a default path
+CSV_DOWNLOAD_PATH = os.path.join(".", "CSV")    # windows uses backslashes. combo of forward and backslashes still works here but looks odd (and could causes issues in some cases)
 
 # Fetch from user's input
 QUERY = "ribosome AND resolution:[1 TO 4}"  # ohhhh curly braces are for exclusive ranges: https://www.ebi.ac.uk/emdb/documentation/search#:~:text=AND%20natural_source_ncbi_code%3A9606-,Range%20Search,-The%20search%20egnine
@@ -349,7 +350,14 @@ def search_qscore(file_path):
 if __name__ == '__main__':
     #QUERY = "ribosome AND resolution:[4 TO 9}"  # user input for EMDB search
     session = requests.Session()
-    retry = Retry(connect=3, backoff_factor=0.5)
+    # retry = Retry(connect=3, backoff_factor=0.5)
+    retry = Retry(backoff_factor=0.5)
+    print("internal constant that is unused by default:", retry.RETRY_AFTER_STATUS_CODES)
+    print("status_forcelist's value:", retry.status_forcelist)
+    print("can i retry 429s???", retry.is_retry(method="GET", status_code=429))
+    retry = Retry(backoff_factor=0.5, status_forcelist=[ 429 ])
+    print("status_forcelist's value:", retry.status_forcelist)	
+    print("can i retry 429s nowww???", retry.is_retry(method="GET", status_code=429))
     adapter = HTTPAdapter(max_retries=retry)
     session.mount('http://', adapter)
     session.mount('https://', adapter)

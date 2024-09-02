@@ -3,3 +3,6 @@
 .venv/
 cryodatabot.egg-info/
 # /EVALUATION
+
+/CSV
+/ribosome_res_1-4
