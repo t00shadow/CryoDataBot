@@ -107,7 +107,7 @@ def search_emdb(
     # classification info
     if fetch_classification:
         try:
-            logger.info('Fetching classification info.')
+            logger.info('Start fetching classification info.')
             search_rcsb(full_path)
             logger.info('Successfully fetched classification info.')
         except Exception as e:
@@ -115,7 +115,7 @@ def search_emdb(
     # q_score and atom_inclusion
     if fetch_qscore:
         try:
-            logger.info('Fetching q_score and atom_inclusion.')
+            logger.info('Start fetching q_score and atom_inclusion.')
             search_qscore(full_path)
             logger.info('Successfully fetched q_score and atom_inclusion.')
         except Exception as e:
