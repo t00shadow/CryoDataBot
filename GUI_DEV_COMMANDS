@@ -1,0 +1,5 @@
+pyuic5 -x "/mnt/c/Users/noelu/Python Projects/PyQt GUI practice/QtDesigner_practice/dataset_gen_tool_GUI/dataset_gen_tool_v7.ui" -o guiskin_DEV2.py
+
+
+
+[put the pyrrc command here too]

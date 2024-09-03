@@ -24,7 +24,9 @@ from guiskin_DEV import Ui_MainWindow    # need the "Ui_" prefix
 
 import GUI_custom_widgets.z_Tag_main_alt_allcode as TTEwidget2
 
-import main_new_myversion
+# import main_new_myversion
+
+from z_fetch_sample_info import search_emdb
 
 
 class MainWindow(qtw.QMainWindow):    # Make sure the root widget/class is the right type (can check in designer or the .ui file)
@@ -111,7 +113,7 @@ class MainWindow(qtw.QMainWindow):    # Make sure the root widget/class is the r
         #processedstring = stringutil.process_string(query)   # TODO, concatenate array of keywords into a string (not sure how to implement and and or logic with keywords)
         processed_query = query     # placeholder
         # print(processed_query)
-        main_new_myversion.search_emdb(processed_query)   # combine the results into a single csv and delete individual csvs or create a folder, should be handled in the util function
+        search_emdb(processed_query)   # combine the results into a single csv and delete individual csvs or create a folder, should be handled in the util function
 
     def gen_dataset(self):
         # self.ui.groups_of_labels is an array of string arrays

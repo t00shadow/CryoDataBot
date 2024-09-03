@@ -19,7 +19,7 @@ class MainWindow(QMainWindow):
         self.ui = Ui_MainWindow()
         self.ui.setupUi(self)
 
-        self.load_qss(r"C:\Users\noelu\CryoDataBot\QR CODE MAKER (MOVE TO ANOTHER FOLDER)\style.qss")
+        self.load_qss(r"C:\Users\noelu\CryoDataBot\QR_CODE_MAKER_MOVETOANOTHERFOLDER\style.qss")
 
         # Assign UI elements to instance variables for easy access
         self.input_content = self.ui.textEdit
