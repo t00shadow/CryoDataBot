@@ -16,8 +16,6 @@ session.mount('https://', adapter)
 
 # for logging
 logger = logging.getLogger(__name__)
-logging.basicConfig(filename='fetch_sample_info.log', encoding='utf-8', level=logging.INFO,\
-                    format='%(asctime)s %(levelname)s: %(message)s', datefmt='%m/%d/%Y %I:%M:%S %p')
 
 
 def search_emdb(
@@ -64,7 +62,26 @@ def search_emdb(
     # fetch_qscore: bool, fetching Q-score or not
     # Default: True
     """
-    logger.info('-'*5+f'Log for "{query}"'+'-'*5)
+    os.makedirs(save_path, exist_ok=True)
+
+    # checking for file names
+    num = 1
+    if file_name is None:
+        file_name = f'download_file_{num:02}_full'
+        full_path = os.path.join(save_path, f'{file_name}.csv')
+        while any(filename.startswith(f'download_file_{num:02}_full') for filename in os.listdir(save_path)):
+            num += 1
+            file_name = f'download_file_{num:02}_full'
+            full_path = os.path.join(save_path, f'{file_name}.csv')
+    else:
+        full_path = os.path.join(save_path, f'{file_name}_full.csv')
+    
+    # configure logger
+    logging.basicConfig(filename=save_path+'/'+file_name+'.log', encoding='utf-8', level=logging.INFO,\
+                    format='%(asctime)s %(levelname)s: %(message)s', datefmt='%m/%d/%Y %I:%M:%S %p')
+    
+    # search emdb
+    logger.info('-'*5+f'Log for "{query}".'+'-'*5)
     print('\n--------------------------------------------------------------------------------\nFetching EMDB data...')
     url = 'https://www.ebi.ac.uk/emdb/api/search/'
     output = ''
@@ -82,20 +99,6 @@ def search_emdb(
         print(f"Error fetching data query: {query}. Exception: {e}.")
         logger.error(f"Error fetching data. Exception: {e}.")
 
-    #save_path = os.path.join(save_path, file_name)
-    os.makedirs(save_path, exist_ok=True)
-
-    # checking for file names
-    num = 1
-    if file_name is None:
-        file_name = f'download_file_{num:02}_full'
-        full_path = os.path.join(save_path, f'{file_name}.csv')
-        while any(filename.startswith(f'download_file_{num:02}_full') for filename in os.listdir(save_path)):
-            num += 1
-            file_name = f'download_file_{num:02}_full'
-            full_path = os.path.join(save_path, f'{file_name}.csv')
-    else:
-        full_path = os.path.join(save_path, f'{file_name}_full.csv')
     with open(full_path, 'w') as out:
         out.write(output)
     print('EMDB data fetched.')
@@ -108,7 +111,7 @@ def search_emdb(
             search_rcsb(full_path)
             logger.info('Successfully fetched classification info.')
         except Exception as e:
-            logger.error(f'Unexpected exception while fetching classification info: {e}.')
+            logger.error(f'Unexpected exception while fetching classification info: {e}.') 
     # q_score and atom_inclusion
     if fetch_qscore:
         try:
@@ -138,7 +141,7 @@ def search_emdb(
     new_df.to_csv(final_path, index=False)
     print('\n--------------------------------------------------------------------------------\n')
     print('Entries file created.')
-    logger.info('-'*5+f'Successfully fetched sample info'+'-'*5)
+    logger.info('-'*5+f'Successfully fetched sample info.'+'-'*5)
     return final_path
 
 
@@ -207,7 +210,7 @@ def get_qscore(emdb_map_id):
     entry_id = emdb_map_id.replace('EMD-', '')
     url = f"https://www.ebi.ac.uk/emdb/api/analysis/{entry_id}"
     try:
-        file = session.get(url).json()
+        file = requests.get(url).json()
     except:
         return '', ''
         
