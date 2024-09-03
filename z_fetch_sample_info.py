@@ -81,7 +81,7 @@ def search_emdb(
                     format='%(asctime)s %(levelname)s: %(message)s', datefmt='%m/%d/%Y %I:%M:%S %p')
     
     # search emdb
-    logger.info('-'*5+f'Log for "{query}".'+'-'*5)
+    logger.info('-'*5+f'Log for fetching sample information with query:"{query}".'+'-'*5)
     print('\n--------------------------------------------------------------------------------\nFetching EMDB data...')
     url = 'https://www.ebi.ac.uk/emdb/api/search/'
     output = ''
