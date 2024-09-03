@@ -9,7 +9,7 @@ import logging
 
 # for handling api calls
 session = requests.Session()
-retry = Retry(connect=3, backoff_factor=0.1)
+retry = Retry(connect=3, backoff_factor=0.1, status_forcelist=[ 429 ])   # status_forcelist defaults to None; can be set to custom values or Retry.RETRY_AFTER_STATUS_CODES, which is [413, 429, 503]
 adapter = HTTPAdapter(max_retries=retry)
 session.mount('http://', adapter)
 session.mount('https://', adapter)
