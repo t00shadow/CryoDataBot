@@ -62,19 +62,19 @@ def search_emdb(
     # fetch_qscore: bool, fetching Q-score or not
     # Default: True
     """
-    os.makedirs(save_path, exist_ok=True)
+
 
     # checking for file names
     num = 1
     if file_name is None:
-        file_name = f'download_file_{num:02}_full'
-        full_path = os.path.join(save_path, f'{file_name}.csv')
-        while any(filename.startswith(f'download_file_{num:02}_full') for filename in os.listdir(save_path)):
+        file_name = f'download_file_{num:02}'
+        while any(filename.startswith(f'download_file_{num:02}') for filename in os.listdir(save_path)):
             num += 1
-            file_name = f'download_file_{num:02}_full'
-            full_path = os.path.join(save_path, f'{file_name}.csv')
-    else:
-        full_path = os.path.join(save_path, f'{file_name}_full.csv')
+            file_name = f'download_file_{num:02}'
+            
+    save_path = os.path.join(save_path, file_name)   
+    os.makedirs(save_path, exist_ok=True)   
+    full_path = os.path.join(save_path, f'{file_name}_full.csv')
     
     # configure logger
     logging.basicConfig(filename=save_path+'/'+file_name+'.log', encoding='utf-8', level=logging.INFO,\
