@@ -64,22 +64,22 @@ def search_emdb(
     """
 
 
-    # checking for file names
+    # check file names
     num = 1
     if file_name is None:
         file_name = f'download_file_{num:02}'
         while any(filename.startswith(f'download_file_{num:02}') for filename in os.listdir(save_path)):
             num += 1
             file_name = f'download_file_{num:02}'
-            
+
     save_path = os.path.join(save_path, file_name)   
     os.makedirs(save_path, exist_ok=True)   
     full_path = os.path.join(save_path, f'{file_name}_full.csv')
-    
+
     # configure logger
     logging.basicConfig(filename=save_path+'/'+file_name+'.log', encoding='utf-8', level=logging.INFO,\
                     format='%(asctime)s %(levelname)s: %(message)s', datefmt='%m/%d/%Y %I:%M:%S %p')
-    
+
     # search emdb
     logger.info('-'*5+f'Log for fetching sample information with query:"{query}".'+'-'*5)
     print('\n--------------------------------------------------------------------------------\nFetching EMDB data...')
@@ -112,6 +112,7 @@ def search_emdb(
             logger.info('Successfully fetched classification info.')
         except Exception as e:
             logger.error(f'Unexpected exception while fetching classification info: {e}.') 
+    
     # q_score and atom_inclusion
     if fetch_qscore:
         try:
@@ -213,7 +214,6 @@ def get_qscore(emdb_map_id):
         file = requests.get(url).json()
     except:
         return '', ''
-        
     try:
         qscore = file[entry_id]["qscore"]["allmodels_average_qscore"]
     except Exception:
