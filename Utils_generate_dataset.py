@@ -10,12 +10,17 @@ import logging
 
 # for logging
 logger = logging.getLogger(__name__)
-logging.basicConfig(filename='generate_dataset.log', encoding='utf-8', level=logging.INFO,\
-                    format='%(asctime)s %(levelname)s: %(message)s', datefmt='%m/%d/%Y %I:%M:%S %p')
+
+# residue/atom info
+residues_protein = [
+    'ALA', 'ARG', 'ASN', 'ASP', 'CYS', 'GLU', 'GLN', 'GLY', 'HIS', 'ILE',
+    'LEU', 'LYS', 'MET', 'PHE', 'PRO', 'SER', 'THR', 'TRP', 'TYR', 'VAL'
+]
+
 
 def data_to_npy(map_path: str,
                 model_path: str,
-                model_parts: list,
+                label_group: list,
                 sample_dir: str,
                 sample_num: int = 0,
                 npy_size: int = 64,
@@ -27,15 +32,15 @@ def data_to_npy(map_path: str,
     Args:
     - map_path (str): path to the MRC map file
     - model_path (str): path to the PDB model file
-    - model_parts (list): list of dict representing parts and tag groups
+    - label_group (list): list of dict representing parts and label groups
     - sample_dir (str): path to a directory where the samples will be saved
     - sample_num (int): used to name the out put samples
     - npy_size (int = 64):
 
     """
-    # Save map data and tagged data
+    # Save map data and labelged data
     data = []
-    part_names = []
+    labels = []
 
     # Read the MRC map file and change the coordinates order to [z, y, x]
     mrc = MRC(map_path)
@@ -58,91 +63,109 @@ def data_to_npy(map_path: str,
     start_coords, n_samples = compute_grid_params(box_min, box_max, map_size,
                                                   npy_size)
 
-    # Sample the selected parts of the model to create the numpy array, record the number of each tag in each part
-    num_of_tag_in_each_part = {}  # Save number of each tag in each part
+    # Sample the selected parts of the model to create the numpy array, record the number of each label in each part
+    num_of_label_in_each_part = {}  # Save number of each label in each part
 
-    # Creating tags
+    # Creating labels
     helices, sheets = protein_2nd_structure_lists(structure)
-    for part_name in range(len(model_parts)):
-        secondary_type, residue_type, atom_type, element_type, metal_type, tag = model_parts[part_name]['secondary_type'].split(','), \
-            model_parts[part_name]['residue_type'].split(','), model_parts[part_name]['atom_type'].split(','),\
-            model_parts[part_name]['element_type'].split(','), model_parts[part_name]['metal_type'].split(','),\
-                  model_parts[part_name]['tag']
-
-        model_data = np.zeros(map_size, np.int8)  
+    for member_idx, member in enumerate(label_group):
+        # initialize datastruct for every member
+        member_data = np.zeros(map_size, np.int8)  
         dis_array = np.array([])
-        part_coords = None
-        
-        if residue_type == ['']:
-            residue_type = None
-        if atom_type == ['']:
-            atom_type = None
+        label_coords = None
 
-        logger.info('Calculating and tagging atom coordinates.')
+        logger.info(f'Calculating and labeling atom coordinates for label_group_{member_idx+1}.')
         try:
-            if secondary_type == ['']:
-                if element_type == [''] and metal_type == ['']:
-                    part_coords = atom_coord_cif(structure, residue_type, atom_type)
-                    model_data, dis_array = tag_npy(model_data, part_coords, tag, dis_array)
-                elif element_type != [''] and metal_type == ['']:
-                    part_coords = element_coord_cif(structure, residue_type, element_type)
-                    model_data, dis_array = tag_npy(model_data, part_coords, tag, dis_array)
-                elif element_type == [''] and metal_type != ['']:
-                    for metal in metal_type:
-                        part_coords = element_coord_cif(structure, residue_type, metal)
-                        model_data, dis_array = tag_npy(model_data, part_coords, tag, dis_array, gemmi.Element(metal).vdw_r)
-            else:   
-                protein_2nd_structure_coords = atom_coord_cif_protein_secondary(
-                        structure, helices, sheets, residue_type, atom_type)
-                if 'Helix' in secondary_type:
-                    model_data, dis_array = tag_npy(model_data, protein_2nd_structure_coords[0], tag, dis_array)
-                if 'Sheet' in secondary_type:
-                    model_data, dis_array = tag_npy(model_data, protein_2nd_structure_coords[1], tag, dis_array)
-                if 'Loop' in secondary_type:
-                    model_data, dis_array = tag_npy(model_data, protein_2nd_structure_coords[2], tag, dis_array)
-            logger.info('Successfully calculated and tagged atom coordinates.')
+            for label in member:
+                secondary_type, residue_type, atom_type, element_type, metal_type, tag = label['secondary_type'].split(','), \
+                    label['residue_type'].split(','), label['atom_type'].split(','), label['element_type'].split(','),\
+                        label['metal_type'].split(','), label['label']
+                
+                if residue_type == ['']:
+                    residue_type = None
+                if atom_type == ['']:
+                    atom_type = None
+
+                if secondary_type == ['']:
+                    if element_type == [''] and metal_type == ['']:
+                        label_coords = atom_coord_cif(structure, residue_type, atom_type)
+                        member_data, dis_array = label_npy(member_data, label_coords, tag, dis_array)
+                    elif element_type != [''] and metal_type == ['']:
+                        label_coords = element_coord_cif(structure, residue_type, element_type)
+                        member_data, dis_array = label_npy(member_data, label_coords, tag, dis_array)
+                    elif element_type == [''] and metal_type != ['']:
+                        for metal in metal_type:
+                            label_coords = element_coord_cif(structure, residue_type, metal)
+                            member_data, dis_array = label_npy(member_data, label_coords, tag, dis_array, gemmi.Element(metal).vdw_r)
+                else:
+                    if element_type == ['']:   
+                        protein_2nd_structure_coords = atom_coord_cif_protein_secondary(
+                                structure, helices, sheets, residue_type, atom_type)
+                        if 'Helix' in secondary_type:
+                            member_data, dis_array = label_npy(member_data, protein_2nd_structure_coords[0], tag, dis_array)
+                        if 'Sheet' in secondary_type:
+                            member_data, dis_array = label_npy(member_data, protein_2nd_structure_coords[1], tag, dis_array)
+                        if 'Loop' in secondary_type:
+                            member_data, dis_array = label_npy(member_data, protein_2nd_structure_coords[2], tag, dis_array)
+                    else:
+                        protein_2nd_structure_coords = element_coord_cif_protein_secondary(
+                            structure, helices, sheets, residue_type, element_type)
+                        if 'Helix' in secondary_type:
+                            member_data, dis_array = label_npy(member_data, protein_2nd_structure_coords[0], tag, dis_array)
+                        if 'Sheet' in secondary_type:
+                            member_data, dis_array = label_npy(member_data, protein_2nd_structure_coords[1], tag, dis_array)
+                        if 'Loop' in secondary_type:
+                            member_data, dis_array = label_npy(member_data, protein_2nd_structure_coords[2], tag, dis_array)
         except Exception as e:
-            logger.error(f'Calculation failed. Exception: {e}.')
-        data.append(model_data)
-        part_names.append(str(part_name+1))
+            logger.error(f'Calculation failed. Exception: {e}.')                
+        logger.info('Successfully calculated and labelged atom coordinates.')
+        data.append(member_data)
+        labels.append(str(member_idx+1))
 
         if generate_test is True:
             # Generate TEST.mrc for every value in one part
-            logger.info('Generating test mrc(s).')
+            logger.info(f'Generating test mrc(s) for label_group_{label_group}.')
             try:
-                for tag in range(1, classes + 1):
-                    out_map = f"{map_path.split('.mrc')[0]}_EXAMPLE_{part_name}_{tag}.mrc"
+                """for label in range(1, classes + 1):
+                    out_map = f"{map_path.split('.mrc')[0]}_EXAMPLE_{label}.mrc"
                     print("=> Writing new map")
                     shutil.copy(map_path, out_map)
                     with mrcfile.open(out_map, mode='r+') as mrc:
-                        TEST_data = np.zeros_like(model_data)
-                        TEST_data = np.where(model_data == tag, model_data, 0)
+                        TEST_data = np.zeros_like(member_data)
+                        TEST_data = np.where(member_data == label, member_data, 0)
                         mrc.set_data(TEST_data)
-                        # mrc.header.mz = model_data.shape[0]
+                        # mrc.header.mz = member_data.shape[0]
                     print("New map is writen.")
-                    continue
+                    continue"""
+                
+                out_map = f"{map_path.split('.mrc')[0]}_EXAMPLE_{label}.mrc"
+                print("=> Writing new map")
+                shutil.copy(map_path, out_map)
+                with mrcfile.open(out_map, mode='r+') as mrc:
+                    TEST_data = member_data
+                    mrc.set_data(TEST_data)
+                    mrc.header.mz = member_data.shape[0]
+                print("New map is writen.")
+
                 logger.info('Successfully generated test mrc(s).')
             except Exception as e:
                 logger.error(f'Generation failed. Exception: {e}.')
             exit()
 
-    # Create npy files from model_data of each part and map_data
-    # Calcutate num of different tags
+    # Create npy files from member_data of each part and map_data
+    # Calcutate num of different labels
     data.append(map_data)
-    part_names.append('map_sample')
-    logger.info('Splitting tagged files into small cubes.')
+    labels.append('map_sample')
+    logger.info('Splitting labeled files into small cubes.')
     try:
-        num_tags, sample_num = split_to_npy(data, sample_dir, start_coords,
+        num_labels, sample_num = split_to_npy(data, sample_dir, start_coords,
                                         n_samples, npy_size, sample_num,
-                                        part_names)
+                                        labels)
         logger.info('Splitting successful.')
     except Exception as e:
         logger.error(f'Splitting failed. Exception: {e}')
-    
-    for idx in range(len(part_names) - 1):
-        num_of_tag_in_each_part[part_names[idx]] = num_tags[idx]
 
-    return sample_num, num_of_tag_in_each_part
+    return sample_num, num_labels
 
 
 def compute_grid_params(box_min_list, box_max_list, axis_length_list,
@@ -184,30 +207,30 @@ def split_to_npy(data,
                  n_samples,
                  npy_size,
                  sample_num,
-                 part_names,
+                 labels,
                  extract_stride=32):
     """
     Extracts sub-volumes of size npy_size from the input data array, starting from the given start coordinates and generates npy files for each sub-volume.
 
     Parameters:
-        data (list of ndarray): Input data arrays [tag_data1, tag_data2, ..., map_data]
+        data (list of ndarray): Input data arrays [label_data1, label_data2, ..., map_data]
         sample_dir (str): Directory to save the npy files
         start_coords (tuple): Tuple of start coordinates (z,y,x)
         n_samples (tuple): Tuple of number of samples to extract (z,y,x)
         npy_size (int): Size of the sub-volume to extract
         extract_stride (int): Stride length of the stepping sample
         sample_num (int): Number to use as suffix in the npy file names
-        part_names (str): Name of the subdirectory to save the npy files
+        labels (str): Name of the subdirectory to save the npy files
 
     Returns:
         None
     """
-    num_tags = [0] * len(data)
+    num_labels = [0] * len(data)
     sample_start_z, sample_start_y, sample_start_x = start_coords
     for i in range(3):
         n_samples[i] = int(n_samples[i] * npy_size / extract_stride) - 1
-    for part_name in part_names:
-        os.makedirs(os.path.join(sample_dir, part_name), exist_ok=True)
+    for label in labels:
+        os.makedirs(os.path.join(sample_dir, label), exist_ok=True)
     for n_z in range(n_samples[0]):
         idx_z = sample_start_z + extract_stride * n_z
         for n_y in range(n_samples[1]):
@@ -219,46 +242,48 @@ def split_to_npy(data,
                              idx_y:idx_y + npy_size,
                              idx_x:idx_x + npy_size]
                     file_name = os.path.join(
-                        sample_dir, part_names[idx],
-                        f"model_{part_names[idx]}.{sample_num}.npy")
+                        sample_dir, labels[idx],
+                        f"model_{labels[idx]}.{sample_num}.npy")
                     np.save(file_name, sample)
 
-                    count = np.count_nonzero(sample)
-                    num_tags[idx] += count
+                    count = np.bincount(sample.flatten())
+                    count = np.pad(count, (0, max(0, 27 - len(count))),
+                                   'constant')
+                    num_labels[idx] += count
 
                 # Save seperated files for map data
                 sample = data[len(data) - 1][idx_z:idx_z + npy_size,
                          idx_y:idx_y + npy_size,
                          idx_x:idx_x + npy_size]
-                file_name = os.path.join(sample_dir, part_names[len(data) - 1],
+                file_name = os.path.join(sample_dir, labels[len(data) - 1],
                                          f"map.{sample_num}.npy")
                 np.save(file_name, sample)
 
                 sample_num += 1
 
-    return num_tags, sample_num
+    return num_labels, sample_num
 
 
-def tag_npy(model_data,
-            part_coords,
-            tag_id,
+def label_npy(member_data,
+            label_coords,
+            label_id,
             dis_array=np.array([]),
             atom_grid_radius=1.5):
     """
-    Add tags to 3D grid points surrounding given part coordinates.
+    Add labels to 3D grid points surrounding given part coordinates.
 
     Args:
-        model_data (ndarray): A 3D numpy array representing the 3D grid.
-        part_coords (list of tuples): A list of tuples representing the part coordinates (z, y, x).
-        tag_id (int): The tag value to apply to the tagged points.
-        atom_grid_radius (int, optional): The radius of the grid to tag around the part coordinates. Defaults to 2.
+        member_data (ndarray): A 3D numpy array representing the 3D grid.
+        label_coords (list of tuples): A list of tuples representing the part coordinates (z, y, x).
+        label_id (int): The label value to apply to the labelged points.
+        atom_grid_radius (int, optional): The radius of the grid to label around the part coordinates. Defaults to 2.
 
     Returns:
-        model_data (ndarray): The modified model data with the tagged points.
-        dis_array (ndarray): The modified model data with the tagged points.
+        member_data (ndarray): The modified model data with the labelged points.
+        dis_array (ndarray): The modified model data with the labelged points.
     """
 
-    dis_array = np.full(model_data.shape, atom_grid_radius ** 2)
+    dis_array = np.full(member_data.shape, atom_grid_radius ** 2)
 
     index_grid = int(atom_grid_radius) + 1
     extension = range(-index_grid, index_grid + 1)
@@ -275,19 +300,19 @@ def tag_npy(model_data,
     arounds = np.vstack((arounds, arounds + np.array([1, 0, 0])))
     arounds = np.unique(arounds, axis=0).astype(int)
 
-    for coord in np.array(part_coords):
+    for coord in np.array(label_coords):
         floor_coord = np.floor(coord).astype(int)
         for around in arounds:
             around_coord = floor_coord + around
             dist = np.sum((around_coord - coord) ** 2)
             if dist <= dis_array[around_coord[0], around_coord[1],
             around_coord[2]]:
-                model_data[around_coord[0], around_coord[1],
-                around_coord[2]] = tag_id
+                member_data[around_coord[0], around_coord[1],
+                around_coord[2]] = label_id
                 dis_array[around_coord[0], around_coord[1],
                 around_coord[2]] = dist
 
-    return model_data, dis_array
+    return member_data, dis_array
 
 
 def atom_coord_cif(structure, RESIDUE=None, ATOM=None):
@@ -384,7 +409,10 @@ def atom_coord_cif_protein_secondary(structure,
     chain_sheets = [row[0] for row in sheets]
     chain_name = list(set(chain_helices + chain_sheets))
 
-    coords = atom_coord_cif(structure, RESIDUE, ATOM)
+    if RESIDUE is None:
+        coords = atom_coord_cif(structure, residues_protein, ATOM)
+    else:
+        coords = atom_coord_cif(structure, RESIDUE, ATOM)
 
     for model in structure:
         for chain in model:
@@ -418,109 +446,137 @@ def atom_coord_cif_protein_secondary(structure,
                                     continue
                                 atom_coord = [atom.pos.z, atom.pos.y, atom.pos.x]
                                 coords_sheets.append(atom_coord)
-
     coords_loops = [
         x for x in coords if not (x in coords_sheets or x in coords_helices)
     ]
-    # coords_others1 = [x for x in coords_sheets if x not in coords]
-    # coords_others2 = [x for x in coords_helices if x not in coords]
-    # print(coords_others1, coords_others2)
-
     return [coords_helices, coords_sheets, coords_loops]
 
 
-def split_folders(temp_sample_path, sample_path):
-    os.makedirs(sample_path, exist_ok=True)
+def element_coord_cif_protein_secondary(structure,
+                                     helices,
+                                     sheets,
+                                     RESIDUE=None,
+                                     ATOM=None):
+    coords, coords_helices, coords_sheets = [], [], []
+    chain_helices = [row[0] for row in helices]
+    chain_sheets = [row[0] for row in sheets]
+    chain_name = list(set(chain_helices + chain_sheets))
+
+    if RESIDUE is None:
+        coords = element_coord_cif(structure, residues_protein, ATOM)
+    else:
+        coords = element_coord_cif(structure, RESIDUE, ATOM)
+
+    for model in structure:
+        for chain in model:
+            if chain_name is not None and chain.name not in chain_name:
+                continue
+            # helices
+            for index, helix_chian_name in enumerate(chain_helices):
+                if chain.name != helix_chian_name:
+                    continue
+                chain_info = helices[index]
+                for residue in chain:
+                    if residue.seqid.num in range(chain_info[1], chain_info[2] + 1):
+                            if RESIDUE is not None and residue.name not in RESIDUE:
+                                continue
+                            for atom in residue:
+                                if ATOM is not None and atom.element.name not in ATOM:
+                                    continue
+                                atom_coord = [atom.pos.z, atom.pos.y, atom.pos.x]
+                                coords_helices.append(atom_coord)
+            # sheets
+            for index, sheet_chian_name in enumerate(chain_sheets):
+                if chain.name != sheet_chian_name:
+                    continue
+                chain_info = sheets[index]
+                for residue in chain:
+                    if residue.seqid.num in range(chain_info[1], chain_info[2] + 1):
+                            if RESIDUE is not None and residue.name not in RESIDUE:
+                                continue
+                            for atom in residue:
+                                if ATOM is not None and atom.element.name not in ATOM:
+                                    continue
+                                atom_coord = [atom.pos.z, atom.pos.y, atom.pos.x]
+                                coords_sheets.append(atom_coord)
+    coords_loops = [
+        x for x in coords if not (x in coords_sheets or x in coords_helices)
+    ]
+    return [coords_helices, coords_sheets, coords_loops]
+
+
+def split_folders(temp_sample_path, sample_path, ratio_t_v=(.8, .2)):
+    if os.path.exists(sample_path):
+    # Delete the directory
+        shutil.rmtree(sample_path)
+    # Create the directory again
+    os.makedirs(sample_path)
     splitfolders.ratio(input=temp_sample_path,
                        output=sample_path,
                        seed=44,
-                       ratio=(.8, .2),  # we set the ratio / let users do it
+                       ratio=ratio_t_v,  # we set the ratio / let users do it
                        group_prefix=None,
                        move=True)
     shutil.rmtree(temp_sample_path)
 
 
-def tag_maps(model_parts,map_paths,model_paths,temp_sample_path,emdb_ids,output_dir):
-    # Step 3. Generate a dataset (3d numpy arraies) from map and model files
-    # 3.1 Read map, model files and create lables
+def label_maps(label_group,map_paths,model_paths,temp_sample_path,emdb_ids,output_dir):
+    # configure logger
+    logging.basicConfig(filename='generate_dataset.log', encoding='utf-8', level=logging.INFO,\
+                    format='%(asctime)s %(levelname)s: %(message)s', datefmt='%m/%d/%Y %I:%M:%S %p')
     logger.info('-'*5+'Generating dataset'+'-'*5)
-    logger.info(f'Model parts: {model_parts}')
-    # idx of npy file
+    logger.info(f'Label groups: {label_group}')
+
+    # num of label in each group for all models
+    num_of_label_in_each_group_for_all_models = [0 for _ in range(len(label_group))]
     sample_num = 0
-
-    # num of tag in each part for all models
-    num_of_tag_in_each_part_for_all_models = {}
-    for part in range(len(model_parts)):
-        num_of_tag_in_each_part_for_all_models[str(part+1)] = 0
-
     for idx, emdb_id in enumerate(emdb_ids):
-        # test for idx in [0,1]
-        # for idx, emdb_id in enumerate(emdb_ids[0:1]):
         print(
             f"[{idx+1}/{len(emdb_ids)}] Generating dataset from EMDB-{emdb_id}... "
         )
-        logger.info(f'[{idx+1}/{len(emdb_ids)}] Generating tagged file(s) from EMDB-{emdb_id}.')
+        logger.info(f'[{idx+1}/{len(emdb_ids)}] Generating labeled file(s) from EMDB-{emdb_id}.')
         try:
-            sample_num, num_of_tag_in_each_part = data_to_npy(
-                map_paths[idx], model_paths[idx], model_parts,
+            sample_num, num_labels = data_to_npy(
+                map_paths[idx], model_paths[idx], label_group,
                 temp_sample_path, sample_num)
-            logger.info(f'Successfully generated tagged file(s) from EMDB-{emdb_id}.')
+            logger.info(f'Successfully generated labeled file(s) from EMDB-{emdb_id}.')
         except Exception as e:
-            logger.error(f'Generating tagged file(s) failed. Exception: {e}.')
-        # Add number of each tag in new sampled model
-        num_of_tag_in_each_part_for_all_models = {key: num_of_tag_in_each_part[key] + num_of_tag_in_each_part_for_all_models[key]\
-                                                   for key in num_of_tag_in_each_part}
+            logger.error(f'Generating labeled file(s) failed. Exception: {e}.')
+        # Add number of each label in new sampled model
+        num_of_label_in_each_group_for_all_models = [num_of_label_in_each_group_for_all_models[idx]+num_labels[idx]\
+                                                      for idx in range(len(label_group))]
 
-    # Delete 0s in tag number list and calculate 1/ratio of tag number
-    ratio_of_tag = {}
-    sum_tags = sum(num_of_tag_in_each_part_for_all_models.values())
-    for key, val in num_of_tag_in_each_part_for_all_models.items():
-        if val == 0:
-            print(
-                f'There is missing groups in part {key}, numbers of each class are {val}.'
-            )
-        ratio_of_tag[key] = val/sum_tags
-
-    '''for key, value_list in num_of_tag_in_each_part_for_all_models.items():
-        value_list = np.trim_zeros(value_list)
-        num_of_tag_in_each_part_for_all_models[key] = value_list
-        if 0 in value_list:
-            print(
-                f'There is missing groups in part {key}, numbers of each class are {value_list}.'
-            )
-        ratio_of_tag[key] = [
-            int(value_list[0] // value_x) for value_x in value_list
-            if value_x != 0
-        ]'''
-
-    # Print statistical results
-    print(f"The number of .npy file: {sample_num}")
-    print("Num of each tag: ")
-    for key, value in num_of_tag_in_each_part_for_all_models.items():
-        print(f'{key}: {value}')
-    logger.info(f'Num of each tag: {num_of_tag_in_each_part_for_all_models}.')
-    print("\nRatio of tags: ")
-    for key, value in ratio_of_tag.items():
-        formatted_value = "{:.2%}".format(value)
-        print(f'{key}: {formatted_value}')
-    logger.info(f'Ratio of tags: {ratio_of_tag}.')
+    # Stats
+    print(f"The number of .npy file(s): {sample_num}.")
+    logger.info(f"The number of .npy file(s): {sample_num}.")
+    trim_array = lambda arr: np.trim_zeros(arr[1:], 'b')
+    num_of_label_in_each_group_for_all_models = [trim_array(np.array(sub_array)) \
+                                                 for sub_array in num_of_label_in_each_group_for_all_models]
+    print("Num of labels in each group:")
+    for group_idx in range(len(label_group)):
+        print(f'    Group {group_idx+1}:')
+        member = num_of_label_in_each_group_for_all_models[group_idx]
+        if len(member) != 0:
+            for label in range(len(member)):
+                #label_num = member[label]
+                print(f'        Label-{label+1}: {member[label]}')
+        else:
+            print('     The group is empty.')
 
     # 3.3 Split data into training and validation dataset
     sample_path = os.path.join(output_dir, "dataset")
-    split_folders(temp_sample_path, sample_path)
+    logger.info('Splitting data into training and validation sets.')
+    try:
+        split_folders(temp_sample_path, sample_path)
+        logger.info('Successfully splitted data.')
+    except Exception as e:
+        logger.error(f'Splitting failed. Error: {e}.')
 
-    # 3.4 Calculate weight, create weight file and save it (ratio of tags)
-    weight_path = os.path.join(sample_path, 'class_weight_for_training.txt')
+    # 3.4 Calculate weight, create weight file and save it (ratio of labels)
+    '''weight_path = os.path.join(sample_path, 'class_weight_for_training.txt')
     with open(weight_path, "w") as file:
-        json.dump(ratio_of_tag, file)
+        json.dump(ratio_of_label, file)'''
     logger.info('-'*5+'Dataset generation completed'+'-'*5)
-
-def generate_test_mrcs(generate_test = False, classes = 24):
-    sample_num, num_of_tag_in_each_part = data_to_npy(map_path, model_path,
-                                                    model_parts, sample_dir,
-                                                    generate_test, classes)
-    print(sample_num)
-    print(num_of_tag_in_each_part)
 
 
 if __name__ == "__main__":
@@ -535,27 +591,33 @@ if __name__ == "__main__":
     map_paths = normalize_raw_map(raw_map_paths)
 
     # this is the only function that needs to be called
-    tag_maps(model_parts,map_paths,model_paths,temp_sample_path,emdb_ids,output_dir)
+    label_maps(label_group,map_paths,model_paths,temp_sample_path,emdb_ids,output_dir)
     '''
 
     # for testing data_to_npy()
-    #map_path = r'path_to_save_downloaded_map_and_model/EMD-3145_re_3.3/emd_3145_normalized.mrc'
-    #model_path = r'path_to_save_downloaded_map_and_model/EMD-3145_re_3.3/5an9.cif'
-    map_path = r'path_to_save_downloaded_map_and_model/EMD-41587_re_2.92/emd_41587_normalized.mrc'
-    model_path = r'path_to_save_downloaded_map_and_model/EMD-41587_re_2.92/8ts1.cif'
-    # different model_parts
-    #model_parts = [{'secondary_type': 'Helix', 'residue_type': 'ALA', 'atom_type': 'CA', 'element_type': '', 'metal_type': '', 'tag': 1}]
-    #model_parts = [{'secondary_type': 'Helix', 'residue_type': 'ALA', 'atom_type': 'N', 'element_type': '', 'metal_type': '', 'tag': 2}]
-    #model_parts = [{'secondary_type': '', 'residue_type': 'ALA', 'atom_type': 'CA', 'element_type': '', 'metal_type': '', 'tag': 3}]
-    #model_parts = [{'secondary_type': 'Loop', 'residue_type': '', 'atom_type': '', 'element_type': '', 'metal_type': '', 'tag': 4}]
-    #model_parts = [{'secondary_type': 'Sheet', 'residue_type': '', 'atom_type': '', 'element_type': '', 'metal_type': '', 'tag': 5}]
-    #model_parts = [{'secondary_type': 'Sheet,Helix', 'residue_type': 'ALA', 'atom_type': 'CA', 'element_type': '', 'metal_type': '', 'tag': 6}]
-    #model_parts = [{'secondary_type': '', 'residue_type': 'A,C,G,U,DA,DC,DG,DT', 'atom_type': '', 'element_type': 'N', 'metal_type': '', 'tag': 7}]
-    model_parts = [{'secondary_type': '', 'residue_type': '', 'atom_type': '', 'element_type': '', 'metal_type': 'Mg', 'tag': 8}]
+    map_path = r'path_to_save_downloaded_map_and_model/EMD-3145_re_3.3/emd_3145_normalized.mrc'
+    model_path = r'path_to_save_downloaded_map_and_model/EMD-3145_re_3.3/5an9.cif'
+    #map_path = r'path_to_save_downloaded_map_and_model/EMD-41587_re_2.92/emd_41587_normalized.mrc'
+    #model_path = r'path_to_save_downloaded_map_and_model/EMD-41587_re_2.92/8ts1.cif'
+    # different label_group
+    #label_group = [{'secondary_type': 'Helix', 'residue_type': 'ALA', 'atom_type': 'CA', 'element_type': '', 'metal_type': '', 'label': 1}]
+    #label_group = [{'secondary_type': 'Helix', 'residue_type': 'ALA', 'atom_type': 'N', 'element_type': '', 'metal_type': '', 'label': 2}]
+    #label_group = [{'secondary_type': '', 'residue_type': 'ALA', 'atom_type': 'CA', 'element_type': '', 'metal_type': '', 'label': 3}]
+    #label_group = [{'secondary_type': 'Loop', 'residue_type': '', 'atom_type': '', 'element_type': '', 'metal_type': '', 'label': 4}]
+    #label_group = [{'secondary_type': 'Sheet', 'residue_type': '', 'atom_type': '', 'element_type': '', 'metal_type': '', 'label': 5}]
+    #label_group = [{'secondary_type': 'Sheet,Helix', 'residue_type': 'ALA', 'atom_type': 'CA', 'element_type': '', 'metal_type': '', 'label': 6}]
+    #label_group = [{'secondary_type': '', 'residue_type': 'A,C,G,U,DA,DC,DG,DT', 'atom_type': '', 'element_type': 'N', 'metal_type': '', 'label': 7}]
+    #label_group = [{'secondary_type': '', 'residue_type': '', 'atom_type': '', 'element_type': '', 'metal_type': 'Mg', 'label': 8}]
+    #label_group = [[{'secondary_type': 'Helix', 'residue_type': '', 'atom_type': '', 'element_type': 'P', 'metal_type': '', 'label': 1},\
+    #               {'secondary_type': 'Sheet', 'residue_type': '', 'atom_type': '', 'element_type': 'P', 'metal_type': '', 'label': 2},\
+    #               {'secondary_type': 'Loop', 'residue_type': '', 'atom_type': '', 'element_type': 'P', 'metal_type': '', 'label': 3}]]
+    label_group = [[{'secondary_type': 'Helix', 'residue_type': '', 'atom_type': '', 'element_type': 'O', 'metal_type': '', 'label': 1},\
+                   {'secondary_type': 'Sheet', 'residue_type': '', 'atom_type': '', 'element_type': 'O', 'metal_type': '', 'label': 2},\
+                   {'secondary_type': 'Loop', 'residue_type': '', 'atom_type': '', 'element_type': 'O', 'metal_type': '', 'label': 3}]]
     sample_dir = 'testing_data_to_npy'
 
-    sample_num, num_of_tag_in_each_part = data_to_npy(map_path, model_path,
-                                                      model_parts, sample_dir,
+    sample_num, num_of_label_in_each_part = data_to_npy(map_path, model_path,
+                                                      label_group, sample_dir,
                                                       generate_test=True)
     print(sample_num)
-    print(num_of_tag_in_each_part)
+    print(num_of_label_in_each_part)
