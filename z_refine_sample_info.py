@@ -3,13 +3,16 @@ import os
 from concurrent.futures import ProcessPoolExecutor, as_completed
 from collections import Counter
 import numpy as np
-
+import logging
 
 # SAVE_PATH = "./"  # user input for output files
-INPUT_CSV = ""  # user input for inout csv file
+INPUT_CSV = r"C:\Users\micha\OneDrive\Desktop\QIBO\DATA_CLEANUP_942024\download_file_09_review.csv"  # user input for inout csv file
 THRE_UNI_SIMILARITY = 100  # user input for check UniportID similarity, 100 means loosest 
 THRE_Q_SCORE = 0  # user input for check Q-score values, 0 means loosest
 
+# for logging
+logger = logging.getLogger(__name__)
+save_path = os.path.dirname(INPUT_CSV)
 
 
 
@@ -20,6 +23,11 @@ def refine_csv(input_csv, q_threshold: float = THRE_Q_SCORE, uni_threshold: floa
     :param uni_threshold: percentage uniprot similarity
     :param uni_threshold: q_score threshold
     """
+    save_path = os.path.dirname(input_csv)
+    # configure logger
+    logging.basicConfig(filename=save_path+'/'+"refine_csv"+'.log', encoding='utf-8', level=logging.INFO,\
+                    format='%(asctime)s %(levelname)s: %(message)s', datefmt='%m/%d/%Y %I:%M:%S %p')
+    logger.info('-'*5+f'Refining sample information with Q_Score:"{THRE_Q_SCORE}"and Similarity_Threshold:"{THRE_UNI_SIMILARITY}".'+'-'*5)
     print('\n--------------------------------------------------------------------------------\nRefining EMDB entries...')
 
     # Q-Score filter
@@ -35,12 +43,17 @@ def refine_csv(input_csv, q_threshold: float = THRE_Q_SCORE, uni_threshold: floa
     new_file_path = os.path.join(save_path_new, "Q_Score_Kept.csv")
     
     manual_check_num, toFilter_num = clean_input_data(new_file_path, save_path_new)
+    logger.info('Entries to Manually Check: {manual_check_num} entries. Entries to be filtered: {toFilter_num} entries.')
     print(f'Entries to Manually Check: {manual_check_num} entries. Entries to be filtered: {toFilter_num} entries.')
+    logging.info(f'Files saved at {os.path.join("r",save_path_new)}')
     print(f'Files saved at {os.path.join("r",save_path_new)}')
     postFirstFilter_num = first_filter(save_path_new)
+    logging.info(f'Entries after first filter: {postFirstFilter_num} entries.')
     print(f'Entries after first filter: {postFirstFilter_num} entries.')
     final_filter_num_entries, initial_filter_num_entries = second_filter(save_path_new, uni_threshold)
+    logging.info(f'Entries after second filter: {final_filter_num_entries} entries.')
     print(f'Entries after second filter: {final_filter_num_entries} entries.')
+    logging.info(f'Refinement completed, entries kept: {final_filter_num_entries}. File wrote at {os.path.join("r",save_path_new,"Final_Filter.csv")}.')
     print(f'Refinement completed, entries kept: {final_filter_num_entries}. File wrote at {os.path.join("r",save_path_new,"Final_Filter.csv")}.')
     print('--------------------------------------------------------------------------------\n')
 
@@ -259,7 +272,7 @@ def first_filter(output_dir:str):
     if not os.path.exists(firstFilter_Path):
         os.makedirs(firstFilter_Path)
 
-    
+
     #Besides removing the weird stuff (Duplicates in ID or Title), we also want to remove the rows that have the same xref_UNIPROTKB
     #non_unique_mask = raw_data_with_xREF.sort_values('resolution', ascending=False).duplicated(subset=['xref_UNIPROTKB','xref_ALPHAFOLD'], keep=False)
     non_unique_mask = raw_data_with_xREF.duplicated(subset=['xref_UNIPROTKB','xref_ALPHAFOLD'], keep=False)
@@ -268,14 +281,48 @@ def first_filter(output_dir:str):
     
     uniquexRef_num_entries = len(unique_df)
     nonUnique_xRef_num_entries = len(non_unique_df)
-    
-    nonNan_xRefUniprot = non_unique_df[~non_unique_df['xref_UNIPROTKB'].isna()]
-    nonNan_xRefAlphaFold = non_unique_df[~non_unique_df['xref_ALPHAFOLD'].isna()]
+
+    #nonNan_xRefUniprot = non_unique_df[~non_unique_df['xref_UNIPROTKB'].isna()]
+    nonNan_xRefUniprot = unique_df[~unique_df['xref_UNIPROTKB'].isna()]
+    #nonNan_xRefAlphaFold = non_unique_df[~non_unique_df['xref_ALPHAFOLD'].isna()]
+    nonNan_xRefAlphaFold = unique_df[~unique_df['xref_ALPHAFOLD'].isna()]
 
     #Save Exact Matches with xref_UNIPROTKB
     #Sort by groups of xref_UNIPROTKB
     grouped_proteins = nonNan_xRefUniprot.groupby("xref_UNIPROTKB")
+    ##### ======= DEBUGGING =======
+    # seems like empty dataframe is not handled well in >> grouped_proteins = nonNan_xRefUniprot.groupby("xref_UNIPROTKB") <<
+    # uncomment the print statements below for nonNan_xRefUniprot and nonNan_xRefAlphaFold and you'll see theyre both empty
+    # This query has 3 entries, only 2 have BOTH xrefuniprot and xrefalphafold
+    #
+    # EDIT: ohhh its cuz look at line 272 and 273. theyre using non_unique_df. non_unique_df is not a superset of unique_df (it's just repeated rows im guesing)
+    # so non_unique_df can be empty, and if it is empty, then nonNan_xRefUniprot and nonNan_xRefAlphaFold will also be empty
+    # and then line 277 is trying to perform .groupby on an empty dataframe
+    # need to go thru code later to see how it works. whys it using non_unique_df in lines 272 and 273 instead of unique_df (am i reading the code wrong?)
+
+    # # quick df refresher
+    # d = {'col1': [1, 2], 'col2': [3, 4]}
+    # df = pd.DataFrame(data=d)
+    # print(df)
+
+    #print(raw_data_with_xREF)
+    #print(firstFilter_Path)
+    #print(non_unique_mask)
+    #print(non_unique_df)
+    #print(unique_df)
+    #print(uniquexRef_num_entries)
+    #print(nonUnique_xRef_num_entries)
+    #print(nonNan_xRefUniprot)         # Empty DataFrame, just prints Columns (not empty) and then Index (empty array)
+    #print(nonNan_xRefAlphaFold)       # Empty DataFrame, just prints Columns (not empty) and then Index (empty array)
+    print(grouped_proteins)           # <pandas.core.groupby.generic.DataFrameGroupBy object at 0x0000024382C12140>
+    print(type(grouped_proteins))
+
+    grouped_proteins_df = pd.concat([nonNan_xRefAlphaFold])
+    print(grouped_proteins_df)
+    ##### ======= DEBUGGING =======
     grouped_proteins_df = pd.concat([grouped_proteins.get_group(g) for g in grouped_proteins.groups], keys=grouped_proteins.groups.keys())
+    print("after concat")
+    print(grouped_proteins_df)
     grouped_proteins_df.reset_index(level=0, inplace=True)
     grouped_proteins_df.rename(columns={'level_0': 'group'}, inplace=True)
     grouped_proteins_df = grouped_proteins_df.sort_values(by=['group'])
@@ -352,9 +399,10 @@ def q_score_filter(df, threshold):
 
 
 
+if __name__ == '__main__':
+    #INPUT_CSV = "/home/qiboxu/MyProject/CryoDataBot/EVALUATION/ribosome_res_4-9/ribosome_res_4-9.csv"  # user input for inout csv file
+    INPUT_CSV = r"C:\Users\micha\OneDrive\Desktop\QIBO\DATA_CLEANUP_942024\download_file_09_review.csv"
+    THRE_UNI_SIMILARITY = 10  # user input for check UniportID similarity
+    THRE_Q_SCORE = 0  # user input for check Q-score values
 
-INPUT_CSV = "/home/qiboxu/MyProject/CryoDataBot/EVALUATION/ribosome_res_4-9/ribosome_res_4-9.csv"  # user input for inout csv file
-THRE_UNI_SIMILARITY = 10  # user input for check UniportID similarity
-THRE_Q_SCORE = 0  # user input for check Q-score values
-
-refine_csv(input_csv=INPUT_CSV, q_threshold=THRE_Q_SCORE, uni_threshold=THRE_UNI_SIMILARITY)
+    refine_csv(input_csv=INPUT_CSV, q_threshold=THRE_Q_SCORE, uni_threshold=THRE_UNI_SIMILARITY)
