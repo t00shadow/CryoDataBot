@@ -210,10 +210,7 @@ def search_rcsb(file_path):
 def get_qscore(emdb_map_id):
     entry_id = emdb_map_id.replace('EMD-', '')
     url = f"https://www.ebi.ac.uk/emdb/api/analysis/{entry_id}"
-    try:
-        file = requests.get(url).json()
-    except:
-        return '', ''
+    file = requests.get(url).json()
     try:
         qscore = file[entry_id]["qscore"]["allmodels_average_qscore"]
     except Exception:
