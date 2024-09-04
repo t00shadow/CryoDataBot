@@ -14,6 +14,7 @@ import random
 import splitfolders
 
 from MRC import MRC
+import json
 
 # import pandas as pd
 
@@ -66,20 +67,9 @@ atoms_rna_backbone = [
 ]
 
 # Generate taged files (num = CLASSES) of mrc format from atomic model data
-GENERATE_MRC_TEST = True
+GENERATE_MRC_TEST = False
+#GENERATE_MRC_TEST = True
 CLASSES = 24
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 def data_to_npy(map_path: str,
@@ -131,9 +121,10 @@ def data_to_npy(map_path: str,
     # Creating tags
     helices, sheets = protein_2nd_structure_lists(structure)
     for part_name in range(len(model_parts)):
-        secondary_type, residue_type, atom_type, tag = model_parts[part_name]['secondary_type'].split(','), \
-            model_parts[part_name]['residue_type'].split(','), model_parts[part_name]['atom_type'].split(','),\
-            model_parts[part_name]['tag']
+        secondary_type = model_parts[part_name]['secondary_type'].split(',')
+        residue_type = model_parts[part_name]['residue_type'].split(',')
+        atom_type = model_parts[part_name]['atom_type'].split(',')
+        tag = model_parts[part_name]['tag']
 
         model_data = np.zeros(map_size, np.int8)  
         dis_array = np.array([])

@@ -246,7 +246,7 @@ def map_model_corr(map_path: str, cif_path: str, out_text: queue, NEW_SAVE_FOLDE
         with mrcfile.new(os.path.join(NEW_SAVE_FOLDER, f'CIF_{PROTEIN_ID}.mrc')) as mrc:
             mrc.set_data(protein_tag)
         out_text.put(f'Binary Map of {MAP_ID} Saved as "BINARY_{MAP_ID}.mrc"\n')
-        with mrcfile.new(os.path.join(NEW_SAVE_FOLDER,f'BINARY_{MAP_ID}.mrc')) as mrc:
+        with mrcfile.new(os.path.join(NEW_SAVE_FOLDER, f'BINARY_{MAP_ID}.mrc')) as mrc:
             mrc.set_data(map_F)
         out_text.put(f'Estimated Volume Data of {PROTEIN_ID} Saved as "CIF_{PROTEIN_ID}.mrc"\n')
         
