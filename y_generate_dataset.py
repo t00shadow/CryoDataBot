@@ -71,17 +71,6 @@ CLASSES = 24
 
 
 
-
-
-
-
-
-
-
-
-
-
-
 def data_to_npy(map_path: str,
                 model_path: str,
                 model_parts: list,

@@ -210,10 +210,10 @@ def search_rcsb(file_path):
 def get_qscore(emdb_map_id):
     entry_id = emdb_map_id.replace('EMD-', '')
     url = f"https://www.ebi.ac.uk/emdb/api/analysis/{entry_id}"
-    try:
-        file = requests.get(url).json()
-    except:
-        return '', ''
+    # try:
+    file = requests.get(url).json()
+    # except:
+    #     return '', ''
     try:
         qscore = file[entry_id]["qscore"]["allmodels_average_qscore"]
     except Exception:
@@ -260,7 +260,7 @@ def search_qscore(file_path):
 
 if __name__ == '__main__':
     search_emdb(query="ribosome AND resolution:[1 TO 4}", save_path='./CSV', file_name="ribosome_res_1-4",\
-                       fetch_qscore= True, fetch_classification=True)
+                       fetch_qscore= True, fetch_classification=False)
 
     '''# for testing RCSB function
     for i in range(20):
