@@ -20,7 +20,7 @@ logger = logging.getLogger(__name__)
 
 def search_emdb(
         query,
-        save_path='./CSV',
+        save_path='./Sample_info',
         file_name=None,
         fl=("emdb_id,title,structure_determination_method,resolution,resolution_method,fitted_pdbs,current_status,"
           "deposition_date,map_release_date,primary_citation_author_string,primary_citation_title,xref_DOI,"
