@@ -7,9 +7,10 @@ import splitfolders
 from MRC import MRC
 import json
 import logging
-
-# for logging
-logger = logging.getLogger(__name__)
+from concurrent.futures import ProcessPoolExecutor, as_completed
+from tqdm import tqdm
+from tqdm.contrib.logging import logging_redirect_tqdm
+from multiprocessing import Lock, Manager
 
 # residue/atom info
 residues_protein = [
@@ -18,11 +19,17 @@ residues_protein = [
 ]
 
 
+def check_coordinates_order():
+    do_something = 0
+
+
 def data_to_npy(map_path: str,
                 model_path: str,
                 label_group: list,
                 sample_dir: str,
-                sample_num: int = 0,
+                group_names: list,
+                sample_num = 0,
+                lock = None,
                 npy_size: int = 64,
                 generate_test: bool = False,
                 classes: int = 24):
@@ -43,9 +50,11 @@ def data_to_npy(map_path: str,
     labels = []
 
     # Read the MRC map file and change the coordinates order to [z, y, x]
+    # change here
     mrc = MRC(map_path)
     map_data = mrc.swap_back_coordinates(mrc.dens, mrc.ordermode)
     map_size = [int(mrc.nz), int(mrc.ny), int(mrc.nx)]
+    # change here
 
     # Read the PDB model file
     structure = gemmi.read_structure(model_path)
@@ -62,10 +71,7 @@ def data_to_npy(map_path: str,
     # Compute the grid parameters for splitting the volume
     start_coords, n_samples = compute_grid_params(box_min, box_max, map_size,
                                                   npy_size)
-
-    # Sample the selected parts of the model to create the numpy array, record the number of each label in each part
-    num_of_label_in_each_part = {}  # Save number of each label in each part
-
+                                                  
     # Creating labels
     helices, sheets = protein_2nd_structure_lists(structure)
     for member_idx, member in enumerate(label_group):
@@ -74,98 +80,97 @@ def data_to_npy(map_path: str,
         dis_array = np.array([])
         label_coords = None
 
-        logger.info(f'Calculating and labeling atom coordinates for label_group_{member_idx+1}.')
-        try:
-            for label in member:
-                secondary_type, residue_type, atom_type, element_type, metal_type, tag = label['secondary_type'].split(','), \
-                    label['residue_type'].split(','), label['atom_type'].split(','), label['element_type'].split(','),\
-                        label['metal_type'].split(','), label['label']
-                
-                if residue_type == ['']:
-                    residue_type = None
-                if atom_type == ['']:
-                    atom_type = None
+        #logger.info(f'Calculating and labeling atom coordinates for label_group_{member_idx+1}.')
+        #try:
+        for label in member:
+            secondary_type, residue_type, atom_type, element_type, metal_type, tag = label['secondary_type'].split(','), \
+                label['residue_type'].split(','), label['atom_type'].split(','), label['element_type'].split(','),\
+                    label['metal_type'].split(','), label['label']
+            
+            if residue_type == ['']:
+                residue_type = None
+            if atom_type == ['']:
+                atom_type = None
 
-                if secondary_type == ['']:
-                    if element_type == [''] and metal_type == ['']:
-                        label_coords = atom_coord_cif(structure, residue_type, atom_type)
-                        member_data, dis_array = label_npy(member_data, label_coords, tag, dis_array)
-                    elif element_type != [''] and metal_type == ['']:
-                        label_coords = element_coord_cif(structure, residue_type, element_type)
-                        member_data, dis_array = label_npy(member_data, label_coords, tag, dis_array)
-                    elif element_type == [''] and metal_type != ['']:
-                        for metal in metal_type:
-                            label_coords = element_coord_cif(structure, residue_type, metal)
-                            member_data, dis_array = label_npy(member_data, label_coords, tag, dis_array, gemmi.Element(metal).vdw_r)
-                else:
-                    if element_type == ['']:   
-                        protein_2nd_structure_coords = atom_coord_cif_protein_secondary(
-                                structure, helices, sheets, residue_type, atom_type)
-                        if 'Helix' in secondary_type:
-                            member_data, dis_array = label_npy(member_data, protein_2nd_structure_coords[0], tag, dis_array)
-                        if 'Sheet' in secondary_type:
-                            member_data, dis_array = label_npy(member_data, protein_2nd_structure_coords[1], tag, dis_array)
-                        if 'Loop' in secondary_type:
-                            member_data, dis_array = label_npy(member_data, protein_2nd_structure_coords[2], tag, dis_array)
-                    else:
-                        protein_2nd_structure_coords = element_coord_cif_protein_secondary(
-                            structure, helices, sheets, residue_type, element_type)
-                        if 'Helix' in secondary_type:
-                            member_data, dis_array = label_npy(member_data, protein_2nd_structure_coords[0], tag, dis_array)
-                        if 'Sheet' in secondary_type:
-                            member_data, dis_array = label_npy(member_data, protein_2nd_structure_coords[1], tag, dis_array)
-                        if 'Loop' in secondary_type:
-                            member_data, dis_array = label_npy(member_data, protein_2nd_structure_coords[2], tag, dis_array)
-        except Exception as e:
-            logger.error(f'Calculation failed. Exception: {e}.')                
-        logger.info('Successfully calculated and labelged atom coordinates.')
+            if secondary_type == ['']:
+                label_coords = atom_coord_cif(structure, residue_type, atom_type)
+                member_data, dis_array = label_npy(member_data, label_coords, tag, dis_array)
+                if element_type != ['']:
+                    label_coords = element_coord_cif(structure, residue_type, element_type)
+                    member_data, dis_array = label_npy(member_data, label_coords, tag, dis_array)
+                if metal_type != ['']:
+                    for metal in metal_type:
+                        label_coords = element_coord_cif(structure, residue_type, metal)
+                        member_data, dis_array = label_npy(member_data, label_coords, tag, dis_array, gemmi.Element(metal).vdw_r)
+            else:             
+                protein_2nd_structure_coords = atom_coord_cif_protein_secondary(
+                        structure, helices, sheets, residue_type, atom_type)
+                if 'Helix' in secondary_type:
+                    member_data, dis_array = label_npy(member_data, protein_2nd_structure_coords[0], tag, dis_array)
+                if 'Sheet' in secondary_type:
+                    member_data, dis_array = label_npy(member_data, protein_2nd_structure_coords[1], tag, dis_array)
+                if 'Loop' in secondary_type:
+                    member_data, dis_array = label_npy(member_data, protein_2nd_structure_coords[2], tag, dis_array)
+                if element_type != ['']:  
+                    protein_2nd_structure_coords = element_coord_cif_protein_secondary(
+                        structure, helices, sheets, residue_type, element_type)
+                    if 'Helix' in secondary_type:
+                        member_data, dis_array = label_npy(member_data, protein_2nd_structure_coords[0], tag, dis_array)
+                    if 'Sheet' in secondary_type:
+                        member_data, dis_array = label_npy(member_data, protein_2nd_structure_coords[1], tag, dis_array)
+                    if 'Loop' in secondary_type:
+                        member_data, dis_array = label_npy(member_data, protein_2nd_structure_coords[2], tag, dis_array)
+        #except Exception as e:
+            #logger.error(f'Calculation failed. Exception: {e}.')                
+        #logger.info('Successfully calculated and labelged atom coordinates.')
         data.append(member_data)
-        labels.append(str(member_idx+1))
+        labels.append(group_names[member_idx])
 
         if generate_test is True:
             # Generate TEST.mrc for every value in one part
-            logger.info(f'Generating test mrc(s) for label_group_{label_group}.')
-            try:
-                """for label in range(1, classes + 1):
-                    out_map = f"{map_path.split('.mrc')[0]}_EXAMPLE_{label}.mrc"
-                    print("=> Writing new map")
-                    shutil.copy(map_path, out_map)
-                    with mrcfile.open(out_map, mode='r+') as mrc:
-                        TEST_data = np.zeros_like(member_data)
-                        TEST_data = np.where(member_data == label, member_data, 0)
-                        mrc.set_data(TEST_data)
-                        # mrc.header.mz = member_data.shape[0]
-                    print("New map is writen.")
-                    continue"""
-                
+            #logger.info(f'Generating test mrc(s) for label_group_{label_group}.')
+            #try:
+            for label in range(1, classes + 1):
                 out_map = f"{map_path.split('.mrc')[0]}_EXAMPLE_{label}.mrc"
                 print("=> Writing new map")
                 shutil.copy(map_path, out_map)
                 with mrcfile.open(out_map, mode='r+') as mrc:
-                    TEST_data = member_data
+                    TEST_data = np.zeros_like(member_data)
+                    TEST_data = np.where(member_data == label, member_data, 0)
                     mrc.set_data(TEST_data)
-                    mrc.header.mz = member_data.shape[0]
+                    # mrc.header.mz = member_data.shape[0]
                 print("New map is writen.")
+                continue
+            
+            '''out_map = f"{map_path.split('.mrc')[0]}_EXAMPLE_{label}.mrc"
+            print("=> Writing new map")
+            shutil.copy(map_path, out_map)
+            with mrcfile.open(out_map, mode='r+') as mrc:
+                TEST_data = member_data
+                mrc.set_data(TEST_data)
+                mrc.header.mz = member_data.shape[0]
+            print("New map is writen.")
 
-                logger.info('Successfully generated test mrc(s).')
-            except Exception as e:
-                logger.error(f'Generation failed. Exception: {e}.')
+                #logger.info('Successfully generated test mrc(s).')
+            #except Exception as e:
+                #logger.error(f'Generation failed. Exception: {e}.')'''
             exit()
 
     # Create npy files from member_data of each part and map_data
     # Calcutate num of different labels
     data.append(map_data)
     labels.append('map_sample')
-    logger.info('Splitting labeled files into small cubes.')
-    try:
-        num_labels, sample_num = split_to_npy(data, sample_dir, start_coords,
+    #logger.info('Splitting labeled files into small cubes.')
+    #try:
+    with lock:
+        num_labels = split_to_npy(data, sample_dir, start_coords,
                                         n_samples, npy_size, sample_num,
                                         labels)
-        logger.info('Splitting successful.')
-    except Exception as e:
-        logger.error(f'Splitting failed. Exception: {e}')
+        #logger.info('Splitting successful.')
+    #except Exception as e:
+        #logger.error(f'Splitting failed. Exception: {e}')
 
-    return sample_num, num_labels
+    return num_labels
 
 
 def compute_grid_params(box_min_list, box_max_list, axis_length_list,
@@ -225,6 +230,7 @@ def split_to_npy(data,
     Returns:
         None
     """
+    #sample_num = sample_num.value
     num_labels = [0] * len(data)
     sample_start_z, sample_start_y, sample_start_x = start_coords
     for i in range(3):
@@ -243,7 +249,7 @@ def split_to_npy(data,
                              idx_x:idx_x + npy_size]
                     file_name = os.path.join(
                         sample_dir, labels[idx],
-                        f"model_{labels[idx]}.{sample_num}.npy")
+                        f"model_{labels[idx]}.{sample_num.value}.npy")
                     np.save(file_name, sample)
 
                     count = np.bincount(sample.flatten())
@@ -256,12 +262,12 @@ def split_to_npy(data,
                          idx_y:idx_y + npy_size,
                          idx_x:idx_x + npy_size]
                 file_name = os.path.join(sample_dir, labels[len(data) - 1],
-                                         f"map.{sample_num}.npy")
+                                         f"map.{sample_num.value}.npy")
                 np.save(file_name, sample)
 
-                sample_num += 1
+                sample_num.value += 1
 
-    return num_labels, sample_num
+    return num_labels
 
 
 def label_npy(member_data,
@@ -282,8 +288,8 @@ def label_npy(member_data,
         member_data (ndarray): The modified model data with the labelged points.
         dis_array (ndarray): The modified model data with the labelged points.
     """
-
-    dis_array = np.full(member_data.shape, atom_grid_radius ** 2)
+    if dis_array.size == 0:
+        dis_array = np.full(member_data.shape, atom_grid_radius ** 2)
 
     index_grid = int(atom_grid_radius) + 1
     extension = range(-index_grid, index_grid + 1)
@@ -407,7 +413,6 @@ def atom_coord_cif_protein_secondary(structure,
     coords, coords_helices, coords_sheets = [], [], []
     chain_helices = [row[0] for row in helices]
     chain_sheets = [row[0] for row in sheets]
-    chain_name = list(set(chain_helices + chain_sheets))
 
     if RESIDUE is None:
         coords = atom_coord_cif(structure, residues_protein, ATOM)
@@ -416,8 +421,6 @@ def atom_coord_cif_protein_secondary(structure,
 
     for model in structure:
         for chain in model:
-            if chain_name is not None and chain.name not in chain_name:
-                continue
             # helices
             for index, helix_chian_name in enumerate(chain_helices):
                 if chain.name != helix_chian_name:
@@ -460,7 +463,6 @@ def element_coord_cif_protein_secondary(structure,
     coords, coords_helices, coords_sheets = [], [], []
     chain_helices = [row[0] for row in helices]
     chain_sheets = [row[0] for row in sheets]
-    chain_name = list(set(chain_helices + chain_sheets))
 
     if RESIDUE is None:
         coords = element_coord_cif(structure, residues_protein, ATOM)
@@ -469,8 +471,6 @@ def element_coord_cif_protein_secondary(structure,
 
     for model in structure:
         for chain in model:
-            if chain_name is not None and chain.name not in chain_name:
-                continue
             # helices
             for index, helix_chian_name in enumerate(chain_helices):
                 if chain.name != helix_chian_name:
@@ -505,119 +505,138 @@ def element_coord_cif_protein_secondary(structure,
     return [coords_helices, coords_sheets, coords_loops]
 
 
-def split_folders(temp_sample_path, sample_path, ratio_t_v=(.8, .2)):
+def split_folders(temp_sample_path, sample_path, ratio_t_t_v=(.8, .1, .1)):
     if os.path.exists(sample_path):
-    # Delete the directory
+        # Delete the directory
         shutil.rmtree(sample_path)
     # Create the directory again
     os.makedirs(sample_path)
     splitfolders.ratio(input=temp_sample_path,
                        output=sample_path,
                        seed=44,
-                       ratio=ratio_t_v,  # we set the ratio / let users do it
+                       ratio=ratio_t_t_v,  # we set the ratio / let users do it
                        group_prefix=None,
                        move=True)
     shutil.rmtree(temp_sample_path)
 
 
-def label_maps(label_group,map_paths,model_paths,temp_sample_path,emdb_ids,output_dir):
+def label_maps(label_group,
+               map_paths,
+               model_paths,
+               emdb_ids,
+               file_name,
+               group_names,
+               temp_sample_path = './temp_sample',
+               sample_path = './Training',
+               ratio_t_t_v = (.8, .1, .1)):
+    assert(len(label_group)==len(group_names))
     # configure logger
-    logging.basicConfig(filename='generate_dataset.log', encoding='utf-8', level=logging.INFO,\
+    logger = logging.getLogger(__name__)
+    logging.basicConfig(filename=file_name+'_generate_dataset.log', encoding='utf-8', level=logging.INFO,\
                     format='%(asctime)s %(levelname)s: %(message)s', datefmt='%m/%d/%Y %I:%M:%S %p')
     logger.info('-'*5+'Generating dataset'+'-'*5)
-    logger.info(f'Label groups: {label_group}')
+    msg = 'Label groups:\n'
+    for idx, name in enumerate(group_names):
+        msg += f'    Group {name}:\n'
+        for label in label_group[idx]:
+            msg += f'       Label: {label}\n'
+    logger.info(msg)
+    print('Start generating dataset.')
 
     # num of label in each group for all models
     num_of_label_in_each_group_for_all_models = [0 for _ in range(len(label_group))]
-    sample_num = 0
-    for idx, emdb_id in enumerate(emdb_ids):
-        print(
-            f"[{idx+1}/{len(emdb_ids)}] Generating dataset from EMDB-{emdb_id}... "
-        )
-        logger.info(f'[{idx+1}/{len(emdb_ids)}] Generating labeled file(s) from EMDB-{emdb_id}.')
-        try:
-            sample_num, num_labels = data_to_npy(
-                map_paths[idx], model_paths[idx], label_group,
-                temp_sample_path, sample_num)
-            logger.info(f'Successfully generated labeled file(s) from EMDB-{emdb_id}.')
-        except Exception as e:
-            logger.error(f'Generating labeled file(s) failed. Exception: {e}.')
-        # Add number of each label in new sampled model
-        num_of_label_in_each_group_for_all_models = [num_of_label_in_each_group_for_all_models[idx]+num_labels[idx]\
-                                                      for idx in range(len(label_group))]
-
-    # Stats
-    print(f"The number of .npy file(s): {sample_num}.")
-    logger.info(f"The number of .npy file(s): {sample_num}.")
-    trim_array = lambda arr: np.trim_zeros(arr[1:], 'b')
-    num_of_label_in_each_group_for_all_models = [trim_array(np.array(sub_array)) \
-                                                 for sub_array in num_of_label_in_each_group_for_all_models]
-    print("Num of labels in each group:")
-    for group_idx in range(len(label_group)):
-        print(f'    Group {group_idx+1}:')
-        member = num_of_label_in_each_group_for_all_models[group_idx]
-        if len(member) != 0:
-            for label in range(len(member)):
-                #label_num = member[label]
-                print(f'        Label-{label+1}: {member[label]}')
-        else:
-            print('     The group is empty.')
+    
+    logger.info('Start generating labels.')
+    with Manager() as manager:
+        sample_num_shared = manager.Value('i', 0)
+        lock = manager.Lock()
+        futures = []
+        with ProcessPoolExecutor() as executor:
+            futures = [executor.submit(data_to_npy, map_paths[idx], model_paths[idx], label_group,
+                    temp_sample_path, group_names, sample_num_shared, lock) for idx in range(len(emdb_ids))]
+            
+            # Process the results as they complete
+            with logging_redirect_tqdm():
+                i = 0
+                for future in tqdm(as_completed(futures), total=len(futures), desc='Labeling maps'):
+                    logger.info(f'Start generating label files from EMDB-{emdb_ids[i]}.')
+                    num_labels = future.result()
+                    num_of_label_in_each_group_for_all_models = [num_of_label_in_each_group_for_all_models[idx]+num_labels[idx]\
+                                                            for idx in range(len(label_group))]
+                    i += 1
+        sample_num = sample_num_shared.value
+    logger.info('Successfully generated all label files.')
 
     # 3.3 Split data into training and validation dataset
-    sample_path = os.path.join(output_dir, "dataset")
-    logger.info('Splitting data into training and validation sets.')
+    sample_path = os.path.join(sample_path,file_name)
+    logger.info('Start splitting data into training, testing, and validation sets.')
     try:
-        split_folders(temp_sample_path, sample_path)
+        split_folders(temp_sample_path, sample_path, ratio_t_t_v)
         logger.info('Successfully splitted data.')
     except Exception as e:
         logger.error(f'Splitting failed. Error: {e}.')
 
+    # Stats
+    msg = 'Statistical results:\n'
+    msg += f"Dataset size (number of .npy files): {sample_num}.\n"
+    #trim_array = lambda arr: np.trim_zeros(arr[1:], 'b')
+    num_of_label_in_each_group_for_all_models = [np.trim_zeros(sub_array, 'b') \
+                                                 for sub_array in num_of_label_in_each_group_for_all_models]
+    msg += "Number of labels in each group:\n"
+    ratio_of_label = {key: [] for key in group_names}
+    for group_idx in range(len(label_group)):
+        group_name = group_names[group_idx]
+        msg += f'    Group {group_name}:\n'
+        sum_label_per_group = 0
+        member = num_of_label_in_each_group_for_all_models[group_idx]
+        if len(member) != 0:
+            for label in range(len(member)):
+                label_num = member[label]
+                msg += f'        Label-{label}: {label_num}\n'
+                sum_label_per_group += label_num
+                ratio_of_label[group_name].append(int(member[0]//label_num))
+                if label == len(member)-1:
+                    msg += f'        Total: {sum_label_per_group}\n'
+        else:
+            msg += '     The group is empty.\n'
+            continue
+    print('\n'+msg)
+    stats_path = os.path.join(sample_path, 'statistics.txt')
+    with open(stats_path, "w") as file:
+        file.write(msg)
+    logger.info(f'Statistics results written into "{stats_path}".')
+
     # 3.4 Calculate weight, create weight file and save it (ratio of labels)
-    '''weight_path = os.path.join(sample_path, 'class_weight_for_training.txt')
+    weight_path = os.path.join(sample_path, 'class_weight_for_training.txt')
     with open(weight_path, "w") as file:
-        json.dump(ratio_of_label, file)'''
+        json.dump(ratio_of_label, file)
+    logger.info(f'Weights written into "{weight_path}".')
+    
     logger.info('-'*5+'Dataset generation completed'+'-'*5)
+    shutil.move('./'+file_name+'_generate_dataset.log',\
+                sample_path+'/'+file_name+'_generate_dataset.log')
 
 
 if __name__ == "__main__":
-    '''
-    raw_map_paths = ["path_to_save_downloaded_map_and_model/EMD-37007_re_3.3/emd_37007.map",\
-                     "path_to_save_downloaded_map_and_model/EMD-3145_re_3.3/emd_3145.map",\
-                        'path_to_save_downloaded_map_and_model/EMD-41587_re_2.92/emd_41587.map']
-    model_paths = ["path_to_save_downloaded_map_and_model/EMD-37007_re_3.3/8kab.cif",\
-                   "path_to_save_downloaded_map_and_model/EMD-3145_re_3.3/5an9.cif",\
-                    'path_to_save_downloaded_map_and_model/EMD-41587_re_2.92/8ts1.cif']
-    emdb_ids = [37007, 3145, 41587]
-    map_paths = normalize_raw_map(raw_map_paths)
-
-    # this is the only function that needs to be called
-    label_maps(label_group,map_paths,model_paths,temp_sample_path,emdb_ids,output_dir)
-    '''
-
     # for testing data_to_npy()
     map_path = r'path_to_save_downloaded_map_and_model/EMD-3145_re_3.3/emd_3145_normalized.mrc'
     model_path = r'path_to_save_downloaded_map_and_model/EMD-3145_re_3.3/5an9.cif'
     #map_path = r'path_to_save_downloaded_map_and_model/EMD-41587_re_2.92/emd_41587_normalized.mrc'
-    #model_path = r'path_to_save_downloaded_map_and_model/EMD-41587_re_2.92/8ts1.cif'
+    #odel_path = r'path_to_save_downloaded_map_and_model/EMD-41587_re_2.92/8ts1.cif'
     # different label_group
-    #label_group = [{'secondary_type': 'Helix', 'residue_type': 'ALA', 'atom_type': 'CA', 'element_type': '', 'metal_type': '', 'label': 1}]
-    #label_group = [{'secondary_type': 'Helix', 'residue_type': 'ALA', 'atom_type': 'N', 'element_type': '', 'metal_type': '', 'label': 2}]
-    #label_group = [{'secondary_type': '', 'residue_type': 'ALA', 'atom_type': 'CA', 'element_type': '', 'metal_type': '', 'label': 3}]
-    #label_group = [{'secondary_type': 'Loop', 'residue_type': '', 'atom_type': '', 'element_type': '', 'metal_type': '', 'label': 4}]
-    #label_group = [{'secondary_type': 'Sheet', 'residue_type': '', 'atom_type': '', 'element_type': '', 'metal_type': '', 'label': 5}]
-    #label_group = [{'secondary_type': 'Sheet,Helix', 'residue_type': 'ALA', 'atom_type': 'CA', 'element_type': '', 'metal_type': '', 'label': 6}]
-    #label_group = [{'secondary_type': '', 'residue_type': 'A,C,G,U,DA,DC,DG,DT', 'atom_type': '', 'element_type': 'N', 'metal_type': '', 'label': 7}]
-    #label_group = [{'secondary_type': '', 'residue_type': '', 'atom_type': '', 'element_type': '', 'metal_type': 'Mg', 'label': 8}]
     #label_group = [[{'secondary_type': 'Helix', 'residue_type': '', 'atom_type': '', 'element_type': 'P', 'metal_type': '', 'label': 1},\
     #               {'secondary_type': 'Sheet', 'residue_type': '', 'atom_type': '', 'element_type': 'P', 'metal_type': '', 'label': 2},\
     #               {'secondary_type': 'Loop', 'residue_type': '', 'atom_type': '', 'element_type': 'P', 'metal_type': '', 'label': 3}]]
-    label_group = [[{'secondary_type': 'Helix', 'residue_type': '', 'atom_type': '', 'element_type': 'O', 'metal_type': '', 'label': 1},\
-                   {'secondary_type': 'Sheet', 'residue_type': '', 'atom_type': '', 'element_type': 'O', 'metal_type': '', 'label': 2},\
-                   {'secondary_type': 'Loop', 'residue_type': '', 'atom_type': '', 'element_type': 'O', 'metal_type': '', 'label': 3}]]
+    label_group = [[{'secondary_type': 'Helix', 'residue_type': '', 'atom_type': '', 'element_type': '', 'metal_type': '', 'label': 1},\
+                   {'secondary_type': 'Sheet', 'residue_type': 'ALA', 'atom_type': '', 'element_type': '', 'metal_type': '', 'label': 2},\
+                   {'secondary_type': 'Loop', 'residue_type': '', 'atom_type': 'CA', 'element_type': '', 'metal_type': '', 'label': 3},\
+                   {'secondary_type': '', 'residue_type': 'A,C,G,U,DA,DC,DG,DT', 'atom_type': '', 'element_type': '', 'metal_type': '', 'label': 4}]]
+    #label_group = [[{'secondary_type': 'Helix', 'residue_type': '', 'atom_type': '', 'element_type': '', 'metal_type': '', 'label': 1}]]
     sample_dir = 'testing_data_to_npy'
+    group_names = ['foo']
 
     sample_num, num_of_label_in_each_part = data_to_npy(map_path, model_path,
                                                       label_group, sample_dir,
-                                                      generate_test=True)
+                                                      group_names, generate_test=True)
     print(sample_num)
     print(num_of_label_in_each_part)
