@@ -257,7 +257,7 @@ def search_qscore(file_path):
 
 if __name__ == '__main__':
     search_emdb(query="ribosome AND resolution:[1 TO 4}", save_path='./CSV', file_name="ribosome_res_1-4",\
-                       fetch_qscore= True, fetch_classification=True)
+                       fetch_qscore= True, fetch_classification=False)
 
     '''# for testing RCSB function
     for i in range(20):
