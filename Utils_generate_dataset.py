@@ -4,13 +4,13 @@ import gemmi
 import mrcfile
 import numpy as np
 import splitfolders
-from MRC import MRC
 import json
 import logging
 from concurrent.futures import ProcessPoolExecutor, as_completed
 from tqdm import tqdm
 from tqdm.contrib.logging import logging_redirect_tqdm
 from multiprocessing import Lock, Manager
+
 
 # residue/atom info
 residues_protein = [
@@ -19,8 +19,6 @@ residues_protein = [
 ]
 
 
-def check_coordinates_order():
-    do_something = 0
 
 
 def data_to_npy(map_path: str,
@@ -50,11 +48,7 @@ def data_to_npy(map_path: str,
     labels = []
 
     # Read the MRC map file and change the coordinates order to [z, y, x]
-    # change here
-    mrc = MRC(map_path)
-    map_data = mrc.swap_back_coordinates(mrc.dens, mrc.ordermode)
-    map_size = [int(mrc.nz), int(mrc.ny), int(mrc.nx)]
-    # change here
+    map_data, map_size = check_mrc_coordinates_order(map_path)
 
     # Read the PDB model file
     structure = gemmi.read_structure(model_path)
@@ -171,6 +165,33 @@ def data_to_npy(map_path: str,
         #logger.error(f'Splitting failed. Exception: {e}')
 
     return num_labels
+
+
+def check_mrc_coordinates_order(mrc_path):
+    with mrcfile.open(mrc_path, permissive=True) as mrc:
+        map_size = [int(mrc.header.nz), int(mrc.header.ny), int(mrc.header.nx)]
+        data = np.array(mrc.data)
+        maps, mapr, mapc = mrc.header.maps, mrc.header.mapr, mrc.header.mapc
+        if not (mapc == 1 and mapr == 2 and maps == 3):
+            print('Swap the mrc coordinates to "z, y, x"')
+            if mapc == 1 and mapr == 3 and maps == 2:
+                map_data = data.swapaxes(1, 2)
+            elif mapc == 2 and mapr == 1 and maps == 3:
+                map_data = data.swapaxes(0, 1)
+            elif mapc == 2 and mapr == 3 and maps == 1:
+                map_data = data.swapaxes(1, 2)
+                map_data = data.swapaxes(0, 1)
+            elif mapc == 3 and mapr == 1 and maps == 2:
+                map_data = data.swapaxes(0, 1)
+                map_data = data.swapaxes(1, 2)
+            elif mapc == 3 and mapr == 2 and maps == 1:
+                map_data = data.swapaxes(0, 2)
+            else:
+                print('Error when reading mrc file')
+                exit()
+
+    return map_data, map_size
+
 
 
 def compute_grid_params(box_min_list, box_max_list, axis_length_list,
