@@ -13,7 +13,7 @@ from pathlib import Path
 import random
 import splitfolders
 
-from MRC import MRC
+from CryoDataBot.backup.MRC import MRC
 import json
 
 # import pandas as pd

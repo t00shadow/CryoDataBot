@@ -11,9 +11,6 @@ THRE_UNI_SIMILARITY = 100  # user input for check UniportID similarity, 100 mean
 THRE_Q_SCORE = 0  # user input for check Q-score values, 0 means loosest
 
 
-
-
-
 def refine_csv(input_csv, q_threshold: float = THRE_Q_SCORE, uni_threshold: float = THRE_UNI_SIMILARITY):
     """
     :param file_path: path to .csv file
@@ -382,14 +379,15 @@ def q_score_filter(df, threshold):
     filtered = df_sorted[df_sorted['Q-score'] < threshold].reset_index(drop=True)
     kept = df_sorted[df_sorted['Q-score'] >= threshold].reset_index(drop=True)
 
-    return kept, filtered 
+    return kept, filtered
 
 
 
 if __name__ == '__main__':
     #INPUT_CSV = "/home/qiboxu/MyProject/CryoDataBot/EVALUATION/ribosome_res_4-9/ribosome_res_4-9.csv"  # user input for inout csv file
-    INPUT_CSV = r"C:\Users\noelu\CryoDataBot\JUNK_TEST_FOLDER\ribosome_res_4-9\ribosome_res_4-9.csv"
-    THRE_UNI_SIMILARITY = 10  # user input for check UniportID similarity
+    # INPUT_CSV = r"C:\Users\noelu\CryoDataBot\JUNK_TEST_FOLDER\ribosome_res_4-9\ribosome_res_4-9.csv"
+    INPUT_CSV = "/home/qiboxu/MyProject/CryoDataBot/CSV/ribosome_res_1-4/ribosome_res_1-4.csv"
+    THRE_UNI_SIMILARITY = 100  # user input for check UniportID similarity
     THRE_Q_SCORE = 0  # user input for check Q-score values
 
     refine_csv(input_csv=INPUT_CSV, q_threshold=THRE_Q_SCORE, uni_threshold=THRE_UNI_SIMILARITY)
