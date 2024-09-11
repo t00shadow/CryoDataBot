@@ -1,0 +1,6 @@
+09/10/2024 01:55:22 PM INFO: -----Refining sample information with Q_Score:"0.7"and Similarity_Threshold:"100".-----
+09/10/2024 01:55:22 PM INFO: Entries to Manually Check: {manual_check_num} entries. Entries to be filtered: {toFilter_num} entries.
+09/10/2024 01:55:22 PM INFO: Files saved at /home/qiboxu/MyProject/CryoDataBot/CSV/ribosome_res_1-4/Refined_Entries
+09/10/2024 01:55:22 PM INFO: Entries after first filter: (11, 33) entries.
+09/10/2024 01:55:22 PM INFO: Entries after second filter: 33 entries.
+09/10/2024 01:55:22 PM INFO: Refinement completed, entries kept: 33. File wrote at /home/qiboxu/MyProject/CryoDataBot/CSV/ribosome_res_1-4/Refined_Entries/Final_Filter.csv.

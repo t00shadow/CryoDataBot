@@ -77,8 +77,8 @@ def clean_input_data(input_csv_path: str, output_dir: str) -> tuple:
     # Identify and separate duplicates
     duplicates_df = csv_df[csv_df.duplicated(subset=['emdb_id', 'title', 'fitted_pdbs'], keep='first')]
     unique_df = csv_df.drop(duplicates_df.index)
-    
-   
+
+
     # Find rows with NaN in both 'xref_UNIPROTKB' and 'xref_ALPHAFOLD' columns
     raw_data_without_xRef = unique_df[unique_df[['xref_UNIPROTKB', 'xref_ALPHAFOLD']].isna().all(axis=1)]
     manualCheck_numEntries = len(raw_data_without_xRef)

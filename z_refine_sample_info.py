@@ -137,7 +137,8 @@ def process_similar(uniprotkb_1: str, uniprotkb_2: str, threshold: float) -> boo
         return False
     else:
         return True
-    
+
+
 def evaluate_resoloution(df: pd.DataFrame, dTest: list, row: int) -> int:
     """
     Helper function to evaluate the resolution of a DataFrame based on a given list of indices.
@@ -275,7 +276,7 @@ def first_filter(output_dir:str):
 
     #Besides removing the weird stuff (Duplicates in ID or Title), we also want to remove the rows that have the same xref_UNIPROTKB
     #non_unique_mask = raw_data_with_xREF.sort_values('resolution', ascending=False).duplicated(subset=['xref_UNIPROTKB','xref_ALPHAFOLD'], keep=False)
-    non_unique_mask = raw_data_with_xREF.duplicated(subset=['xref_UNIPROTKB','xref_ALPHAFOLD'], keep=False)
+    non_unique_mask = raw_data_with_xREF.duplicated(subset=['xref_UNIPROTKB', 'xref_ALPHAFOLD'], keep=False)
     non_unique_df = raw_data_with_xREF[non_unique_mask] #Gives you a dataframe that has all the duplicates    
     unique_df = raw_data_with_xREF.drop(non_unique_df.index) #Drops the rows that are not unique based on previous dataframe
     
@@ -401,8 +402,9 @@ def q_score_filter(df, threshold):
 
 if __name__ == '__main__':
     #INPUT_CSV = "/home/qiboxu/MyProject/CryoDataBot/EVALUATION/ribosome_res_4-9/ribosome_res_4-9.csv"  # user input for inout csv file
-    INPUT_CSV = r"C:\Users\micha\OneDrive\Desktop\QIBO\DATA_CLEANUP_942024\download_file_09_review.csv"
-    THRE_UNI_SIMILARITY = 10  # user input for check UniportID similarity
-    THRE_Q_SCORE = 0  # user input for check Q-score values
+    # INPUT_CSV = r"C:\Users\micha\OneDrive\Desktop\QIBO\DATA_CLEANUP_942024\download_file_09_review.csv"
+    INPUT_CSV = "/home/qiboxu/MyProject/CryoDataBot/CSV/ribosome_res_1-4/ribosome_res_1-4.csv"
+    THRE_UNI_SIMILARITY = 100  # user input for check UniportID similarity
+    THRE_Q_SCORE = 0.7  # user input for check Q-score values
 
     refine_csv(input_csv=INPUT_CSV, q_threshold=THRE_Q_SCORE, uni_threshold=THRE_UNI_SIMILARITY)

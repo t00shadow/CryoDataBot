@@ -20,7 +20,7 @@ logger = logging.getLogger(__name__)
 
 def search_emdb(
         query,
-        save_path='./CSV',
+        save_path='./',
         file_name=None,
         fl=("emdb_id,title,structure_determination_method,resolution,resolution_method,fitted_pdbs,current_status,"
           "deposition_date,map_release_date,primary_citation_author_string,primary_citation_title,xref_DOI,"
@@ -72,7 +72,7 @@ def search_emdb(
             num += 1
             file_name = f'download_file_{num:02}'
 
-    save_path = os.path.join(save_path, file_name)   
+    save_path = os.path.join(save_path, "CryoDataBot_Data", "Metadata", file_name)
     os.makedirs(save_path, exist_ok=True)   
     full_path = os.path.join(save_path, f'{file_name}_full.csv')
 
@@ -256,15 +256,15 @@ def search_qscore(file_path):
 
 
 if __name__ == '__main__':
-    search_emdb(query="ribosome AND resolution:[1 TO 4}", save_path='./CSV',
-                file_name="ribosome_res_1-4", fetch_qscore=True,
+    search_emdb(query="ribosome AND resolution:[3 TO 4}", save_path='/home/qiboxu/Database/',
+                file_name="ribosome_res_3-4", fetch_qscore=True,
                 fetch_classification=True)
                        
 
     '''# for testing RCSB function
     for i in range(20):
         try:
-            search_emdb(query="ribosome AND resolution:[1 TO 4}", save_path='./CSV', file_name="ribosome_res_1-4",\
+            search_emdb(query="ribosome AND resolution:[3 TO 4}", save_path='./CSV', file_name="ribosome_res_3-4",\
                         fetch_qscore= False, fetch_classification=True)
         except Exception:
             print(Exception)'''
