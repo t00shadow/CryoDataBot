@@ -71,8 +71,8 @@ def fixDataFrame(input_df_path: pd.DataFrame) -> pd.DataFrame:
         pd.DataFrame: The fixed DataFrame.
 
     """
-    input_df = pd.read_csv(input_df_path, dtype={'emdb_id':'string', 'sample_info_string': 'string','resolution': float, 'title':'string', 'xref_UNIPROTKB': 'string', 'xref_ALPHAFOLD': 'string', 'Q-score': float},
-                           na_values=['', ' ', 'N/A', 'N/a', 'n/a', 'NA', 'Na', 'na', 'NAN', 'Nan', 'nan', 'NANAN',
+    input_df = pd.read_csv(input_df_path, dtype={'emdb_id':'string', 'sample_info_string': 'string','resolution': float, 'fitted_pdbs':'string', 'title':'string', 'xref_UNIPROTKB': 'string', 'xref_ALPHAFOLD': 'string', 'Q-score': float, 'atom_inclusion': float},
+                                                     na_values=['', ' ', 'N/A', 'N/a', 'n/a', 'NA', 'Na', 'na', 'NAN', 'Nan', 'nan', 'NANAN',
                                                      'NanNan', 'nanNan', 'NANANAN', 'NanNanNan', 'nanNanNan', 'NANANANAN', 
                                                      'NanNanNanNan', 'nanNanNanNan', 'NANANANANAN', 'NanNanNanNanNan', 'nanNanNanNanNan', 'NANANANANANAN', 'NanNanNanNanNanNan', 
                                                      'nanNanNanNanNanNan', 'NANANANANANANAN', 'NanNanNanNanNanNanNan', 'nanNanNanNanNanNanNan', 'NANANANANANANANAN', 
@@ -354,7 +354,9 @@ def first_filter(output_dir:str):
     #Join 2 dataframes and remove any duplicated by EMDB_ID
     result = pd.concat([unique_df, high_res_df], ignore_index=True)
     result = result.sort_values(by='title')
-    non_unique_mask_emdbId = ~result.duplicated(subset=['emdb_id'], keep=False)
+    # Identify and separate duplicates
+    duplicates_df = result[result.duplicated(subset=['emdb_id', 'title', 'fitted_pdbs'], keep='first')]
+    result = result.drop(duplicates_df.index)
     
     #Save the data
     result.to_csv(os.path.join("r",output_dir,"First_Filter.csv"), index = False)
