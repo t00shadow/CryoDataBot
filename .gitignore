@@ -9,3 +9,5 @@ JUNK_DONT_COMMIT.py
 /CSV
 *.csv
 *.log
+
+/JUNK_TEST_FOLDER

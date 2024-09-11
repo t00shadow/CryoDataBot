@@ -336,14 +336,22 @@ def first_filter(output_dir:str):
         lst.append(high_res) #Only append highest-res entries
           
     #Keep the highest resolution entries
+    print("non_unique_df:\n",non_unique_df)
     high_res_df = pd.DataFrame(lst,columns = non_unique_df.columns)
     
     #Join 2 dataframes and remove any duplicated by EMDB_ID
-    result = pd.concat([unique_df, high_res_df], ignore_index=True)
+    print("unique_df:\n", unique_df)    # this is fine, has no dupes
+    print("high_res_df\n", high_res_df)    # this has dupes (prob from concat)
+    result = pd.concat([unique_df, high_res_df], ignore_index=True)    # dupes from concat, just drop them at the very end
+    print("result (presort):\n", result)
     result = result.sort_values(by='title')
     non_unique_mask_emdbId = ~result.duplicated(subset=['emdb_id'], keep=False)
     
     #Save the data
+    print("result:\n", result)  # check why it's making 3 copies of each entry
+    # shitty hotfix (drop duplicates, shoudlve drop/avoid them earlier to save space)
+    print("result (dropped dupes):\n", result.drop_duplicates())    # inplace is False by default
+    result = result.drop_duplicates()   # or result.drop_duplicates(inplace=True)
     result.to_csv(os.path.join("r",output_dir,"First_Filter.csv"), index = False)
 
     # #Save this stuff
