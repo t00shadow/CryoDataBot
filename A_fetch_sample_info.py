@@ -259,12 +259,3 @@ if __name__ == '__main__':
     search_emdb(query="ribosome AND resolution:[3 TO 4}", save_path='/home/qiboxu/Database/',
                 file_name="ribosome_res_3-4", fetch_qscore=True,
                 fetch_classification=True)
-                       
-
-    '''# for testing RCSB function
-    for i in range(20):
-        try:
-            search_emdb(query="ribosome AND resolution:[3 TO 4}", save_path='./CSV', file_name="ribosome_res_3-4",\
-                        fetch_qscore= False, fetch_classification=True)
-        except Exception:
-            print(Exception)'''

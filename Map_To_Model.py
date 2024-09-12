@@ -13,9 +13,15 @@ import queue
 
 #Paths
 #VOF = 19.7281% Dice = 32.9548%
-SAVE_PATH = r'C:\Users\micha\OneDrive\Desktop\QIBO\CRYOEM_Data'
-CIF_PATH = r"C:\Users\micha\Downloads\emd_0128 (4).map\6h25 (1).cif"
-MAP_PATH = r"C:\Users\micha\Downloads\emd_0128 (4).map\emd_0128.map"
+# SAVE_PATH = r'C:\Users\micha\OneDrive\Desktop\QIBO\CRYOEM_Data'
+# CIF_PATH = r"C:\Users\micha\Downloads\emd_0128 (4).map\6h25 (1).cif"
+# MAP_PATH = r"C:\Users\micha\Downloads\emd_0128 (4).map\emd_0128.map"
+
+
+
+CIF_PATH = r"E:\OneDrive\Desktop\EMD-6780_re_3.35\5xxu.cif"
+MAP_PATH = r"E:\OneDrive\Desktop\EMD-6780_re_3.35\emd_6780.map"
+# SAVE_PATH = "/home/qiboxu/Database/U_NET/EMDB_PDB_for_U_Net/Filtered_Dateset/Raw/EMD-6780_re_3.35/save"
 
 # #Additional TESTING PATHS (These were bad fits)
 # #VOF = 6.483% Dice = 12.18%
@@ -159,10 +165,12 @@ def map_model_corr(map_path: str, cif_path: str, GIVE_MAP: bool=False, PROTEIN_T
     
     PROTEIN_ID = os.path.basename(cif_path).split(".")[0]
     MAP_ID = os.path.basename(map_path).split(".")[0]
-    save_path = os.path.dirname(map_path)
+    # save_path = os.path.dirname(map_path)
+    save_path = r"E:\OneDrive\Desktop\EMD-6780_re_3.35"
+    
     
     # configure logger
-    logging.basicConfig(filename=save_path+'/'+"map_model"+'.log', encoding='utf-8', level=logging.INFO,\
+    logging.basicConfig(filename=os.path.join(save_path,'log.log'), encoding='utf-8', level=logging.INFO,\
                     format='%(asctime)s %(levelname)s: %(message)s', datefmt='%m/%d/%Y %I:%M:%S %p')
     logging.info('-'*5+f'Calculating Map to Model Fitness with Theoretical Atomic Radii as"{PROTEIN_TAG_DIST}"and Normalized Map Density Cutoff as"{MAP_THRESHOLD}".'+'-'*5)
     print('\n--------------------------------------------------------------------------------\nMap to Model Fitness Calculation\n--------------------------------------------------------------------------------')    
@@ -180,6 +188,11 @@ def map_model_corr(map_path: str, cif_path: str, GIVE_MAP: bool=False, PROTEIN_T
 
     
     logging.info('--------------------------------------------------------------------')
+
+
+
+
+
 
 
 if __name__ == '__main__':
