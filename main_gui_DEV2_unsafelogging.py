@@ -335,6 +335,7 @@ class MainWindow(qtw.QMainWindow):    # Make sure the root widget/class is the r
 
 if __name__ == '__main__':
     # os.environ["QT_AUTO_SCREEN_SCALE_FACTOR"] = "1"                          # choose one
+    os.environ["QT_SCALE_FACTOR"] = "1.5"                          # choose one
     # qtw.QApplication.setAttribute(qtc.Qt.AA_EnableHighDpiScaling)            # choose one
     app = qtw.QApplication(sys.argv)
     # app.setStyle(qtw.QStyleFactory.create("Fusion"))
