@@ -7,28 +7,34 @@ from scipy.ndimage import zoom
 import urllib.request
 import gzip
 
-CSV_FILE_PATH = ''  # user input for refined csv file
 
-DATA_PATH = "path_to_save_downloaded_map_and_model"
+users_main_path = '/home/qiboxu/Database/'
+matadata_path = os.path.join(users_main_path, 'CryoDataBot_Data/Metadata')
+raw_path = os.path.join(users_main_path, 'CryoDataBot_Data/Raw')
 
 
-def download_and_preprocessing(kept_path=CSV_FILE_PATH):
+users_input_task_name = 'ribosome_res_3-4'
+CSV_FILE_PATH = os.path.join(matadata_path, users_input_task_name, f'{users_input_task_name}.csv')  # user input for refined csv file
+
+
+def download_and_preprocessing(metadata_path=CSV_FILE_PATH):
     # Step 2. Download map and model files and do preprocessing
     # 2.1 Read map list and generate raw_map and model downloading paths
-    csv_info, raw_map_paths, model_paths = read_csv_info(kept_path)
+    csv_info,  path_info = read_csv_info(metadata_path)
     emdbs, pdbs, resolutions, emdb_ids = csv_info
+    raw_map_paths, model_paths = path_info
 
     # 2.2 Download map and model files
-    fetch_map_model(csv_info)
+    fetch_map_model(csv_info, raw_map_paths, model_paths)
 
-    # 2.3 Resample and normalize map files
-    map_paths = normalize_raw_map(csv_info, raw_map_paths)
+    # # 2.3 Resample and normalize map files
+    # map_paths = normalize_raw_map(csv_info, raw_map_paths)
 
-    return map_paths
+    # return map_paths
 
 
 # 2.1 Read map list and generate raw_map and model downloading paths
-def read_csv_info(csv_path):
+def read_csv_info(csv_path, raw_path=raw_path):
     """
     arg(s):
         csv_path: path to .csv file
@@ -48,11 +54,11 @@ def read_csv_info(csv_path):
     models = [f"{pdb}.cif" for pdb in pdbs]
 
     raw_map_paths = [
-        f"{DATA_PATH}/{folder}/{raw_map}"
+        f"{raw_path}/{folder}/{raw_map}"
         for folder, raw_map in zip(folders, raw_maps)
     ]
     model_paths = [
-        f"{DATA_PATH}/{folder}/{model}"
+        f"{raw_path}/{folder}/{model}"
         for folder, model in zip(folders, models)
     ]
     csv_info = [emdbs, pdbs, resolutions, emdb_ids]
@@ -159,3 +165,9 @@ def map_output(input_map, map_data, output_map, is_model=False):
         mrc.header.ispg = 1  #401
         mrc.print_header()
         print("=> New map written successfully.")
+
+
+
+if __name__ == '__main__':
+
+    download_and_preprocessing(metadata_path=CSV_FILE_PATH)
