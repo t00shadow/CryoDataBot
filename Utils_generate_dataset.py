@@ -30,18 +30,32 @@ def data_to_npy(map_path: str,
                 generate_test: bool = False,
                 classes: int = 24):
     """
-    Read an MRC map file and a PDB model file, and create 3D numpy arraies with data from them.
+    Converts map and model data to numpy arrays and labels them.
 
-    Args:
-    - map_path (str): path to the MRC map file
-    - model_path (str): path to the PDB model file
-    - label_group (list): list of dict representing parts and label groups
-    - sample_dir (str): path to a directory where the samples will be saved
-    - sample_num (int): used to name the out put samples
-    - npy_size (int = 64):
+    Parameters:
+    - map_path: Path to the MRC map file.
+    - model_path: Path to the PDB model file.
+    - label_group: List of label groups.
+    - sample_dir: Directory to save the samples.
+    - group_names: List of group names.
+    - sample_num: Counter for the number of samples (default is 0).
+    - lock: Lock for multiprocessing (default is None).
+    - npy_size: Size of the numpy arrays (default is 64).
+    - generate_test: Flag to generate test maps (default is False).
+    - classes: Number of classes for labeling (default is 24).
 
+    Functionality:
+    1. Initializes lists to store map data and labels.
+    2. Reads the MRC map file and adjusts the coordinate order to [z, y, x].
+    3. Reads the PDB model file and ensures the model size does not exceed the map size.
+    4. Computes grid parameters for splitting the volume.
+    5. Creates labels for the data based on the provided label groups.
+    6. Generates test maps if the generate_test flag is set to True.
+    7. Appends the map data to the data list and 'map_sample' to the labels list.
+    8. Uses a lock to split the data into numpy arrays and save them.
+    9. Returns the number of labels.
     """
-    # Save map data and labelged data
+    # Save map data and labeled data
     data = []
     labels = []
 
@@ -72,8 +86,6 @@ def data_to_npy(map_path: str,
         dis_array = np.array([])
         label_coords = None
 
-        #logger.info(f'Calculating and labeling atom coordinates for label_group_{member_idx+1}.')
-        #try:
         for label in member:
             secondary_type, residue_type, atom_type, element_type, metal_type, tag = label['secondary_type'].split(','), \
                 label['residue_type'].split(','), label['atom_type'].split(','), label['element_type'].split(','),\
@@ -83,27 +95,34 @@ def data_to_npy(map_path: str,
                 residue_type = None
             if atom_type == ['']:
                 atom_type = None
+            if element_type == ['']:
+                element_type = None
+            if metal_type == ['']:
+                metal_type = None
 
             if secondary_type == ['']:
-                label_coords = atom_coord_cif(structure, residue_type, atom_type)
-                member_data, dis_array = label_npy(member_data, label_coords, tag, dis_array)
-                if element_type != ['']:
+                if atom_type is None and element_type is None and metal_type is None or\
+                    atom_type is not None:
+                    label_coords = atom_coord_cif(structure, residue_type, atom_type)
+                    member_data, dis_array = label_npy(member_data, label_coords, tag, dis_array)
+                if element_type is not None:
                     label_coords = element_coord_cif(structure, residue_type, element_type)
                     member_data, dis_array = label_npy(member_data, label_coords, tag, dis_array)
-                if metal_type != ['']:
+                if metal_type is not None:
                     for metal in metal_type:
                         label_coords = element_coord_cif(structure, residue_type, metal)
                         member_data, dis_array = label_npy(member_data, label_coords, tag, dis_array, gemmi.Element(metal).vdw_r)
-            else:             
-                protein_2nd_structure_coords = atom_coord_cif_protein_secondary(
-                        structure, helices, sheets, residue_type, atom_type)
-                if 'Helix' in secondary_type:
-                    member_data, dis_array = label_npy(member_data, protein_2nd_structure_coords[0], tag, dis_array)
-                if 'Sheet' in secondary_type:
-                    member_data, dis_array = label_npy(member_data, protein_2nd_structure_coords[1], tag, dis_array)
-                if 'Loop' in secondary_type:
-                    member_data, dis_array = label_npy(member_data, protein_2nd_structure_coords[2], tag, dis_array)
-                if element_type != ['']:  
+            else:
+                if atom_type is None and element_type is None or atom_type is not None:             
+                    protein_2nd_structure_coords = atom_coord_cif_protein_secondary(
+                            structure, helices, sheets, residue_type, atom_type)
+                    if 'Helix' in secondary_type:
+                        member_data, dis_array = label_npy(member_data, protein_2nd_structure_coords[0], tag, dis_array)
+                    if 'Sheet' in secondary_type:
+                        member_data, dis_array = label_npy(member_data, protein_2nd_structure_coords[1], tag, dis_array)
+                    if 'Loop' in secondary_type:
+                        member_data, dis_array = label_npy(member_data, protein_2nd_structure_coords[2], tag, dis_array)
+                if element_type is not None:  
                     protein_2nd_structure_coords = element_coord_cif_protein_secondary(
                         structure, helices, sheets, residue_type, element_type)
                     if 'Helix' in secondary_type:
@@ -112,16 +131,10 @@ def data_to_npy(map_path: str,
                         member_data, dis_array = label_npy(member_data, protein_2nd_structure_coords[1], tag, dis_array)
                     if 'Loop' in secondary_type:
                         member_data, dis_array = label_npy(member_data, protein_2nd_structure_coords[2], tag, dis_array)
-        #except Exception as e:
-            #logger.error(f'Calculation failed. Exception: {e}.')                
-        #logger.info('Successfully calculated and labelged atom coordinates.')
         data.append(member_data)
         labels.append(group_names[member_idx])
 
         if generate_test is True:
-            # Generate TEST.mrc for every value in one part
-            #logger.info(f'Generating test mrc(s) for label_group_{label_group}.')
-            #try:
             for label in range(1, classes + 1):
                 out_map = f"{map_path.split('.mrc')[0]}_EXAMPLE_{label}.mrc"
                 print("=> Writing new map")
@@ -130,7 +143,6 @@ def data_to_npy(map_path: str,
                     TEST_data = np.zeros_like(member_data)
                     TEST_data = np.where(member_data == label, member_data, 0)
                     mrc.set_data(TEST_data)
-                    # mrc.header.mz = member_data.shape[0]
                 print("New map is writen.")
                 continue
             
@@ -148,24 +160,32 @@ def data_to_npy(map_path: str,
                 #logger.error(f'Generation failed. Exception: {e}.')'''
             exit()
 
-    # Create npy files from member_data of each part and map_data
-    # Calcutate num of different labels
     data.append(map_data)
     labels.append('map_sample')
-    #logger.info('Splitting labeled files into small cubes.')
-    #try:
+
     with lock:
         num_labels = split_to_npy(data, sample_dir, start_coords,
                                         n_samples, npy_size, sample_num,
                                         labels)
-        #logger.info('Splitting successful.')
-    #except Exception as e:
-        #logger.error(f'Splitting failed. Exception: {e}')
 
     return num_labels
 
 
+
 def check_mrc_coordinates_order(mrc_path):
+    """
+    Checks and corrects the coordinate order of an MRC file to "z, y, x".
+
+    Parameters:
+    - mrc_path: Path to the MRC file.
+
+    Functionality:
+    1. Opens the MRC file and reads the header information.
+    2. Extracts the map size and data from the MRC file.
+    3. Checks the coordinate order (mapc, mapr, maps) in the header.
+    4. If the coordinate order is not "z, y, x", swaps the axes accordingly.
+    5. Returns the corrected map data and map size.
+    """
     with mrcfile.open(mrc_path, permissive=True) as mrc:
         map_size = [int(mrc.header.nz), int(mrc.header.ny), int(mrc.header.nx)]
         map_data = np.array(mrc.data)
@@ -191,21 +211,24 @@ def check_mrc_coordinates_order(mrc_path):
     return map_data, map_size
 
 
-
 def compute_grid_params(box_min_list, box_max_list, axis_length_list,
-                        grid_size): 
+                        grid_size):
     """
-    Computes the starting coordinate and number of grid samples along three axis for a given box.
+    Computes the starting coordinates and number of samples for grid extraction.
 
-    Args:
-        box_min_list (List): Minimum coordinates of the box.
-        box_max_list (List): Maximum coordinates of the box.
-        axis_length_list (List): Lengths of the axes.
-        grid_size (int): Size of the grid.
+    Parameters:
+    - box_min_list: List of minimum coordinates for each axis.
+    - box_max_list: List of maximum coordinates for each axis.
+    - axis_length_list: List of lengths for each axis.
+    - grid_size: Size of the grid for extraction.
 
-    Returns:
-        List[int], List[int]: Starting coordinates and numbers of grid samples
-        when sampling stride = 0.
+    Functionality:
+    1. Initializes lists to store starting coordinates and number of samples.
+    2. Iterates through the provided lists to calculate the midpoint of each box.
+    3. Calculates the number of samples along each axis.
+    4. Adjusts the number of samples if the midpoint is not within the valid range.
+    5. Computes the starting coordinates for each axis.
+    6. Returns the starting coordinates and number of samples.
     """
     start_coords = []
     n_samples = []
@@ -225,6 +248,7 @@ def compute_grid_params(box_min_list, box_max_list, axis_length_list,
     return start_coords, n_samples
 
 
+
 def split_to_npy(data,
                  sample_dir,
                  start_coords,
@@ -234,22 +258,28 @@ def split_to_npy(data,
                  labels,
                  extract_stride=32):
     """
-    Extracts sub-volumes of size npy_size from the input data array, starting from the given start coordinates and generates npy files for each sub-volume.
+    Splits 3D data into smaller numpy arrays and saves them as .npy files.
 
     Parameters:
-        data (list of ndarray): Input data arrays [label_data1, label_data2, ..., map_data]
-        sample_dir (str): Directory to save the npy files
-        start_coords (tuple): Tuple of start coordinates (z,y,x)
-        n_samples (tuple): Tuple of number of samples to extract (z,y,x)
-        npy_size (int): Size of the sub-volume to extract
-        extract_stride (int): Stride length of the stepping sample
-        sample_num (int): Number to use as suffix in the npy file names
-        labels (str): Name of the subdirectory to save the npy files
+    - data: List of 3D numpy arrays to be split.
+    - sample_dir: Directory to save the .npy files.
+    - start_coords: Starting coordinates for splitting.
+    - n_samples: Number of samples to generate in each dimension.
+    - npy_size: Size of each .npy file.
+    - sample_num: Shared counter for the number of samples.
+    - labels: List of labels for the data.
+    - extract_stride: Stride for extracting samples (default is 32).
 
-    Returns:
-        None
+    Functionality:
+    1. Initializes a list to store the number of labels.
+    2. Adjusts the number of samples based on the npy_size and extract_stride.
+    3. Creates directories for each label if they do not exist.
+    4. Iterates through the data to extract and save samples as .npy files.
+    5. Updates the count of labels in each sample.
+    6. Saves separated files for map data.
+    7. Increments the sample counter.
+    8. Returns the list of the number of labels.
     """
-    #sample_num = sample_num.value
     num_labels = [0] * len(data)
     sample_start_z, sample_start_y, sample_start_x = start_coords
     for i in range(3):
@@ -276,7 +306,7 @@ def split_to_npy(data,
                                    'constant')
                     num_labels[idx] += count
 
-                # Save seperated files for map data
+                # Save separated files for map data
                 sample = data[len(data) - 1][idx_z:idx_z + npy_size,
                          idx_y:idx_y + npy_size,
                          idx_x:idx_x + npy_size]
@@ -289,23 +319,30 @@ def split_to_npy(data,
     return num_labels
 
 
+
 def label_npy(member_data,
             label_coords,
             label_id,
             dis_array=np.array([]),
             atom_grid_radius=1.5):
     """
-    Add labels to 3D grid points surrounding given part coordinates.
+    Labels a 3D numpy array with specified coordinates and label ID.
 
-    Args:
-        member_data (ndarray): A 3D numpy array representing the 3D grid.
-        label_coords (list of tuples): A list of tuples representing the part coordinates (z, y, x).
-        label_id (int): The label value to apply to the labelged points.
-        atom_grid_radius (int, optional): The radius of the grid to label around the part coordinates. Defaults to 2.
+    Parameters:
+    - member_data: 3D numpy array to be labeled.
+    - label_coords: List of coordinates to be labeled.
+    - label_id: ID to label the coordinates with.
+    - dis_array: Optional distance array for distance calculations (default is an empty array).
+    - atom_grid_radius: Radius for labeling grid (default is 1.5).
 
-    Returns:
-        member_data (ndarray): The modified model data with the labelged points.
-        dis_array (ndarray): The modified model data with the labelged points.
+    Functionality:
+    1. Initializes the distance array if not provided.
+    2. Calculates the index grid and creates a range for extensions.
+    3. Generates a list of surrounding coordinates within the atom grid radius.
+    4. Iterates through the label coordinates and calculates the floor coordinates.
+    5. Labels the member_data array with the label_id for coordinates within the atom grid radius.
+    6. Updates the distance array with the calculated distances.
+    7. Returns the labeled member_data array and the updated distance array.
     """
     if dis_array.size == 0:
         dis_array = np.full(member_data.shape, atom_grid_radius ** 2)
@@ -340,17 +377,22 @@ def label_npy(member_data,
     return member_data, dis_array
 
 
+
 def atom_coord_cif(structure, RESIDUE=None, ATOM=None):
     """
-    Returns the atomic coordinates from a PDB structure for specific residues and atoms.
+    Extracts coordinates of specified atoms from a protein structure.
 
-    Args:
-        structure (Structure): PDB structure.
-        RESIDUE (list, optional): List of residue names to select. Defaults to None (all residues).
-        ATOM (list, optional): List of atom names to select. Defaults to None (all atoms).
+    Parameters:
+    - structure: The protein structure.
+    - RESIDUE: Optional list of residue names to filter (default is None).
+    - ATOM: Optional list of atom names to filter (default is None).
 
-    Returns:
-        list: List of atomic coordinates as lists [z, y, x].
+    Functionality:
+    1. Initializes a list to store coordinates.
+    2. Iterates through the structure to extract coordinates for specified residues and atoms.
+    3. Filters residues and atoms based on RESIDUE and ATOM if provided.
+    4. Appends the coordinates of the atoms to the list.
+    5. Returns the list of coordinates.
     """
     coords = []
     for model in structure:
@@ -361,25 +403,25 @@ def atom_coord_cif(structure, RESIDUE=None, ATOM=None):
                 for atom in residue:
                     if ATOM is not None and atom.name not in ATOM:
                         continue
-                    # coords.append(
-                    #     (int(round(atom.pos.z)), int(round(atom.pos.y)),
-                    #      int(round(atom.pos.x)))
-                    # )
-                    # coords.append(atom.pos),
                     coords.append([atom.pos.z, atom.pos.y, atom.pos.x])
     return coords
 
+
 def element_coord_cif(structure, RESIDUE=None, ATOM=None):
     """
-    Returns the atomic coordinates from a PDB structure for specific residues and atoms.
+    Extracts coordinates of specified elements from a protein structure.
 
-    Args:
-        structure (Structure): PDB structure.
-        RESIDUE (list, optional): List of residue names to select. Defaults to None (all residues).
-        ATOM (list, optional): List of atom names to select. Defaults to None (all atoms).
+    Parameters:
+    - structure: The protein structure.
+    - RESIDUE: Optional list of residue names to filter (default is None).
+    - ATOM: Optional list of atom elements to filter (default is None).
 
-    Returns:
-        list: List of atomic coordinates as lists [z, y, x].
+    Functionality:
+    1. Initializes a list to store coordinates.
+    2. Iterates through the structure to extract coordinates for specified residues and elements.
+    3. Filters residues and elements based on RESIDUE and ATOM if provided.
+    4. Appends the coordinates of the elements to the list.
+    5. Returns the list of coordinates.
     """
     coords = []
     for model in structure:
@@ -390,20 +432,24 @@ def element_coord_cif(structure, RESIDUE=None, ATOM=None):
                 for atom in residue:
                     if ATOM is not None and atom.element.name not in ATOM:
                         continue
-                    # coords.append(
-                    #     (int(round(atom.pos.z)), int(round(atom.pos.y)),
-                    #      int(round(atom.pos.x)))
-                    # )
-                    # coords.append(atom.pos),
                     coords.append([atom.pos.z, atom.pos.y, atom.pos.x])
     return coords
 
 
 def protein_2nd_structure_lists(structure):
+    """
+    Extracts lists of helices and sheets from a protein structure.
+
+    Parameters:
+    - structure: The protein structure.
+
+    Functionality:
+    1. Initializes lists to store helices and sheets information.
+    2. Iterates through the helices in the structure and extracts the start and end residue sequence IDs and chain names. Appends this information to the helices list.
+    3. Iterates through the sheets in the structure and extracts the start and end residue sequence IDs and chain names for each strand. Appends this information to the sheets list.
+    4. Returns the lists of helices and sheets.
+    """
     helices, sheets, = [], []
-    # helices = [[hlx_chain1, start.res_id.seqid.num, end.res_id.seqid.num],
-    #            [hlx_chain2, start.res_id.seqid.num, end.res_id.seqid.num],
-    #            ... ]
 
     for helix_index in range(len(structure.helices)):
         start = structure.helices[helix_index].start.res_id.seqid.num
@@ -429,6 +475,26 @@ def atom_coord_cif_protein_secondary(structure,
                                      sheets,
                                      RESIDUE=None,
                                      ATOM=None):
+    """
+    Extracts coordinates of atoms in helices, sheets, and loops from a protein structure.
+
+    Parameters:
+    - structure: The protein structure.
+    - helices: List of helices information.
+    - sheets: List of sheets information.
+    - RESIDUE: Optional list of residue names to filter (default is None).
+    - ATOM: Optional list of atom names to filter (default is None).
+
+    Functionality:
+    1. Initializes lists to store coordinates for helices, sheets, and loops.
+    2. Extracts chain names for helices and sheets.
+    3. Calls atom_coord_cif to get coordinates of all residues if RESIDUE is None.
+    4. Iterates through the structure to extract coordinates for helices and sheets based on the provided information.
+    5. Filters residues and atoms based on RESIDUE and ATOM if provided.
+    6. Collects coordinates for helices and sheets.
+    7. Identifies coordinates for loops by excluding helices and sheets coordinates from the overall coordinates.
+    8. Returns a list containing coordinates for helices, sheets, and loops.
+    """
     coords, coords_helices, coords_sheets = [], [], []
     chain_helices = [row[0] for row in helices]
     chain_sheets = [row[0] for row in sheets]
@@ -479,6 +545,26 @@ def element_coord_cif_protein_secondary(structure,
                                      sheets,
                                      RESIDUE=None,
                                      ATOM=None):
+    """
+    Extracts coordinates of atoms in helices, sheets, and loops from a protein structure.
+
+    Parameters:
+    - structure: The protein structure.
+    - helices: List of helices information.
+    - sheets: List of sheets information.
+    - RESIDUE: Optional list of residue names to filter (default is None).
+    - ATOM: Optional list of atom names to filter (default is None).
+
+    Functionality:
+    1. Initializes lists to store coordinates for helices, sheets, and loops.
+    2. Extracts chain names for helices and sheets.
+    3. Calls element_coord_cif to get coordinates of all residues if RESIDUE is None.
+    4. Iterates through the structure to extract coordinates for helices and sheets based on the provided information.
+    5. Filters residues and atoms based on RESIDUE and ATOM if provided.
+    6. Collects coordinates for helices and sheets.
+    7. Identifies coordinates for loops by excluding helices and sheets coordinates from the overall coordinates.
+    8. Returns a list containing coordinates for helices, sheets, and loops.
+    """
     coords, coords_helices, coords_sheets = [], [], []
     chain_helices = [row[0] for row in helices]
     chain_sheets = [row[0] for row in sheets]
@@ -525,6 +611,20 @@ def element_coord_cif_protein_secondary(structure,
 
 
 def split_folders(temp_sample_path, sample_path, ratio_t_t_v=(.8, .1, .1)):
+    """
+    Splits the dataset into training, testing, and validation sets.
+
+    Parameters:
+    - temp_sample_path: Path for temporary samples.
+    - sample_path: Path for final samples.
+    - ratio_t_t_v: Tuple representing the ratio for splitting the dataset into training, testing, and validation sets (default is (0.8, 0.1, 0.1)).
+
+    Functionality:
+    1. Checks if the sample_path exists and deletes it if it does.
+    2. Creates the sample_path directory.
+    3. Uses the splitfolders library to split the dataset from temp_sample_path to sample_path based on the provided ratio.
+    4. Deletes the temporary sample path after splitting.
+    """
     if os.path.exists(sample_path):
         # Delete the directory
         shutil.rmtree(sample_path)
@@ -548,6 +648,30 @@ def label_maps(label_group,
                temp_sample_path = './temp_sample',
                sample_path = './Training',
                ratio_t_t_v = (.8, .1, .1)):
+    """
+    Generates and manages datasets for training models.
+
+    Parameters:
+    - label_group: List of label groups.
+    - map_paths: Paths to the map files.
+    - model_paths: Paths to the model files.
+    - emdb_ids: List of EMDB IDs.
+    - file_name: Name of the file for logging.
+    - group_names: Names of the groups.
+    - temp_sample_path: Path for temporary samples (default is './temp_sample').
+    - sample_path: Path for final samples (default is './Training').
+    - ratio_t_t_v: Tuple representing the ratio for splitting the dataset into training, testing, and validation sets (default is (0.8, 0.1, 0.1)).
+
+    Functionality:
+    1. Configures a logger to log the process of dataset generation.
+    2. Logs the label groups and their respective labels.
+    3. Initiates the process of generating the dataset and logs the start of the process.
+    4. Uses a ProcessPoolExecutor to parallelize the generation of label files from the provided map and model paths. Logs the progress and results.
+    5. Splits the generated data into training, testing, and validation sets based on the provided ratio.
+    6. Logs statistical results, including the number of labels in each group and the total dataset size.
+    7. Calculates the weight of each label group and saves it to a file.
+    8. Logs the completion of the dataset generation process and moves the log file to the final sample path.
+    """
     assert(len(label_group)==len(group_names))
     # configure logger
     logger = logging.getLogger(__name__)
@@ -646,16 +770,38 @@ if __name__ == "__main__":
     #label_group = [[{'secondary_type': 'Helix', 'residue_type': '', 'atom_type': '', 'element_type': 'P', 'metal_type': '', 'label': 1},\
     #               {'secondary_type': 'Sheet', 'residue_type': '', 'atom_type': '', 'element_type': 'P', 'metal_type': '', 'label': 2},\
     #               {'secondary_type': 'Loop', 'residue_type': '', 'atom_type': '', 'element_type': 'P', 'metal_type': '', 'label': 3}]]
-    label_group = [[{'secondary_type': 'Helix', 'residue_type': '', 'atom_type': '', 'element_type': '', 'metal_type': '', 'label': 1},\
-                   {'secondary_type': 'Sheet', 'residue_type': 'ALA', 'atom_type': '', 'element_type': '', 'metal_type': '', 'label': 2},\
-                   {'secondary_type': 'Loop', 'residue_type': '', 'atom_type': 'CA', 'element_type': '', 'metal_type': '', 'label': 3},\
-                   {'secondary_type': '', 'residue_type': 'A,C,G,U,DA,DC,DG,DT', 'atom_type': '', 'element_type': '', 'metal_type': '', 'label': 4}]]
-    #label_group = [[{'secondary_type': 'Helix', 'residue_type': '', 'atom_type': '', 'element_type': '', 'metal_type': '', 'label': 1}]]
+    '''label_group = [[{'secondary_type': 'Helix', 'residue_type': '', 'atom_type': '', 'element_type': '', 'metal_type': '', 'label': 1},\
+                   {'secondary_type': 'Sheet', 'residue_type': '', 'atom_type': '', 'element_type': '', 'metal_type': '', 'label': 2},\
+                   {'secondary_type': 'Loop', 'residue_type': '', 'atom_type': '', 'element_type': '', 'metal_type': '', 'label': 3}]]'''
+    '''label_group = [[{'secondary_type': '', 'residue_type': residues_protein[0], 'atom_type': '', 'element_type': '', 'metal_type': '', 'label': 1},\
+                    {'secondary_type': '', 'residue_type': residues_protein[1], 'atom_type': '', 'element_type': '', 'metal_type': '', 'label': 2},\
+                    {'secondary_type': '', 'residue_type': residues_protein[2], 'atom_type': '', 'element_type': '', 'metal_type': '', 'label': 3},\
+                    {'secondary_type': '', 'residue_type': residues_protein[3], 'atom_type': '', 'element_type': '', 'metal_type': '', 'label': 4},\
+                    {'secondary_type': '', 'residue_type': residues_protein[4], 'atom_type': '', 'element_type': '', 'metal_type': '', 'label': 5},\
+                    {'secondary_type': '', 'residue_type': residues_protein[5], 'atom_type': '', 'element_type': '', 'metal_type': '', 'label': 6},\
+                    {'secondary_type': '', 'residue_type': residues_protein[6], 'atom_type': '', 'element_type': '', 'metal_type': '', 'label': 7},\
+                    {'secondary_type': '', 'residue_type': residues_protein[7], 'atom_type': '', 'element_type': '', 'metal_type': '', 'label': 8},\
+                    {'secondary_type': '', 'residue_type': residues_protein[8], 'atom_type': '', 'element_type': '', 'metal_type': '', 'label': 9},\
+                    {'secondary_type': '', 'residue_type': residues_protein[9], 'atom_type': '', 'element_type': '', 'metal_type': '', 'label': 10},\
+                    {'secondary_type': '', 'residue_type': residues_protein[10], 'atom_type': '', 'element_type': '', 'metal_type': '', 'label': 11},\
+                    {'secondary_type': '', 'residue_type': residues_protein[11], 'atom_type': '', 'element_type': '', 'metal_type': '', 'label': 12},\
+                    {'secondary_type': '', 'residue_type': residues_protein[12], 'atom_type': '', 'element_type': '', 'metal_type': '', 'label': 13},\
+                    {'secondary_type': '', 'residue_type': residues_protein[13], 'atom_type': '', 'element_type': '', 'metal_type': '', 'label': 14},\
+                    {'secondary_type': '', 'residue_type': residues_protein[14], 'atom_type': '', 'element_type': '', 'metal_type': '', 'label': 15},\
+                    {'secondary_type': '', 'residue_type': residues_protein[15], 'atom_type': '', 'element_type': '', 'metal_type': '', 'label': 16},\
+                    {'secondary_type': '', 'residue_type': residues_protein[16], 'atom_type': '', 'element_type': '', 'metal_type': '', 'label': 17},\
+                    {'secondary_type': '', 'residue_type': residues_protein[17], 'atom_type': '', 'element_type': '', 'metal_type': '', 'label': 18},\
+                    {'secondary_type': '', 'residue_type': residues_protein[18], 'atom_type': '', 'element_type': '', 'metal_type': '', 'label': 19},\
+                    {'secondary_type': '', 'residue_type': residues_protein[19], 'atom_type': '', 'element_type': '', 'metal_type': '', 'label': 20},\
+                    ]]'''
+    label_group = [[{'secondary_type': '', 'residue_type': ','.join(residues_protein), 'atom_type': 'CA', 'element_type': '', 'metal_type': '', 'label': 1},\
+                   {'secondary_type': '', 'residue_type': ','.join(residues_protein), 'atom_type': '', 'element_type': 'N', 'metal_type': '', 'label': 2},\
+                   {'secondary_type': '', 'residue_type': ','.join(residues_protein), 'atom_type': '', 'element_type': 'O', 'metal_type': '', 'label': 3}]]
     sample_dir = 'testing_data_to_npy'
     group_names = ['foo']
 
     sample_num, num_of_label_in_each_part = data_to_npy(map_path, model_path,
                                                       label_group, sample_dir,
-                                                      group_names, generate_test=True)
+                                                      group_names, generate_test=True, classes=3)
     print(sample_num)
     print(num_of_label_in_each_part)
