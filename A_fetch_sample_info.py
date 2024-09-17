@@ -138,6 +138,8 @@ def search_emdb(
 
     # Create a new DataFrame with the existing required columns
     new_df = df[existing_columns]
+    # Splitting (rare) lists of pdb ids and keeping only the first one
+    new_df.loc[:, 'fitted_pdbs'] = new_df['fitted_pdbs'].str.split(',', n=1, expand=False).str[0]
     final_path = os.path.join(save_path, f'{file_name}.csv')
     new_df.to_csv(final_path, index=False)
     print('\n--------------------------------------------------------------------------------\n')
@@ -256,6 +258,6 @@ def search_qscore(file_path):
 
 
 if __name__ == '__main__':
-    search_emdb(query="ribosome AND resolution:[3 TO 4}", save_path='/home/qiboxu/Database/',
-                file_name="ribosome_res_3-4", fetch_qscore=True,
-                fetch_classification=True)
+    search_emdb(query="ribosome AND resolution:[3 TO 4}", save_path='./CSV',
+                file_name="ribosome_res_3-4", fetch_qscore=False,
+                fetch_classification=False)
