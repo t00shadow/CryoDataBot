@@ -2,16 +2,15 @@ import os
 import shutil
 import mrcfile
 import numpy as np
-import pandas as pd
 import cupy as cp
+from cupyx.scipy.ndimage import zoom, binary_dilation
+from pandas import read_csv
 import urllib.request
 import gzip
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from tqdm import tqdm
 from tqdm.contrib.logging import logging_redirect_tqdm
 import logging
-import os
-from cupyx.scipy.ndimage import zoom, binary_dilation
 import gemmi
 
 
@@ -45,7 +44,7 @@ def read_csv_info(csv_path, raw_dir):
         csv_info:
         path_info: raw_map and model downloading paths
     """
-    df = pd.read_csv(csv_path)
+    df = read_csv(csv_path)
     emdbs, pdbs = df["emdb_id"], df["fitted_pdbs"]
     resolutions = df["resolution"].astype(str)
     emdb_ids = [emdb.split("-")[1] for emdb in emdbs]
@@ -64,8 +63,8 @@ def read_csv_info(csv_path, raw_dir):
         f"{raw_dir}/{folder}/{model}"
         for folder, model in zip(folders, models)
     ]
-    csv_info = [emdbs, pdbs, resolutions, emdb_ids]
-    path_info = [raw_map_paths, model_paths]
+    csv_info = (emdbs, pdbs, resolutions, emdb_ids)
+    path_info = (raw_map_paths, model_paths)
     return csv_info, path_info
 
 
