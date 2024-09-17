@@ -24,7 +24,7 @@ class TagBar(QtWidgets.QWidget):
         self.refresh()
         self.setup_ui()
 
-        custom_order = ['banana', 'apple', 'cherry']
+        custom_order = ['banana', 'apple', 'cherry', 'iguana']
         self.order_index = {item: index for index, item in enumerate(custom_order)}
 
     def setup_ui(self):

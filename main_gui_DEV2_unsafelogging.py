@@ -27,11 +27,13 @@ import GUI_custom_widgets.z_Tag_main_alt_allcode_v2 as TTEwidget2
 from GUI_custom_widgets.LabelComboBox import LabelComboBox
 import GUI_custom_widgets.commaLineEdit as LabelLineEdit
 from GUI_custom_widgets.animated_toggle import AnimatedToggle
+from my_logger import Handler
 
 
 # import main_new_myversion
 
 from z_fetch_sample_info import search_emdb
+from z_refine_sample_info_DEBUGGING import refine_csv
 
 
 
@@ -62,11 +64,14 @@ class MainWindow(qtw.QMainWindow):    # Make sure the root widget/class is the r
         # Your code will go here
         self.ui = Ui_MainWindow()
         self.ui.setupUi(self)
+        self.setWindowTitle('CryoDataBot')
         # self.resize(1000, 700)        # HOTFIX, functionally same as changing the size in the pyuic5 generated .py file but you aren't meant to edit that (can also just change size in designer, butttt it looks fine in designer). prob should involve screensize or smth, vanilla size is different than qt designer preview. prob cuz of screen resolution and/or dpi settings or smth. high dpi scaling can affect how pixels are rendered
 
         # ======== VARIABLES ========
         self.default_folder = ""      # set this using os.join, etc. OR force users to pick smth idk
         self.default_metadata_filepath = r"C:\Users\noelu\CryoDataBot\JUNK_TEST_FOLDER\...\metadata"
+        self.labels = [[]]     # list of list of dicts, initialize as list of empty list
+        self.label_dict_template = {'secondary_type': '', 'residue_type': '', 'atom_type': '', 'label': ''}
 
 
         # ======== SIGNALS AND SLOTS ========
@@ -147,8 +152,14 @@ class MainWindow(qtw.QMainWindow):    # Make sure the root widget/class is the r
         # page 2
         self.ui.lineEdit_p2.textEdited['QString'].connect(self.ui.statusbar.showMessage)
         self.querywidget2.tagTextEdited.connect(self.ui.statusbar.showMessage)
-        self.ui.lineEdit_2.textEdited.connect(self.ui.statusbar.showMessage)
-        self.ui.lineEdit_12.textEdited.connect(self.ui.statusbar.showMessage)
+        # self.userInputQuery = self.ui.lineEdit_2       # alias for easier swtching btwn dif search bars
+        self.userInputQuery = self.ui.lineEdit_12
+        self.ui.lineEdit_12.setClearButtonEnabled(True)
+        self.userInputQuery.textEdited.connect(self.ui.statusbar.showMessage)
+        # self.ui.lineEdit_12.textEdited.connect(self.ui.statusbar.showMessage)
+        # self.previewQueryBtn = self.ui.validateQuery_btn
+        self.previewQueryBtn = self.ui.pushButton_16
+        self.previewQueryBtn.clicked.connect(lambda: self.ui.statusbar.showMessage("query (preview): " + self.parseQuery(page="step1")))
 
 
         '''
@@ -182,7 +193,6 @@ class MainWindow(qtw.QMainWindow):    # Make sure the root widget/class is the r
         self.ui.statusbar.showMessage("example status bar message")
 
         self.ui.lineEdit_p1_2.findChild(qtw.QToolButton).setIcon(qtg.QIcon(r"GUI_custom_widgets/svgs/clear_small-svgrepo-com.svg"))
-        self.ui.addgroup_btn.setText("add dataset")
         # ===================================================== 
 
 
@@ -226,6 +236,8 @@ class MainWindow(qtw.QMainWindow):    # Make sure the root widget/class is the r
         self.ui.tabWidget.setCurrentIndex(3)     # choose starting page
         # self.ui.statusbar.
 
+        self.setup_logger()
+
         # Your code ends here
         self.show()
 
@@ -256,7 +268,7 @@ class MainWindow(qtw.QMainWindow):    # Make sure the root widget/class is the r
         None
         """
 
-        query = self.ui.lineEdit_2.text()    # change this to the custom widget like in gen_dataset_quick()
+        query = self.userInputQuery.text()    # change this to the custom widget like in gen_dataset_quick()
         #processedstring = stringutil.process_string(query)   # TODO, concatenate array of keywords into a string (not sure how to implement and and or logic with keywords)
         processed_query = query     # placeholder
         # print(processed_query)
@@ -297,7 +309,7 @@ class MainWindow(qtw.QMainWindow):    # Make sure the root widget/class is the r
             return self.ui.lineEdit.text()
         elif page == "step1":
             # return " AND ".join(self.querywidget2.keywords)
-            return self.ui.lineEdit_2.text()
+            return self.userInputQuery.text()
         else:
             return ""     # spit out an error, this is only for the developer, not a runtime thing
 
@@ -333,7 +345,7 @@ class MainWindow(qtw.QMainWindow):    # Make sure the root widget/class is the r
 
     def add_group_w_del_btn(self):
         """Add a new group to the tree widget (top-level item, editable)."""
-        group_name = f"Dataset {self.ui.treeWidget_p4.topLevelItemCount() + 1}"
+        group_name = f"Group {self.ui.treeWidget_p4.topLevelItemCount() + 1}"
         group_item = qtw.QTreeWidgetItem([group_name, "", ""])
         group_item.setFlags(group_item.flags() | qtc.Qt.ItemIsEditable)  # Make the group item editable
         self.ui.treeWidget_p4.addTopLevelItem(group_item)
@@ -433,6 +445,11 @@ class MainWindow(qtw.QMainWindow):    # Make sure the root widget/class is the r
             # group_item.addChild(label_item)
             group_item.setExpanded(True)  # Automatically expand the group when a label is added
 
+            label = self.label_dict_template.copy()   # delete this later and make a separate function. More optimal way is to retrieve only when ready to generate datasets. But maybe want some method to save sessions/history later idk
+            label['secondary_type'] = "obunga"
+            self.labels.append(label)    # lol its not even right
+            print(self.labels)
+
     def delete_label(self):
         selected_item = self.ui.treeWidget_p4.currentItem()
         if selected_item:          # functionally equivalent to if selection_item is not None:
@@ -515,11 +532,20 @@ class MainWindow(qtw.QMainWindow):    # Make sure the root widget/class is the r
         self.ui.spinBox_3.blockSignals(False)
 
 
+    def setup_logger(self):
+        handler = Handler(self)
+        log_text_box = qtw.QPlainTextEdit(self)
+        self.ui.logsWidget.layout().addWidget(log_text_box)
+        self.ui.logsViewBox.deleteLater()
+        self.ui.logsViewBox = None
+        logging.getLogger().addHandler(handler)
+        logging.getLogger().setLevel(logging.INFO)
+        handler.new_record.connect(log_text_box.appendPlainText) # <---- connect QPlainTextEdit.appendPlainText slot
+
 
 
 if __name__ == '__main__':
-    # os.environ["QT_AUTO_SCREEN_SCALE_FACTOR"] = "1"                          # choose one
-    os.environ["QT_SCALE_FACTOR"] = "1.5"                          # choose one
+    os.environ["QT_AUTO_SCREEN_SCALE_FACTOR"] = "1"                          # choose one
     # qtw.QApplication.setAttribute(qtc.Qt.AA_EnableHighDpiScaling)            # choose one
     app = qtw.QApplication(sys.argv)
     app.setAttribute(qtc.Qt.AA_UseHighDpiPixmaps)
