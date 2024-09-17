@@ -13,14 +13,10 @@ matadata_path = os.path.join(users_main_path, 'CryoDataBot_Data/Metadata')
 raw_path = os.path.join(users_main_path, 'CryoDataBot_Data/Raw')
 
 
-users_input_task_name = 'ribosome_res_3-4'
-CSV_FILE_PATH = os.path.join(matadata_path, users_input_task_name, f'{users_input_task_name}.csv')  # user input for refined csv file
-
-
-def download_and_preprocessing(metadata_path=CSV_FILE_PATH):
+def download_and_preprocessing(csv_path):
     # Step 2. Download map and model files and do preprocessing
     # 2.1 Read map list and generate raw_map and model downloading paths
-    csv_info,  path_info = read_csv_info(metadata_path)
+    csv_info,  path_info = read_csv_info(csv_path)
     emdbs, pdbs, resolutions, emdb_ids = csv_info
     raw_map_paths, model_paths = path_info
 
@@ -83,15 +79,16 @@ def fetch_map_model(csv_info, raw_map_paths, model_paths):
 
         raw_map_gz_path = f"{raw_map_path}.gz"
 
+        if not os.path.exists(model_path):
+            urllib.request.urlretrieve(pdb_fetch_link, model_path)
+
         if not os.path.exists(raw_map_path):
+            print(f"Downloading {emdb}...")
             urllib.request.urlretrieve(emdb_fetch_link, raw_map_gz_path)
             with gzip.open(raw_map_gz_path, 'rb') as f_in:
                 with open(raw_map_path, 'wb') as f_out:
                     shutil.copyfileobj(f_in, f_out)
             os.remove(raw_map_gz_path)
-
-        if not os.path.exists(model_path):
-            urllib.request.urlretrieve(pdb_fetch_link, model_path)
             print(f"=> {emdb} and pdb-{pdb} files are downloaded.")
 
     # if os.path.exists(f"{directory1}/emd_{emdb_id}.map"):
@@ -169,5 +166,6 @@ def map_output(input_map, map_data, output_map, is_model=False):
 
 
 if __name__ == '__main__':
-
-    download_and_preprocessing(metadata_path=CSV_FILE_PATH)
+    users_input_task_name = 'ribosome_res_3-4'
+    CSV_FILE_PATH = os.path.join(matadata_path, users_input_task_name, f'{users_input_task_name}.csv')  # user input for refined csv file
+    download_and_preprocessing(csv_path=CSV_FILE_PATH)
