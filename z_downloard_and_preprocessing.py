@@ -74,9 +74,12 @@ def fetch_map_model(csv_info, raw_map_paths, model_paths):
         directory1 = os.path.dirname(raw_map_path)
         os.makedirs(directory1, exist_ok=True)
 
-        emdb_fetch_link = f"https://ftp.ebi.ac.uk/pub/databases/emdb/structures/{emdb}/map/emd_{emdb_id}.map.gz"
+        # will be commented after changing the refine sample info part to handle this issue  - Qibo 9/16
         if ',' in pdb:
             pdb = pdb.split(',')[0]
+        # will be commented after changing the refine sample info part to handle this issue  - Qibo 9/16
+
+        emdb_fetch_link = f"https://ftp.ebi.ac.uk/pub/databases/emdb/structures/{emdb}/map/emd_{emdb_id}.map.gz"
         pdb_fetch_link = f"http://files.rcsb.org/download/{pdb}.cif"
 
         raw_map_gz_path = f"{raw_map_path}.gz"
