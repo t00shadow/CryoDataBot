@@ -396,7 +396,8 @@ def q_score_filter(df, threshold):
 
 if __name__ == '__main__':
     #INPUT_CSV = "/home/qiboxu/MyProject/CryoDataBot/EVALUATION/ribosome_res_4-9/ribosome_res_4-9.csv"  # user input for inout csv file
-    INPUT_CSV = r"C:\Users\noelu\CryoDataBot\JUNK_TEST_FOLDER\ribosome_res_4-9\ribosome_res_4-9.csv"
+    # INPUT_CSV = r"C:\Users\noelu\CryoDataBot\JUNK_TEST_FOLDER\ribosome_res_4-9\ribosome_res_4-9.csv"
+    INPUT_CSV = r"C:\Users\noelu\CryoDataBot\TEST_FILES_noncode\ribosome_res_3-4.csv"
     THRE_UNI_SIMILARITY = 10  # user input for check UniportID similarity
     THRE_Q_SCORE = 0  # user input for check Q-score values
 

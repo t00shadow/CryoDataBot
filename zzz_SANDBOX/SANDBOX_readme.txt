@@ -67,3 +67,28 @@ SANDBOX19_complement.py is https://robonobodojo.wordpress.com/2018/09/11/creatin
     BETTER approach will be to just mess with stylesheets similar to how i made the custom searchbars with button embedded.
     USE this one to test in main gui
 SANDBOX19_complement_demo.py is just a demo with a simple mainwindow. Wrapped the custom tagbar class with an empty widget. (Using widgets like divs lol)
+**IMPORTANT**
+    zTag_main_alt_allcode_v2 and SANDBOX19_complement_demo.py go hand in hand. two dif approaches to same problem (p much the same). currently using zTag_main_alt_allcode_v2
+    but work on SANDBOX19_complement_demo.py to catch it up and see if can implement same features (edit should be p easy, just use same approach. only dif is how widgets are added. need to copy the eventfilter fxn too)
+
+
+
+SANDBOX20_memorymanagement.py is a demo from this stack post
+SANDBOX20_printwidgets.py was originally just a print widgets fxn (used dif method from that stack post), BUT i pasted all the important code from the SANDBOX20_memorymanagement over,
+    so now they basically behave the same
+
+    > QWidget's close behavior (like widget.close()): For top-level widgets like windows or dialogs, close() will hide the widget. For child widgets, calling close() will just hide them and not affect their parent.
+    > Memory management: If Qt.WA_DeleteOnClose is set to True, the widget will be deleted when closed. Otherwise, it will remain in memory until explicitly deleted.
+
+    ran both with task manager open, and you can actally see the memory usage increase in real time. when widget count went from 436 - 501, memory usage went from 18 to 19 mb
+    1mb / 65 is about 15kb per widget (not terrible bc in total only 20ish mb for 500 widgets butttt should try to delete stuff properly if needed)
+
+
+SANDBOX21_py is super trivial (only 2 lines matter). just showing tool tip on button click
+
+SANDBOX22_py just shows all of Qt's builtin icons (https://www.pythonguis.com/faq/built-in-qicons-pyqt/)
+
+SANDBOX23_customtreerowPoC (proof of concept) is gpt generated. not using that code, just a proof of concept to see if this approach is viable or a waste of time.
+SANDBOX23_sameidea is the same idea lol. source: https://stackoverflow.com/questions/72183924/add-custom-widget-to-a-qtreewidget-column-in-pyqt5
+
+SANDBOX24_py is this stack example, allows real time completion checking in a comma separated single user input (https://stackoverflow.com/questions/3779720/qt-qcompleter-multiple-matches)

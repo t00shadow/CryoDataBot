@@ -139,34 +139,33 @@ class AnimatedToggle(QCheckBox):
 
 
 '''
-Save the above code in a file named animated_toggle.py and in the same folder save the following simple skeleton application (e.g. as app.py) which imports the AnimatedToggle class and creates a little demo.
 link: https://www.pythonguis.com/tutorials/qpropertyanimation/#fn:1
 '''
 
+if __name__ == '__main__':
+    from PyQt5.QtWidgets import QApplication, QWidget, QVBoxLayout, QLabel
+    # from animated_toggle import AnimatedToggle
 
-from PyQt5.QtWidgets import QApplication, QWidget, QVBoxLayout, QLabel
-# from animated_toggle import AnimatedToggle
+    app = QApplication([])
 
-app = QApplication([])
+    window = QWidget()
 
-window = QWidget()
+    mainToggle = AnimatedToggle()
+    secondaryToggle = AnimatedToggle(
+            checked_color="#FFB000",
+            pulse_checked_color="#44FFB000"
+    )
+    mainToggle.setFixedSize(mainToggle.sizeHint())
+    secondaryToggle.setFixedSize(mainToggle.sizeHint())
 
-mainToggle = AnimatedToggle()
-secondaryToggle = AnimatedToggle(
-        checked_color="#FFB000",
-        pulse_checked_color="#44FFB000"
-)
-mainToggle.setFixedSize(mainToggle.sizeHint())
-secondaryToggle.setFixedSize(mainToggle.sizeHint())
+    window.setLayout(QVBoxLayout())
+    window.layout().addWidget(QLabel("Main Toggle"))
+    window.layout().addWidget(mainToggle)
 
-window.setLayout(QVBoxLayout())
-window.layout().addWidget(QLabel("Main Toggle"))
-window.layout().addWidget(mainToggle)
+    window.layout().addWidget(QLabel("Secondary Toggle"))
+    window.layout().addWidget(secondaryToggle)
 
-window.layout().addWidget(QLabel("Secondary Toggle"))
-window.layout().addWidget(secondaryToggle)
+    mainToggle.stateChanged.connect(secondaryToggle.setChecked)    # lol its THAT easy
 
-mainToggle.stateChanged.connect(secondaryToggle.setChecked)    # lol its THAT easy
-
-window.show()
-app.exec_()
+    window.show()
+    app.exec_()
