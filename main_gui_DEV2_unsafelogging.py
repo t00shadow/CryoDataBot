@@ -518,8 +518,8 @@ class MainWindow(qtw.QMainWindow):    # Make sure the root widget/class is the r
 
 
 if __name__ == '__main__':
-    os.environ["QT_AUTO_SCREEN_SCALE_FACTOR"] = "1"                          # choose one
-    # os.environ["QT_SCALE_FACTOR"] = "1.5"                       # should avoid manually scaling (unless the base size is just rly small)
+    # os.environ["QT_AUTO_SCREEN_SCALE_FACTOR"] = "1"                          # choose one
+    os.environ["QT_SCALE_FACTOR"] = "1.5"                          # choose one
     # qtw.QApplication.setAttribute(qtc.Qt.AA_EnableHighDpiScaling)            # choose one
     app = qtw.QApplication(sys.argv)
     app.setAttribute(qtc.Qt.AA_UseHighDpiPixmaps)
