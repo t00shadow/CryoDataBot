@@ -14,7 +14,6 @@ import logging
 import gemmi
 
 
-
 # main function
 def download_and_preprocessing(metadata_path, raw_dir, overwrite=False):
     """
@@ -39,21 +38,23 @@ def download_and_preprocessing(metadata_path, raw_dir, overwrite=False):
     """
     # set the log file
     logger = logging.getLogger(__name__)
-    logging.basicConfig(filename=os.path.join(os.path.dirname(metadata_path)+'download_and_preprocessing.log'), encoding='utf-8', level=logging.INFO,
+    log_file_path = os.path.join(os.path.dirname(metadata_path), 'download_and_preprocessing.log')
+    print(log_file_path)
+    logging.basicConfig(filename=log_file_path, encoding='utf-8', level=logging.INFO,
                     format='%(asctime)s %(levelname)s: %(message)s', datefmt='%m/%d/%Y %I:%M:%S %p')
-    
+
     # Read map list and generate raw_map and model downloading paths
     csv_info, path_info = read_csv_info(metadata_path, raw_dir)
 
     # Download map and model files
     logger.info('-'*5+f'Downloading map/pdb files from {metadata_path}'+'-'*5)
     print('-'*5+f'Downloading map/pdb files from {metadata_path}'+'-'*5)
-    fetch_map_model(csv_info, path_info, overwrite)
+    fetch_map_model(csv_info, path_info, logger, overwrite)
     print('-'*5+f'Downloading completed'+'-'*5)
     logger.info('-'*5+f'Downloading completed'+'-'*5)
 
     # # Resample and normalize map files
-    # preprocess_maps(path_info)
+    # preprocess_maps(path_info, logger)
 
 
 # Step1: create map and model paths for downloading and preprocessing from csv info
@@ -104,7 +105,7 @@ def read_csv_info(csv_path, raw_dir):
 
 
 # Step2: download maps and models using multithreasing
-def fetch_map_model(csv_info, path_info, overwrite=False):
+def fetch_map_model(csv_info, path_info, logger, overwrite=False):
     """
     Downloads map and model files concurrently using a thread pool.
 
@@ -124,7 +125,7 @@ def fetch_map_model(csv_info, path_info, overwrite=False):
     emdbs, pdbs, _, emdb_ids = csv_info
     raw_map_paths, model_paths = path_info
     with ThreadPoolExecutor() as executor:
-        futures = [executor.submit(download_one_map, emdb, pdb, emdb_id, raw_map_path, model_path, overwrite)\
+        futures = [executor.submit(download_one_map, emdb, pdb, emdb_id, raw_map_path, model_path, logger, overwrite)\
                    for emdb, pdb, emdb_id, raw_map_path, model_path in zip(emdbs, pdbs, emdb_ids, raw_map_paths, model_paths)]
         with logging_redirect_tqdm():
             for _ in tqdm(as_completed(futures), total=len(emdbs), desc="Downloading map/pdb files"):
@@ -132,7 +133,7 @@ def fetch_map_model(csv_info, path_info, overwrite=False):
 
 
 # Step2.1: download the map and model of one entry
-def download_one_map(emdb, pdb, emdb_id, raw_map_path, model_path, overwrite=False):
+def download_one_map(emdb, pdb, emdb_id, raw_map_path, model_path, logger, overwrite=False):
     """
     Downloads and extracts a map file from the Electron Microscopy Data Bank (EMDB) 
     and a model file from the Protein Data Bank (PDB).
@@ -204,7 +205,7 @@ def download_one_map(emdb, pdb, emdb_id, raw_map_path, model_path, overwrite=Fal
 
 
 # Step3: preprocess maps using multithreasing
-def preprocess_maps(path_info: list, give_map: bool=False, protein_tag_dist: int=1, map_threashold: float=0.01):
+def preprocess_maps(path_info: list, logger, give_map: bool=False, protein_tag_dist: int=1, map_threashold: float=0.01):
     """
     Preprocesses multiple map files by normalizing them and calculating their fitness with models.
 
@@ -231,14 +232,14 @@ def preprocess_maps(path_info: list, give_map: bool=False, protein_tag_dist: int
     results = []
     with logging_redirect_tqdm():
         for map_path, cif_path in tqdm(zip(map_paths, cif_paths), total=len(map_paths), desc='Preprocessing Maps'):
-            result = preprocess_one_map(map_path, cif_path, give_map, protein_tag_dist, map_threashold)
+            result = preprocess_one_map(map_path, cif_path, logger, give_map, protein_tag_dist, map_threashold)
             results.append(result)
     logging.info('-'*5+'Preprocessing Completed'+'-'*5)
     print('-'*5+'Preprocessing Completed'+'-'*5)
 
 
 # Step3.1: preprocess the map of one entry
-def preprocess_one_map(map_path: str, cif_path: str, give_map: bool=False, protein_tag_dist: int=1, map_threashold: float=0.01):
+def preprocess_one_map(map_path: str, cif_path: str, logger, give_map: bool=False, protein_tag_dist: int=1, map_threashold: float=0.01):
     """
     Preprocesses a map file by normalizing it and calculating its fitness with a model.
 
@@ -443,6 +444,6 @@ if __name__ == '__main__':
 
     # matadata_path = 'Metadata/ribosome_res_1-4/ribosome_res_1-4.csv'
     # raw_dir = 'Raw'
-    matadata_path = 'home/Database/CryoDataBot_Data/Metadata/ribosome_res_3-4/ribosome_res_3-4.csv'
-    raw_dir = 'home/Database/CryoDataBot_Data/Raw-test'
+    matadata_path = '/home/qiboxu/Database/CryoDataBot_Data/Metadata/ribosome_res_3-4/ribosome_res_3-4-test.csv'
+    raw_dir = '/home/qiboxu/Database/CryoDataBot_Data/Raw-test'
     download_and_preprocessing(matadata_path, raw_dir, overwrite=True)
