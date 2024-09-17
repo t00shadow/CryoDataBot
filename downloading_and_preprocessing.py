@@ -14,12 +14,6 @@ import logging
 import gemmi
 
 
-# configure logger
-raw_data_dir = 'Raw'
-logger = logging.getLogger(__name__)
-logging.basicConfig(filename=raw_data_dir+'/download_and_preprocessing.log', encoding='utf-8', level=logging.INFO,
-                    format='%(asctime)s %(levelname)s: %(message)s', datefmt='%m/%d/%Y %I:%M:%S %p')
-
 
 # main function
 def download_and_preprocessing(metadata_path, raw_dir, overwrite=False):
@@ -43,6 +37,11 @@ def download_and_preprocessing(metadata_path, raw_dir, overwrite=False):
     3. Resample and normalize map files.
        - Uses preprocess_maps(path_info) to preprocess the downloaded map files.
     """
+    # set the log file
+    logger = logging.getLogger(__name__)
+    logging.basicConfig(filename=os.path.join(os.path.dirname(metadata_path)+'download_and_preprocessing.log'), encoding='utf-8', level=logging.INFO,
+                    format='%(asctime)s %(levelname)s: %(message)s', datefmt='%m/%d/%Y %I:%M:%S %p')
+    
     # Read map list and generate raw_map and model downloading paths
     csv_info, path_info = read_csv_info(metadata_path, raw_dir)
 
@@ -53,8 +52,8 @@ def download_and_preprocessing(metadata_path, raw_dir, overwrite=False):
     print('-'*5+f'Downloading completed'+'-'*5)
     logger.info('-'*5+f'Downloading completed'+'-'*5)
 
-    # Resample and normalize map files
-    preprocess_maps(path_info)
+    # # Resample and normalize map files
+    # preprocess_maps(path_info)
 
 
 # Step1: create map and model paths for downloading and preprocessing from csv info
@@ -438,7 +437,12 @@ def atom_coord_cif(structure):
     return coords
 
 
+
+
 if __name__ == '__main__':
-    matadata_path = 'Metadata/ribosome_res_1-4/ribosome_res_1-4.csv'
-    raw_dir = 'Raw'
+
+    # matadata_path = 'Metadata/ribosome_res_1-4/ribosome_res_1-4.csv'
+    # raw_dir = 'Raw'
+    matadata_path = 'home/Database/CryoDataBot_Data/Metadata/ribosome_res_3-4/ribosome_res_3-4.csv'
+    raw_dir = 'home/Database/CryoDataBot_Data/Raw-test'
     download_and_preprocessing(matadata_path, raw_dir, overwrite=True)
