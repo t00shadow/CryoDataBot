@@ -421,14 +421,15 @@ def preprocess_maps(path_info: list, give_map: bool=False, protein_tag_dist: int
     """
     map_paths, cif_paths = path_info
 
-    logging.info('-'*5+'Preprocessing Maps'+'-'*5)      
+    logging.info('-'*5+'Preprocessing Maps'+'-'*5)
+    print('-'*5+'Preprocessing Maps'+'-'*5)      
     results = []
     with logging_redirect_tqdm():
         for map_path, cif_path in tqdm(zip(map_paths, cif_paths), total=len(map_paths), desc='Preprocessing Maps'):
             result = preprocess_one_map(map_path, cif_path, give_map, protein_tag_dist, map_threashold)
             results.append(result)
     logging.info('-'*5+'Preprocessing Completed'+'-'*5)
-
+    print('-'*5+'Preprocessing Completed'+'-'*5)
 
 if __name__ == '__main__':
     matadata_path = 'Metadata/ribosome_res_1-4/ribosome_res_1-4.csv'
