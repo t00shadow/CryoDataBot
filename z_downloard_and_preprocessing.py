@@ -75,21 +75,22 @@ def fetch_map_model(csv_info, raw_map_paths, model_paths):
         os.makedirs(directory1, exist_ok=True)
 
         emdb_fetch_link = f"https://ftp.ebi.ac.uk/pub/databases/emdb/structures/{emdb}/map/emd_{emdb_id}.map.gz"
+        if ',' in pdb:
+            pdb = pdb.split(',')[0]
         pdb_fetch_link = f"http://files.rcsb.org/download/{pdb}.cif"
 
         raw_map_gz_path = f"{raw_map_path}.gz"
 
         if not os.path.exists(model_path):
             urllib.request.urlretrieve(pdb_fetch_link, model_path)
-
-        if not os.path.exists(raw_map_path):
-            print(f"Downloading {emdb}...")
-            urllib.request.urlretrieve(emdb_fetch_link, raw_map_gz_path)
-            with gzip.open(raw_map_gz_path, 'rb') as f_in:
-                with open(raw_map_path, 'wb') as f_out:
-                    shutil.copyfileobj(f_in, f_out)
-            os.remove(raw_map_gz_path)
-            print(f"=> {emdb} and pdb-{pdb} files are downloaded.")
+            if not os.path.exists(raw_map_path):
+                print(f"Downloading {emdb}...")
+                urllib.request.urlretrieve(emdb_fetch_link, raw_map_gz_path)
+                with gzip.open(raw_map_gz_path, 'rb') as f_in:
+                    with open(raw_map_path, 'wb') as f_out:
+                        shutil.copyfileobj(f_in, f_out)
+                os.remove(raw_map_gz_path)
+                print(f"=> {emdb} and pdb-{pdb} files are downloaded.")
 
     # if os.path.exists(f"{directory1}/emd_{emdb_id}.map"):
     #     pass
