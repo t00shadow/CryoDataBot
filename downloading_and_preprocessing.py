@@ -22,6 +22,26 @@ logging.basicConfig(filename=raw_data_dir+'/download_and_preprocessing.log', enc
 
 
 def download_and_preprocessing(metadata_path, raw_dir, overwrite = False):
+    """
+    Reads metadata, downloads map and model files, and preprocesses the map files.
+
+    Parameters:
+    metadata_path (str): The path to the metadata file.
+    raw_dir (str): The directory where raw map and model files will be saved.
+    overwrite (bool): If True, existing files and directories will be overwritten.
+
+    Steps:
+    1. Read map list and generate raw map and model downloading paths.
+       - Uses read_csv_info(metadata_path, raw_dir) to get csv_info and path_info.
+
+    2. Download map and model files.
+       - Logs and prints the start of the downloading process.
+       - Uses fetch_map_model(csv_info, path_info, overwrite) to download the files.
+       - Logs and prints the completion of the downloading process.
+
+    3. Resample and normalize map files.
+       - Uses preprocess_maps(path_info) to preprocess the downloaded map files.
+    """
     # Read map list and generate raw_map and model downloading paths
     csv_info, path_info = read_csv_info(metadata_path, raw_dir)
 
@@ -38,11 +58,25 @@ def download_and_preprocessing(metadata_path, raw_dir, overwrite = False):
 
 def read_csv_info(csv_path, raw_dir):
     """
-    arg(s):
-        csv_path: path to .csv file
-    return:
-        csv_info:
-        path_info: raw_map and model downloading paths
+    Reads metadata from a CSV file and generates paths for downloading raw map and model files.
+
+    Parameters:
+    csv_path (str): Path to the .csv file containing metadata.
+    raw_dir (str): Directory where raw map and model files will be saved.
+
+    Returns:
+    tuple: 
+        csv_info (tuple): Contains lists of EMDB identifiers, PDB identifiers, resolutions, and EMDB IDs.
+        path_info (tuple): Contains lists of raw map paths and model paths.
+
+    Steps:
+    1. Reads the CSV file into a DataFrame.
+    2. Extracts EMDB identifiers, PDB identifiers, and resolutions from the DataFrame.
+    3. Generates EMDB IDs by splitting the EMDB identifiers.
+    4. Creates folder names based on EMDB identifiers and resolutions.
+    5. Constructs raw map and model file names.
+    6. Generates full paths for raw map and model files.
+    7. Returns csv_info and path_info tuples.
     """
     df = read_csv(csv_path)
     emdbs, pdbs = df["emdb_id"], df["fitted_pdbs"]
@@ -69,6 +103,39 @@ def read_csv_info(csv_path, raw_dir):
 
 
 def download_one_map(emdb, pdb, emdb_id, raw_map_path, model_path, overwrite = False):
+    """
+    Downloads and extracts a map file from the Electron Microscopy Data Bank (EMDB) 
+    and a model file from the Protein Data Bank (PDB).
+
+    Parameters:
+    emdb (str): The EMDB identifier.
+    pdb (str): The PDB identifier.
+    emdb_id (str): The specific EMDB ID for the map file.
+    raw_map_path (str): The path where the raw map file will be saved.
+    model_path (str): The path where the model file will be saved.
+    overwrite (bool): If True, existing files and directories will be overwritten.
+
+    Directory Handling:
+    - Checks if the directory for raw_map_path exists.
+    - If it exists and overwrite is True, deletes the directory and recreates it.
+    - If it doesn't exist, creates the directory.
+
+    URL Construction:
+    - Constructs the download links for the EMDB map file and the PDB model file 
+      using the provided emdb, pdb, and emdb_id.
+
+    Map File Download and Extraction:
+    - Appends .gz to raw_map_path.
+    - If the map file doesn't exist or overwrite is True, downloads the map file.
+    - Extracts the .gz file and removes the compressed file.
+
+    Model File Download:
+    - If the model file doesn't exist or overwrite is True, downloads the model file.
+
+    Logging:
+    - Logs warnings if there are errors during the download process.
+    - Logs info messages when files are successfully downloaded.
+    """
     path = os.path.dirname(raw_map_path)
     if os.path.exists(path):
         if overwrite:
@@ -107,6 +174,22 @@ def download_one_map(emdb, pdb, emdb_id, raw_map_path, model_path, overwrite = F
 
 
 def fetch_map_model(csv_info, path_info, overwrite = False):
+    """
+    Downloads map and model files concurrently using a thread pool.
+
+    Parameters:
+    csv_info (tuple): A tuple containing lists of EMDB identifiers, PDB identifiers, 
+                      and EMDB IDs extracted from the metadata CSV.
+    path_info (tuple): A tuple containing lists of raw map paths and model paths.
+    overwrite (bool): If True, existing files and directories will be overwritten.
+
+    Steps:
+    1. Extracts EMDB identifiers, PDB identifiers, and EMDB IDs from csv_info.
+    2. Extracts raw map paths and model paths from path_info.
+    3. Uses ThreadPoolExecutor to download map and model files concurrently.
+       - Submits download_one_map function for each map and model file.
+    4. Uses tqdm to display a progress bar for the download tasks.
+    """
     emdbs, pdbs, _, emdb_ids = csv_info
     raw_map_paths, model_paths = path_info
     with ThreadPoolExecutor() as executor:
@@ -118,6 +201,27 @@ def fetch_map_model(csv_info, path_info, overwrite = False):
 
 
 def map_normalizing(map_path):
+    """
+    Normalizes a map file by resampling and scaling its values.
+
+    Parameters:
+    map_path (str): Path to the map file.
+
+    Returns:
+    tuple: 
+        map_data (ndarray): The normalized map data.
+        map_origin (ndarray): The origin of the map.
+        map_orientation (ndarray): The orientation of the map.
+
+    Steps:
+    1. Loads the map data using mrcfile.mmap.
+    2. Extracts the map origin and orientation from the header.
+    3. Resamples the map to a 1.0A*1.0A*1.0A grid size using zoom factors.
+    4. Normalizes the map values to the range (0.0, 1.0).
+       - Uses the 99.9th percentile of the map data for normalization.
+       - Raises a ValueError if the 99.9th percentile is zero.
+    5. Checks if the start of the axis is zero and raises a ValueError if not.
+    """
     with mrcfile.mmap(map_path) as mrc:
         # Load map data
         map_data = cp.array(mrc.data, dtype=np.float32)
@@ -144,16 +248,75 @@ def map_normalizing(map_path):
 
 
 def atom_coord_cif(structure):
+    """
+    Extracts and rounds the atomic coordinates from a given structure.
+
+    Parameters:
+    structure (Bio.PDB.Structure.Structure): The structure containing models, chains, residues, and atoms.
+
+    Returns:
+    list: A list of tuples containing the rounded atomic coordinates (z, y, x).
+
+    Steps:
+    1. Initializes an empty list to store coordinates.
+    2. Iterates through each model in the structure.
+    3. Iterates through each chain in the model.
+    4. Iterates through each residue in the chain.
+    5. Iterates through each atom in the residue.
+    6. Rounds the atomic coordinates (z, y, x) and appends them to the list.
+    7. Returns the list of rounded atomic coordinates.
+    """
     coords = []
     for model in structure:
         for chain in model:
             for residue in chain:
                 for atom in residue:
-                    coords.append((int(round(atom.pos.z)), int(round(atom.pos.y)), int(round(atom.pos.x))))            # coords.append(atom.pos), # coords.append([atom.pos.x, atom.pos.y, atom.pos.z])
-    return coords                                                                           # return np.array(coords)
+                    coords.append((int(round(atom.pos.z)), int(round(atom.pos.y)), int(round(atom.pos.x))))
+    return coords
 
 
 def preprocess_one_map(map_path: str, cif_path: str, give_map: bool=False, protein_tag_dist: int=1, map_threashold: float=0.01):
+    """
+    Preprocesses a map file by normalizing it and calculating its fitness with a model.
+
+    Parameters:
+    map_path (str): Path to the map file.
+    cif_path (str): Path to the CIF file.
+    give_map (bool): If True, saves the normalized map and binary map.
+    protein_tag_dist (int): Theoretical atomic radii for map to model fitness calculation.
+    map_threashold (float): Normalized map density cutoff.
+
+    Returns:
+    tuple: 
+        vof (float): Volume overlap fraction (VOF) between the map and the model.
+        dice (float): Dice coefficient between the map and the model.
+
+    Steps:
+    1. Extracts protein and map IDs from the file paths.
+    2. Logs the preprocessing start information.
+    3. Loads and normalizes the map file using map_normalizing.
+       - Logs warnings and returns (0,0) if normalization fails.
+    4. Logs the successful loading of voxel data.
+    5. Calculates the map boundary.
+    6. Logs the map to model fitness calculation parameters.
+    7. Loads the CIF file using gemmi.read_structure.
+       - Logs warnings and returns (0,0) if reading fails.
+    8. Logs the successful loading of coordinate data.
+    9. Extracts and adjusts atom coordinates from the CIF file.
+    10. Logs the number of atoms in the CIF file.
+    11. Checks if any atom coordinates are out of bounds.
+        - Logs warnings and returns (0,0) if coordinates exceed map boundaries.
+    12. Creates a binary map for the protein coordinates.
+        - Rounds the coordinates to integers.
+        - Performs binary dilation to create spheres around atoms.
+    13. Applies the map threshold.
+    14. Calculates the overlap between the protein and the map.
+    15. Calculates the volume overlap fraction (VOF) and Dice coefficient.
+        - Logs warnings and returns (0,0) if calculation fails.
+    16. Logs the calculation completion information.
+    17. Saves the normalized map and binary map if give_map is True.
+    18. Returns the VOF and Dice coefficient.
+    """
     protein_id = os.path.basename(cif_path).split(".")[0]
     map_id = os.path.basename(map_path).split(".")[0]
     save_path = os.path.dirname(map_path)
@@ -237,6 +400,25 @@ def preprocess_one_map(map_path: str, cif_path: str, give_map: bool=False, prote
 
 
 def preprocess_maps(path_info: list, give_map: bool=False, protein_tag_dist: int=1, map_threashold: float=0.01):
+    """
+    Preprocesses multiple map files by normalizing them and calculating their fitness with models.
+
+    Parameters:
+    path_info (list): A list containing map paths and CIF paths.
+    give_map (bool): If True, saves the normalized maps and binary maps.
+    protein_tag_dist (int): Theoretical atomic radii for map to model fitness calculation.
+    map_threashold (float): Normalized map density cutoff.
+
+    Steps:
+    1. Extracts map paths and CIF paths from path_info.
+    2. Logs the start of the preprocessing process.
+    3. Initializes an empty list to store results.
+    4. Uses tqdm to display a progress bar for the preprocessing tasks.
+       - Iterates through each map path and CIF path.
+       - Calls preprocess_one_map for each map and CIF file.
+       - Appends the result to the results list.
+    5. Logs the completion of the preprocessing process.
+    """
     map_paths, cif_paths = path_info
 
     logging.info('-'*5+'Preprocessing Maps'+'-'*5)      
