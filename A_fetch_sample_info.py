@@ -9,7 +9,7 @@ import logging
 
 # for handling api calls
 session = requests.Session()
-retry = Retry(connect=3, backoff_factor=0.1, status_forcelist=[ 429 ])   # status_forcelist defaults to None; can be set to custom values or Retry.RETRY_AFTER_STATUS_CODES, which is [413, 429, 503]
+retry = Retry(connect=3, backoff_factor=0.1, status_forcelist=[429])   # status_forcelist defaults to None; can be set to custom values or Retry.RETRY_AFTER_STATUS_CODES, which is [413, 429, 503]
 adapter = HTTPAdapter(max_retries=retry)
 session.mount('http://', adapter)
 session.mount('https://', adapter)
@@ -112,7 +112,7 @@ def search_emdb(
             logger.info('Successfully fetched classification info.')
         except Exception as e:
             logger.error(f'Unexpected exception while fetching classification info: {e}.') 
-    
+
     # q_score and atom_inclusion
     if fetch_qscore:
         try:
@@ -142,7 +142,7 @@ def search_emdb(
     new_df.to_csv(final_path, index=False)
     print('\n--------------------------------------------------------------------------------\n')
     print('Entries file created.')
-    logger.info('-'*5+f'Successfully fetched sample info.'+'-'*5)
+    logger.info('-'*5+'Successfully fetched sample info.'+'-'*5)
     return final_path
 
 

@@ -17,11 +17,11 @@ import gemmi
 # configure logger
 raw_data_dir = 'Raw'
 logger = logging.getLogger(__name__)
-logging.basicConfig(filename=raw_data_dir+'/download_and_preprocessing.log', encoding='utf-8', level=logging.INFO,\
-                format='%(asctime)s %(levelname)s: %(message)s', datefmt='%m/%d/%Y %I:%M:%S %p')
+logging.basicConfig(filename=raw_data_dir+'/download_and_preprocessing.log', encoding='utf-8', level=logging.INFO,
+                    format='%(asctime)s %(levelname)s: %(message)s', datefmt='%m/%d/%Y %I:%M:%S %p')
 
 
-def download_and_preprocessing(metadata_path, raw_dir, overwrite = False):
+def download_and_preprocessing(metadata_path, raw_dir, overwrite=False):
     """
     Reads metadata, downloads map and model files, and preprocesses the map files.
 
