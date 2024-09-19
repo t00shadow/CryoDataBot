@@ -287,9 +287,12 @@ def preprocess_one_map(raw_map_path: str, model_path: str, logger, give_map: boo
 
     logging.info(f'Preprocessing Map:\n  FITTED_PDB: {pdb} EMDB_ID: EMD-{emdb_id}')
 
-    # Load the map
+    # Load the map ()
+    ###
+    ### use recl from the EMDB to normalize the map
+    ###
     try:
-        map_F, origin_info, _ = map_normalizing(raw_map_path)
+        map_F, origin_info, _ = map_normalizing(raw_map_path, recl=0.07)
         map_path = f"{raw_map_path.split('.map')[0]}_normalized.mrc"
         map_output(raw_map_path, map_F, map_path, is_model=False)
 
@@ -367,7 +370,7 @@ def preprocess_one_map(raw_map_path: str, model_path: str, logger, give_map: boo
 
 
 # Step3.1.1: normalize one map - make the grid size 1A and make the density range [0,1]
-def map_normalizing(raw_map_path):
+def map_normalizing(raw_map_path, recl=0.0):
     """
     Normalizes a map file by resampling and scaling its values.
 
@@ -398,6 +401,23 @@ def map_normalizing(raw_map_path):
         # Resample map to 1.0A*1.0A*1.0A grid size
         zoom_factors = [mrc.voxel_size.z, mrc.voxel_size.y, mrc.voxel_size.x]
         map_data = cp.asnumpy(zoom(map_data, zoom_factors))
+
+        # remove noisy values that are too small
+        count_good = np.sum(map_data > max(0, recl))
+        count_total = map_data.size
+
+        if recl>0.0:
+            # set some small values less than 0 to make the recommended contour level 15th percentile among positive values
+            bottom_value_percentile = (1-(count_good/0.85)/count_total)*100
+            if bottom_value_percentile > 100:
+                value_bottom = 0
+            else:
+                value_bottom = np.percentile(map_data, bottom_value_percentile)
+        else:
+            # set 30% lowest positive values less than 0
+            bottom_value_percentile = (1-(count_good*0.7)/count_total)*100
+            value_bottom = np.percentile(map_data, bottom_value_percentile)
+        map_data -= max(value_bottom, 0)
 
         # Normalize map values to the range (0.0, 1.0)
         data_99_9 = np.percentile(map_data, 99.9)
