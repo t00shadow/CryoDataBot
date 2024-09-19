@@ -124,8 +124,8 @@ def search_emdb(
 
     df = pd.read_csv(full_path)
     # List of required columns
-    review_columns = ['title', 'resolution', 'emdb_id', 'fitted_pdbs', 'sample_info_string',
-                        'xref_UNIPROTKB', 'xref_ALPHAFOLD', 'Q-score', 'atom_inclusion']
+    review_columns = ['title', 'resolution', 'emdb_id', 'fitted_pdbs',
+                      'xref_UNIPROTKB', 'xref_ALPHAFOLD', 'Q-score', 'atom_inclusion']
     # Check which required columns are present in the DataFrame
     existing_columns = [col for col in review_columns if col in df.columns]
     # Print a message if any columns are missing

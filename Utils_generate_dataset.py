@@ -248,7 +248,6 @@ def compute_grid_params(box_min_list, box_max_list, axis_length_list,
     return start_coords, n_samples
 
 
-
 def split_to_npy(data,
                  sample_dir,
                  start_coords,
@@ -319,7 +318,6 @@ def split_to_npy(data,
     return num_labels
 
 
-
 def label_npy(member_data,
             label_coords,
             label_id,
@@ -375,7 +373,6 @@ def label_npy(member_data,
                 around_coord[2]] = dist
 
     return member_data, dis_array
-
 
 
 def atom_coord_cif(structure, RESIDUE=None, ATOM=None):

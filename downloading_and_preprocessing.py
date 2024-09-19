@@ -46,15 +46,15 @@ def download_and_preprocessing(metadata_path, raw_dir, overwrite=False):
     # Read map list and generate raw_map and model downloading paths
     csv_info, path_info = read_csv_info(metadata_path, raw_dir)
 
-    # Download map and model files
-    logger.info('-'*5+f'Downloading map/pdb files from {metadata_path}'+'-'*5)
-    print('-'*5+f'Downloading map/pdb files from {metadata_path}'+'-'*5)
-    fetch_map_model(csv_info, path_info, logger, overwrite)
-    print('-'*5+f'Downloading completed'+'-'*5)
-    logger.info('-'*5+f'Downloading completed'+'-'*5)
+    # # Download map and model files
+    # logger.info('-'*5+f'Downloading map/pdb files from {metadata_path}'+'-'*5)
+    # print('-'*5+f'Downloading map/pdb files from {metadata_path}'+'-'*5)
+    # fetch_map_model(csv_info, path_info, logger, overwrite)
+    # print('-'*5+f'Downloading completed'+'-'*5)
+    # logger.info('-'*5+f'Downloading completed'+'-'*5)
 
     # # Resample and normalize map files
-    # preprocess_maps(path_info, logger)
+    preprocess_maps(path_info, logger)
 
 
 # Step1: create map and model paths for downloading and preprocessing from csv info
@@ -205,7 +205,7 @@ def download_one_map(emdb, pdb, emdb_id, raw_map_path, model_path, logger, overw
 
 
 # Step3: preprocess maps using multithreasing
-def preprocess_maps(path_info: list, logger, give_map: bool=False, protein_tag_dist: int=1, map_threashold: float=0.01):
+def preprocess_maps(path_info, logger, give_map: bool=True, protein_tag_dist: int=1, map_threashold: float=0.01):
     """
     Preprocesses multiple map files by normalizing them and calculating their fitness with models.
 
@@ -225,27 +225,27 @@ def preprocess_maps(path_info: list, logger, give_map: bool=False, protein_tag_d
        - Appends the result to the results list.
     5. Logs the completion of the preprocessing process.
     """
-    map_paths, cif_paths = path_info
+    raw_map_paths, model_paths = path_info
 
     logging.info('-'*5+'Preprocessing Maps'+'-'*5)
     print('-'*5+'Preprocessing Maps'+'-'*5)      
     results = []
     with logging_redirect_tqdm():
-        for map_path, cif_path in tqdm(zip(map_paths, cif_paths), total=len(map_paths), desc='Preprocessing Maps'):
-            result = preprocess_one_map(map_path, cif_path, logger, give_map, protein_tag_dist, map_threashold)
+        for raw_map_path, model_path in tqdm(zip(raw_map_paths, model_paths), total=len(raw_map_paths), desc='Preprocessing Maps'):
+            result = preprocess_one_map(raw_map_path, model_path, logger, give_map, protein_tag_dist, map_threashold)
             results.append(result)
     logging.info('-'*5+'Preprocessing Completed'+'-'*5)
     print('-'*5+'Preprocessing Completed'+'-'*5)
 
 
 # Step3.1: preprocess the map of one entry
-def preprocess_one_map(map_path: str, cif_path: str, logger, give_map: bool=False, protein_tag_dist: int=1, map_threashold: float=0.01):
+def preprocess_one_map(raw_map_path: str, model_path: str, logger, give_map: bool=True, protein_tag_dist: int=1, map_threashold: float=0.01):
     """
     Preprocesses a map file by normalizing it and calculating its fitness with a model.
 
     Parameters:
-    map_path (str): Path to the map file.
-    cif_path (str): Path to the CIF file.
+    raw_map_path (str): Path to the map file.
+    model_path (str): Path to the CIF file.
     give_map (bool): If True, saves the normalized map and binary map.
     protein_tag_dist (int): Theoretical atomic radii for map to model fitness calculation.
     map_threashold (float): Normalized map density cutoff.
@@ -281,15 +281,18 @@ def preprocess_one_map(map_path: str, cif_path: str, logger, give_map: bool=Fals
     17. Saves the normalized map and binary map if give_map is True.
     18. Returns the VOF and Dice coefficient.
     """
-    protein_id = os.path.basename(cif_path).split(".")[0]
-    map_id = os.path.basename(map_path).split(".")[0]
-    save_path = os.path.dirname(map_path)
+    pdb = os.path.basename(model_path).split(".")[0]
+    emdb_id = os.path.basename(raw_map_path).split(".")[0]
+    save_path = os.path.dirname(raw_map_path)
 
-    logging.info(f'Preprocessing Map:\n  FITTED_PDB: {protein_id} EMDB_ID: {map_id}')
+    logging.info(f'Preprocessing Map:\n  FITTED_PDB: {pdb} EMDB_ID: EMD-{emdb_id}')
 
     # Load the map
     try:
-        map_F, origin_info, _ = map_normalizing(map_path)
+        map_F, origin_info, _ = map_normalizing(raw_map_path)
+        map_path = f"{raw_map_path.split('.map')[0]}_normalized.mrc"
+        map_output(raw_map_path, map_F, map_path, is_model=False)
+
     except ValueError as e:
         logging.warning(f'  Error Normalizing Map: {e}\n  Preprocessing Failed')
         return (0, 0)
@@ -300,7 +303,7 @@ def preprocess_one_map(map_path: str, cif_path: str, logger, give_map: bool=Fals
     logger.info(f'  Calculating Map to Model Fitness with Theoretical Atomic Radii as "{protein_tag_dist}" and Normalized Map Density Cutoff as "{map_threashold}"')
     # Load the CIF file
     try:
-        protein = gemmi.read_structure(cif_path)
+        protein = gemmi.read_structure(model_path)
     except Exception as e:
         logging.warning(f'  Error Reading CIF File: {e}\n  Preprocessing Failed')
         return (0, 0)
@@ -353,22 +356,23 @@ def preprocess_one_map(map_path: str, cif_path: str, logger, give_map: bool=Fals
         logging.info(f'  Calculation Completed:\n                           Volume overlap fraction (VOF): {(vof*100):.4f}% Dice Coefficient: {(dice*100):.4f}%')
 
     if give_map:
-        with mrcfile.new(os.path.join(save_path, f'NORMALIZED_{map_id}.mrc'), overwrite=True) as mrc:
+        with mrcfile.new(os.path.join(save_path, f'NORMALIZED_{emdb_id}.mrc'), overwrite=True) as mrc:
             mrc.set_data(map_F)
-        logging.info(f'  Normalized Map Saved as "NORMALIZED_{map_id}.mrc"')
-        with mrcfile.new(os.path.join(save_path, f'CIF_{protein_id}.mrc'), overwrite=True) as mrc:
+        logging.info(f'  Normalized Map Saved as "NORMALIZED_{emdb_id}.mrc"')
+        with mrcfile.new(os.path.join(save_path, f'CIF_{pdb}.mrc'), overwrite=True) as mrc:
             mrc.set_data(protein_tag)
-        logging.info(f'  Binary Map of {map_id} Saved as "BINARY_{map_id}.mrc"')
+        logging.info(f'  Binary Map of {emdb_id} Saved as "BINARY_{emdb_id}.mrc"')
 
     return (vof, dice)
 
 
-def map_normalizing(map_path):
+# Step3.1.1: normalize one map - make the grid size 1A and make the density range [0,1]
+def map_normalizing(raw_map_path):
     """
     Normalizes a map file by resampling and scaling its values.
 
     Parameters:
-    map_path (str): Path to the map file.
+    raw_map_path (str): Path to the map file.
 
     Returns:
     tuple: 
@@ -385,7 +389,7 @@ def map_normalizing(map_path):
        - Raises a ValueError if the 99.9th percentile is zero.
     5. Checks if the start of the axis is zero and raises a ValueError if not.
     """
-    with mrcfile.mmap(map_path) as mrc:
+    with mrcfile.mmap(raw_map_path) as mrc:
         # Load map data
         map_data = cp.array(mrc.data, dtype=np.float32)
         map_origin = np.array([mrc.header.nxstart, mrc.header.nystart, mrc.header.nzstart], dtype=np.int8)
@@ -408,6 +412,26 @@ def map_normalizing(map_path):
             raise ValueError('The start of axis is not zero.')
 
     return map_data, map_origin, map_orientation
+
+
+# Step3.1.2: generate .mrc file
+def map_output(input_map, map_data, output_map, is_model=False):
+    if os.path.exists(output_map):
+        os.remove(output_map)
+
+    print(f"=> Writing new map to {output_map}")
+    shutil.copyfile(input_map, output_map)
+    with mrcfile.open(output_map, mode='r+') as mrc:
+        if is_model:
+            map_data = map_data.astype(np.int8)
+        else:
+            map_data = map_data.astype(np.float32)
+
+        mrc.set_data(map_data)
+        mrc.header.mz = map_data.shape[0]
+        mrc.header.ispg = 1  #401
+        mrc.print_header()
+        # print("=> New map written successfully.")
 
 
 def atom_coord_cif(structure):
