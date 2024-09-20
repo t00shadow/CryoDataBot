@@ -142,7 +142,7 @@ def search_emdb(
     return final_path
 
 
-def get_class(pdb_id, session):
+def get_class(pdb_id):
     """
     Fetch classification and description for a given PDB ID.
 
@@ -152,6 +152,13 @@ def get_class(pdb_id, session):
     Returns:
     tuple: A tuple containing the classification and description.
     """
+    # for handling api calls
+    session = requests.Session()
+    retry = Retry(connect=3, backoff_factor=0.1, status_forcelist=[429])   # status_forcelist defaults to None; can be set to custom values or Retry.RETRY_AFTER_STATUS_CODES, which is [413, 429, 503]
+    adapter = HTTPAdapter(max_retries=retry)
+    session.mount('http://', adapter)
+    session.mount('https://', adapter)
+    
     url = 'https://data.rcsb.org/rest/v1/core/entry/'
     if pdb_id == '':
         return '', ''
@@ -161,6 +168,8 @@ def get_class(pdb_id, session):
         return file["struct_keywords"]["pdbx_keywords"], file["struct_keywords"]["text"]
     except Exception:
         return '', ''
+    finally:
+        session.close()
 
 
 def search_rcsb(file_path):
@@ -174,13 +183,6 @@ def search_rcsb(file_path):
     logger.info('')
     logger.info("Fetching Classification Info...")
     df = pd.read_csv(file_path)
-    
-    # for handling api calls
-    session = requests.Session()
-    retry = Retry(connect=3, backoff_factor=0.1, status_forcelist=[429])   # status_forcelist defaults to None; can be set to custom values or Retry.RETRY_AFTER_STATUS_CODES, which is [413, 429, 503]
-    adapter = HTTPAdapter(max_retries=retry)
-    session.mount('http://', adapter)
-    session.mount('https://', adapter)
 
     if 'fitted_pdbs' in df.columns:
         error_entries = []
@@ -193,14 +195,11 @@ def search_rcsb(file_path):
                 pdb_id = pdb_id[0]
                 pdb_ids.append(pdb_id)      
 
-        try:
-            # Use ThreadPoolExecutor to process rows in parallel
-            logging.disable(logging.WARNING)
-            with ThreadPoolExecutor() as executor:
-                results = list(tqdm(executor.map(get_class, pdb_ids, session), total=len(df)))
-            logging.disable(logging.NOTSET)
-        finally:
-            session.close()
+        # Use ThreadPoolExecutor to process rows in parallel
+        logging.disable(logging.WARNING)
+        with ThreadPoolExecutor() as executor:
+            results = list(tqdm(executor.map(get_class, pdb_ids), total=len(df)))
+        logging.disable(logging.NOTSET)
 
         # Unpack results into separate lists
         RCSB_classification, RCSB_description = zip(*results)
@@ -301,5 +300,5 @@ if __name__ == '__main__':
                 file_name='ribosome_res_1-4',
                 fetch_qscore=True,
                 fetch_classification=True, 
-                rows=3)
+                rows=50)
     #print(path)
