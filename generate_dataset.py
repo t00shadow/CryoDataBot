@@ -695,8 +695,7 @@ def label_maps(label_group,
     logger.addHandler(std_out_hdlr)
     logger.addHandler(file_hdlr)
 
-    title = '-'*50+'Generating dataset'+'-'*50
-    logger.info(title)
+    logger.info(calculate_title_padding('Generating dataset'))
     msg = 'Label Groups:\n'
     for idx, name in enumerate(group_names):
         msg += f'    Group {name}:\n'
@@ -730,7 +729,7 @@ def label_maps(label_group,
         except BrokenProcessPool as e:
             logger.error(f'Error Generating Label Files: {e}')
             logger.error('!!! Please Check the Input Map/Model Paths and Try Again !!!')
-            logger.error(calculate_title_padding(title, 'Dataset Generation Failed'))
+            logger.error(calculate_title_padding('Dataset Generation Failed'))
             return
         sample_num = sample_num_shared.value
     logger.info('Successfully Generated All Label Files')
@@ -781,7 +780,7 @@ def label_maps(label_group,
         json.dump(ratio_of_label, file)
     logger.info(f'Weights Written into "{weight_path}"')
     
-    logger.info(calculate_title_padding(title,'Dataset generation completed'))
+    logger.info(calculate_title_padding('Dataset generation completed'))
     shutil.move('./'+training_set_name+'_generate_dataset.log',\
                 sample_path+'/'+training_set_name+'_generate_dataset.log')
 

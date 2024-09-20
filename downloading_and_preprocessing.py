@@ -13,15 +13,7 @@ from cupyx.scipy.ndimage import binary_dilation, zoom
 from tqdm import tqdm
 from tqdm.contrib.logging import logging_redirect_tqdm
 
-from helper_funcs import calculate_title_padding, csv_col_reader, read_csv_info
-
-# get logger
-logger = logging.getLogger('Download_and_Preprocessing_Logger')
-logger.setLevel(logging.INFO)   
-
-# Step1: create map and model paths for downloading and preprocessing from csv info
-# read additional recl column using read_csv_info func
-read_csv_info_with_recl = csv_col_reader('recommended_contour_level')(read_csv_info)
+from helper_funcs import calculate_title_padding, csv_col_reader, read_csv_info 
 
 
 # main function
@@ -47,6 +39,9 @@ def download_and_preprocessing(metadata_path, raw_dir: str = 'Raw', overwrite = 
        - Uses preprocess_maps(path_info) to preprocess the downloaded map files.
     """ 
     # configure logger
+    # get logger
+    logger = logging.getLogger('Download_and_Preprocessing_Logger')
+    logger.setLevel(logging.INFO)  
     std_out_hdlr = logging.StreamHandler()
     std_out_hdlr.setLevel(logging.INFO)
     log_file_path = os.path.join(dir:=os.path.dirname(metadata_path), dir.split('/')[-1]+\
@@ -59,19 +54,22 @@ def download_and_preprocessing(metadata_path, raw_dir: str = 'Raw', overwrite = 
     logger.addHandler(file_hdlr)
 
     # Read map list and generate raw_map and model downloading paths
+    # Step1: create map and model paths for downloading and preprocessing from csv info
+    # read additional recl column using read_csv_info func
+    read_csv_info_with_recl = csv_col_reader('recommended_contour_level')(read_csv_info)
     csv_info, path_info = read_csv_info_with_recl(metadata_path, raw_dir)
 
     # Download map and model files
-    title = '-'*10+f'Downloading map/pdb Files from {metadata_path}'+'-'*10
-    logger.info(title)
+    logger.info(calculate_title_padding('Downloading Map & PDB Files'))
+    logger.info(f'MetaData Path: {metadata_path}')
     fetch_map_model(csv_info, path_info, overwrite)
-    logger.info(calculate_title_padding(title,'Downloading Completed'))
+    logger.info(calculate_title_padding('Downloading Completed'))
     logger.info('')
 
     # Resample and normalize map files
-    logger.info(calculate_title_padding(title,'Preprocessing Maps'))
+    logger.info(calculate_title_padding('Preprocessing Maps'))
     preprocess_maps(csv_info, path_info)
-    logger.info(calculate_title_padding(title,'Preprocessing Completed'))
+    logger.info(calculate_title_padding('Preprocessing Completed'))
     logger.info('')
 
 
@@ -93,6 +91,7 @@ def fetch_map_model(csv_info, path_info, overwrite=False):
        - Submits download_one_map function for each map and model file.
     4. Uses tqdm to display a progress bar for the download tasks.
     """
+    logger = logging.getLogger('Download_and_Preprocessing_Logger')
     emdbs, pdbs, _, emdb_ids, _ = csv_info
     raw_map_paths, model_paths, _ = path_info
     with ThreadPoolExecutor() as executor:
@@ -138,6 +137,8 @@ def download_one_map(emdb, pdb, emdb_id, raw_map_path, model_path, overwrite=Fal
     - Logs warnings if there are errors during the download process.
     - Logs info messages when files are successfully downloaded.
     """
+    logger = logging.getLogger('Download_and_Preprocessing_Logger')
+
     path = os.path.dirname(raw_map_path)
     if os.path.exists(path):
         if overwrite:
@@ -196,6 +197,7 @@ def preprocess_maps(csv_info, path_info, give_map: bool=True, protein_tag_dist: 
        - Appends the result to the results list.
     5. Logs the completion of the preprocessing process.
     """
+    logger = logging.getLogger('Download_and_Preprocessing_Logger')
     _, _, _, _, recls = csv_info
     raw_map_paths, model_paths, _ = path_info
     results = []
@@ -248,6 +250,8 @@ def preprocess_one_map(recl: float, raw_map_path: str, model_path: str, give_map
     17. Saves the normalized map and binary map if give_map is True.
     18. Returns the VOF and Dice coefficient.
     """
+    logger = logging.getLogger('Download_and_Preprocessing_Logger')
+    
     pdb = os.path.basename(model_path).split(".")[0]
     emdb_id = os.path.basename(raw_map_path).split(".")[0]
     save_path = os.path.dirname(raw_map_path)

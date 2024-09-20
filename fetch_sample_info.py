@@ -10,17 +10,6 @@ from urllib3.util.retry import Retry
 
 from helper_funcs import calculate_title_padding
 
-# for logging
-logger = logging.getLogger('Fetch_Sample_Info_Logger')
-logger.setLevel(logging.INFO)
-
-# for handling api calls
-session = requests.Session()
-retry = Retry(connect=3, backoff_factor=0.1, status_forcelist=[429])   # status_forcelist defaults to None; can be set to custom values or Retry.RETRY_AFTER_STATUS_CODES, which is [413, 429, 503]
-adapter = HTTPAdapter(max_retries=retry)
-session.mount('http://', adapter)
-session.mount('https://', adapter)
-
 
 def search_emdb(
         query,
@@ -51,6 +40,10 @@ def search_emdb(
     Returns:
     str: The path to the final CSV file containing the fetched data.
     """
+    # get logger
+    logger = logging.getLogger('Fetch_Sample_Info_Logger')
+    logger.setLevel(logging.INFO)
+
     # check file names
     num = 1
     if file_name is None:
@@ -80,8 +73,8 @@ def search_emdb(
     logger.addHandler(file_hdlr)
 
     # search emdb
-    title = '-'*20+f'Fetching Sample Information with Query:"{query}"'+'-'*20
-    logger.info(title)
+    logger.info('-'*50+'Fetching Sample Information'+'-'*50)
+    logger.info(f'Query: {query}')
     url = 'https://www.ebi.ac.uk/emdb/api/search/'
     output = ''
     logger.info('Fetching EMDB Search Data...')
@@ -95,12 +88,12 @@ def search_emdb(
         else:
             logger.error(f"Error Fetching Data: Status Code - {r.status_code}")
             logger.error('Error may Occur due to Network Problems, Please Try Again Later')
-            logger.error(calculate_title_padding(title, 'Failed Fetching Sample Info'))
+            logger.error(calculate_title_padding('Failed Fetching Sample Info'))
             return None
     except requests.exceptions.RequestException as e:
         logger.error(f"Error Fetching Data: {e}")
         logger.error('Error may Occur due to Network Problems, Please Try Again Later')
-        logger.error(calculate_title_padding(title, 'Failed Fetching Sample Info'))
+        logger.error(calculate_title_padding('Failed Fetching Sample Info'))
         return None
     
     # save EMDB data
@@ -143,13 +136,13 @@ def search_emdb(
     final_path = os.path.join(save_path, f'{file_name}.csv')
     new_df.to_csv(final_path, index=False)
 
-    logger.info(calculate_title_padding(title, 'Successfully Fetched Sample Info'))
+    logger.info(calculate_title_padding('Successfully Fetched Sample Info'))
     logger.info('')
 
     return final_path
 
 
-def get_class(pdb_id):
+def get_class(pdb_id, session):
     """
     Fetch classification and description for a given PDB ID.
 
@@ -177,10 +170,18 @@ def search_rcsb(file_path):
     Parameters:
     file_path (str): Path to the .csv file containing the data.
     """
+    logger = logging.getLogger('Fetch_Sample_Info_Logger')
     logger.info('')
     logger.info("Fetching Classification Info...")
     df = pd.read_csv(file_path)
     
+    # for handling api calls
+    session = requests.Session()
+    retry = Retry(connect=3, backoff_factor=0.1, status_forcelist=[429])   # status_forcelist defaults to None; can be set to custom values or Retry.RETRY_AFTER_STATUS_CODES, which is [413, 429, 503]
+    adapter = HTTPAdapter(max_retries=retry)
+    session.mount('http://', adapter)
+    session.mount('https://', adapter)
+
     if 'fitted_pdbs' in df.columns:
         error_entries = []
         pdb_ids = []
@@ -196,7 +197,7 @@ def search_rcsb(file_path):
             # Use ThreadPoolExecutor to process rows in parallel
             logging.disable(logging.WARNING)
             with ThreadPoolExecutor() as executor:
-                results = list(tqdm(executor.map(get_class, pdb_ids), total=len(df)))
+                results = list(tqdm(executor.map(get_class, pdb_ids, session), total=len(df)))
             logging.disable(logging.NOTSET)
         finally:
             session.close()
@@ -258,6 +259,7 @@ def search_qscore(file_path):
     file_path (str): Path to the .csv file containing the data.
     """
     #print('\nFetching Q-score and atom inclusion...')
+    logger = logging.getLogger('Fetch_Sample_Info_Logger')
     logger.info('')
     logger.info('Fetching Q-score and atom inclusion...')
     tqdm.pandas()

@@ -2,11 +2,12 @@ from pandas import read_csv
 
 
 # helper functions
-def calculate_title_padding(title: str, subtitle: str) -> str:
+def calculate_title_padding(subtitle: str) -> str:
     # this func helps with formatting logger messages
+    title = '-'*50+'Fetching Sample Information'+'-'*50
     length = len(title)-len(subtitle)
     if length<=0:
-        return '-'*15 + subtitle + '-'*15
+        return '-'*40 + subtitle + '-'*40
     num: int = int(length/2)
     if length%2 == 0:
         return '-'*num + subtitle + '-'*num
@@ -15,7 +16,7 @@ def calculate_title_padding(title: str, subtitle: str) -> str:
     
 
 def csv_col_reader(*cols: str):
-    # this decorator helps retrieving additional columns from the metadata csv file
+    # this decorator helps retrieve additional columns from the metadata csv file
     # cols: csv column names to be added to the returned tuple
     def inner(func):
 
