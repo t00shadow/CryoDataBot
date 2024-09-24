@@ -4,7 +4,7 @@ import os
 import shutil
 from concurrent.futures import ProcessPoolExecutor, as_completed
 from concurrent.futures.process import BrokenProcessPool
-from multiprocessing import Lock, Manager
+from multiprocessing import Manager
 
 import gemmi
 import mrcfile
