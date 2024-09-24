@@ -119,8 +119,8 @@ def search_emdb(
 
     df = pd.read_csv(file_path)
     # List of required columns
-    review_columns = ['title', 'resolution', 'emdb_id', 'fitted_pdbs', 'xref_UNIPROTKB',\
-                       'xref_ALPHAFOLD', 'Q-score', 'atom_inclusion', 'recommended_contour_level']
+    review_columns = ['title', 'resolution', 'emdb_id', 'fitted_pdbs', 'xref_UNIPROTKB',
+                      'xref_ALPHAFOLD', 'Q-score', 'atom_inclusion', 'recommended_contour_level']
     # Check which required columns are present in the DataFrame
     existing_columns = [col for col in review_columns if col in df.columns]
     # Print a message if any columns are missing
@@ -158,7 +158,7 @@ def get_class(pdb_id):
     adapter = HTTPAdapter(max_retries=retry)
     session.mount('http://', adapter)
     session.mount('https://', adapter)
-    
+
     url = 'https://data.rcsb.org/rest/v1/core/entry/'
     if pdb_id == '':
         return '', ''
@@ -193,7 +193,7 @@ def search_rcsb(file_path):
             else:
                 pdb_id = pdb_id.split(',')
                 pdb_id = pdb_id[0]
-                pdb_ids.append(pdb_id)      
+                pdb_ids.append(pdb_id)
 
         # Use ThreadPoolExecutor to process rows in parallel
         logging.disable(logging.WARNING)
@@ -217,7 +217,7 @@ def search_rcsb(file_path):
         if error_entries:
             logger.warning(f"Classification Info not Found for {len(error_entries)} Enterie(s):\n{error_entries}")
     else:
-        #print("The column 'fitted_pdbs' does not exist in the DataFrame.")
+        # print("The column 'fitted_pdbs' does not exist in the DataFrame.")
         logger.warning(f"The Column 'fitted_pdbs' Does not Exist in the DataFrame, Cannot Fetch Classification Info")
 
 
@@ -296,9 +296,10 @@ def search_qscore(file_path):
 
 
 if __name__ == '__main__':
-    path = search_emdb(query="ribosome AND resolution:[1 TO 4}",
-                file_name='ribosome_res_1-4',
-                fetch_qscore=True,
-                fetch_classification=True, 
-                rows=50)
+    save_path = '/home/qiboxu/Database/CryoDataBot_Data/Metadata'
+    path = search_emdb(query="ribosome AND resolution:[3 TO 4}",
+                       save_path=save_path,
+                       file_name='ribosome_res_3-4_20240924',
+                       fetch_qscore=True,
+                       fetch_classification=True)
     #print(path)

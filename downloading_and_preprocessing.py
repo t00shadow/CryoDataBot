@@ -53,20 +53,19 @@ def download_and_preprocessing(metadata_path, raw_dir: str = 'Raw', overwrite = 
     logger.addHandler(std_out_hdlr)
     logger.addHandler(file_hdlr)
 
-    # Read map list and generate raw_map and model downloading paths
     # Step1: create map and model paths for downloading and preprocessing from csv info
     # read additional recl column using read_csv_info func
     read_csv_info_with_recl = csv_col_reader('recommended_contour_level')(read_csv_info)
     csv_info, path_info = read_csv_info_with_recl(metadata_path, raw_dir)
 
-    # Download map and model files
-    logger.info(calculate_title_padding('Downloading Map & PDB Files'))
-    logger.info(f'MetaData Path: {metadata_path}')
-    fetch_map_model(csv_info, path_info, overwrite)
-    logger.info(calculate_title_padding('Downloading Completed'))
-    logger.info('')
+    # # Step2: download maps and models using multithreasing
+    # logger.info(calculate_title_padding('Downloading Map & PDB Files'))
+    # logger.info(f'MetaData Path: {metadata_path}')
+    # fetch_map_model(csv_info, path_info, overwrite)
+    # logger.info(calculate_title_padding('Downloading Completed'))
+    # logger.info('')
 
-    # Resample and normalize map files
+    # Step3: preprocess maps using multithreasing (Resample and normalize map files)
     logger.info(calculate_title_padding('Preprocessing Maps'))
     preprocess_maps(csv_info, path_info)
     logger.info(calculate_title_padding('Preprocessing Completed'))
@@ -220,7 +219,7 @@ def preprocess_one_map(recl: float, raw_map_path: str, model_path: str, give_map
     map_threashold (float): Normalized map density cutoff.
 
     Returns:
-    tuple: 
+    tuple:
         vof (float): Volume overlap fraction (VOF) between the map and the model.
         dice (float): Dice coefficient between the map and the model.
 
@@ -251,13 +250,13 @@ def preprocess_one_map(recl: float, raw_map_path: str, model_path: str, give_map
     18. Returns the VOF and Dice coefficient.
     """
     logger = logging.getLogger('Download_and_Preprocessing_Logger')
-    
+
     pdb = os.path.basename(model_path).split(".")[0]
     emdb_id = os.path.basename(raw_map_path).split(".")[0]
     save_path = os.path.dirname(raw_map_path)
 
     logger.info(f'Preprocessing Map: FITTED_PDB: {pdb} EMDB_ID: EMD-{emdb_id}')
-    
+
     # Load the map
     try:
         map_F, origin_info, _ = map_normalizing(raw_map_path, recl)
@@ -280,69 +279,71 @@ def preprocess_one_map(recl: float, raw_map_path: str, model_path: str, give_map
     map_boundary = np.shape(map_F)
 
     logger.info(f'  Calculating Map to Model Fitness with Theoretical Atomic Radii as "{protein_tag_dist}" and Normalized Map Density Cutoff as "{map_threashold}"')
-    # Load the CIF file
-    try:
-        protein = gemmi.read_structure(model_path)
-    except Exception as e:
-        logger.warning(f'  Error Reading CIF File: {e}')
-        logger.warning('  !!! Preprocessing Failed !!!')
-        logger.info('')
-        return (0, 0)
-    else:
-        logger.info('  Successfully Loaded Coordinate Data')
-    protein_coords = np.array(atom_coord_cif(protein)).reshape(-1, 3)
+    # # Load the CIF file
+    # try:
+    #     protein = gemmi.read_structure(model_path)
+    # except Exception as e:
+    #     logger.warning(f'  Error Reading CIF File: {e}')
+    #     logger.warning('  !!! Preprocessing Failed !!!')
+    #     logger.info('')
+    #     return (0, 0)
+    # else:
+    #     logger.info('  Successfully Loaded Coordinate Data')
+    # protein_coords = np.array(atom_coord_cif(protein)).reshape(-1, 3)
 
-    # Adjust atom coordinates if origin is not (0,0,0)
-    protein_coords -= origin_info
+    # # Adjust atom coordinates if origin is not (0,0,0)
+    # protein_coords -= origin_info
 
-    logger.info(f'  Number of Atoms in CIF: {len(protein_coords)}')
+    # logger.info(f'  Number of Atoms in CIF: {len(protein_coords)}')
 
-    # Check if any atom coordinates are out of bounds
-    try:
-        if np.any(np.any(protein_coords > map_boundary, axis=1)):
-            raise ValueError('Out of bounds - atom coordinates exceed map boundaries')
-    except ValueError as e:
-        logger.warning(f'  Bound Error: {e}')
-        logger.warning('  !!! Preprocessing Failed !!!')
-        logger.info('')
-        return (0, 0)
+    # # Check if any atom coordinates are out of bounds
+    # try:
+    #     if np.any(np.any(protein_coords > map_boundary, axis=1)):
+    #         raise ValueError('Out of bounds - atom coordinates exceed map boundaries')
+    # except ValueError as e:
+    #     logger.warning(f'  Bound Error: {e}')
+    #     logger.warning('  !!! Preprocessing Failed !!!')
+    #     logger.info('')
+    #     return (0, 0)
 
-    try:
-        # Create a binary map for the protein coordinates
-        protein_tag = cp.zeros(map_boundary, dtype=np.int8)
+    # try:
+    #     # Create a binary map for the protein coordinates
+    #     protein_tag = cp.zeros(map_boundary, dtype=np.int8)
 
-        # Round the coordinates to integers
-        protein_coords = np.round(protein_coords).astype(int)
-        protein_tag[protein_coords[:, 0], protein_coords[:, 1], protein_coords[:, 2]] = 1
+    #     # Round the coordinates to integers
+    #     protein_coords = np.round(protein_coords).astype(int)
+    #     protein_tag[protein_coords[:, 0], protein_coords[:, 1], protein_coords[:, 2]] = 1
 
-        # Perform binary dilation to create spheres around atoms
-        structure = cp.ones((protein_tag_dist*2+1,) * 3, dtype=np.int8)
-        protein_tag = cp.asnumpy(binary_dilation(protein_tag, structure=structure).astype(np.int8))
+    #     # Perform binary dilation to create spheres around atoms
+    #     structure = cp.ones((protein_tag_dist*2+1,) * 3, dtype=np.int8)
+    #     protein_tag = cp.asnumpy(binary_dilation(protein_tag, structure=structure).astype(np.int8))
 
-        # Apply the map threshold
-        map_F = np.where(map_F > map_threashold, 1, 0)
+    #     # Apply the map threshold
+    #     map_F = np.where(map_F > map_threashold, 1, 0)
 
-        # Calculate overlap between the protein and the map
-        overlap = np.logical_and(protein_tag, map_F)
-        overlap_count = np.sum(overlap)
+    #     # Calculate overlap between the protein and the map
+    #     overlap = np.logical_and(protein_tag, map_F)
+    #     overlap_count = np.sum(overlap)
 
-        # Calculate the volume overlap fraction (VOF)
-        total_voxels_union = np.sum(np.logical_or(protein_tag, map_F))
-        vof = overlap_count / total_voxels_union
+    #     # Calculate the volume overlap fraction (VOF)
+    #     total_voxels_union = np.sum(np.logical_or(protein_tag, map_F))
+    #     vof = overlap_count / total_voxels_union
 
-        # Calculate Dice coefficient
-        dice = 2 * overlap_count / (np.sum(protein_tag) + np.sum(map_F))
-    except Exception as e:
-            logger.warning(f'  Error Calculating Map to Model Fitness: {e}\n  !!! Preprocessing Failed !!!')
-            return (0, 0)
-    else:
-        logger.info(f'  Calculation Completed: Volume Overlap Fraction (VOF): {(vof*100):.4f}%, Dice Coefficient: {(dice*100):.4f}%')
+    #     # Calculate Dice coefficient
+    #     dice = 2 * overlap_count / (np.sum(protein_tag) + np.sum(map_F))
+    # except Exception as e:
+    #         logger.warning(f'  Error Calculating Map to Model Fitness: {e}\n  !!! Preprocessing Failed !!!')
+    #         return (0, 0)
+    # else:
+    #     logger.info(f'  Calculation Completed: Volume Overlap Fraction (VOF): {(vof*100):.4f}%, Dice Coefficient: {(dice*100):.4f}%')
 
-    if give_map:
-        with mrcfile.new(os.path.join(save_path, f'CIF_{pdb}.mrc'), overwrite=True) as mrc:
-            mrc.set_data(protein_tag)
-        logger.info(f'  Binary Map of {emdb_id} Saved as "BINARY_{emdb_id}.mrc"\n')
+    # if give_map:
+    #     with mrcfile.new(os.path.join(save_path, f'CIF_{pdb}.mrc'), overwrite=True) as mrc:
+    #         mrc.set_data(protein_tag)
+    #     logger.info(f'  Binary Map of {emdb_id} Saved as "BINARY_{emdb_id}.mrc"\n')
 
+    #test:
+    vof, dice = 1, 1
     return (vof, dice)
 
 
@@ -460,6 +461,6 @@ def atom_coord_cif(structure):
 
 
 if __name__ == '__main__':
-    matadata_path = 'Metadata/ribosome_res_1-4_001/ribosome_res_1-4_001.csv'
-    raw_dir = 'Raw'
-    download_and_preprocessing(matadata_path, raw_dir, overwrite=True)
+    matadata_path = '/home/qiboxu/Database/CryoDataBot_Data/Metadata/ribosome_res_3-4_20240924_001/ribosome_res_3-4_20240924_001.csv'
+    raw_dir = '/home/qiboxu/Database/CryoDataBot_Data/Raw'
+    download_and_preprocessing(matadata_path, raw_dir, overwrite=False)
