@@ -63,7 +63,6 @@ def search_emdb(
     # Default: True
     """
 
-
     # check file names
     num = 1
     if file_name is None:
@@ -206,7 +205,7 @@ def search_rcsb(file_path):
         # return file_path
     else:
         print("The column 'fitted_pdbs' does not exist in the DataFrame.")
-        logger.warning(f"The column 'fitted_pdbs' does not exist in the DataFrame.")
+        logger.warning("The column 'fitted_pdbs' does not exist in the DataFrame.")
 
 
 def get_qscore(emdb_map_id):
