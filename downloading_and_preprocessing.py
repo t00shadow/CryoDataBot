@@ -201,6 +201,7 @@ def preprocess_maps(csv_info, path_info, give_map: bool=True, protein_tag_dist: 
     raw_map_paths, model_paths, _ = path_info
     results = []
     with logging_redirect_tqdm([logger]):
+
         for raw_map_path, model_path, recl in tqdm(zip(raw_map_paths, model_paths, recls), total=len(raw_map_paths), desc='Preprocessing Maps'):
             result = preprocess_one_map(recl, raw_map_path, model_path, give_map, protein_tag_dist, map_threashold)
             results.append(result)
@@ -257,6 +258,13 @@ def preprocess_one_map(recl: float, raw_map_path: str, model_path: str, give_map
 
     logger.info(f'Preprocessing Map: FITTED_PDB: {pdb} EMDB_ID: EMD-{emdb_id}')
 
+    # TBD20240925: check if the origin is [0, 0, 0] first - if is not then just skip all of the rest steps and remove the entry in the csv
+    with mrcfile.mmap(raw_map_path) as mrc:
+        if mrc.header.nzstart != 0 or mrc.header.nystart != 0 or mrc.header.nxstart != 0:
+            raise ValueError('The start of axis is not zero.')
+    ......
+
+    # if the origin is [0, 0, 0], then the following steps
     # Load the map
     try:
         map_F, origin_info, _ = map_normalizing(raw_map_path, recl)
@@ -279,17 +287,17 @@ def preprocess_one_map(recl: float, raw_map_path: str, model_path: str, give_map
     map_boundary = np.shape(map_F)
 
     logger.info(f'  Calculating Map to Model Fitness with Theoretical Atomic Radii as "{protein_tag_dist}" and Normalized Map Density Cutoff as "{map_threashold}"')
-    # # Load the CIF file
-    # try:
-    #     protein = gemmi.read_structure(model_path)
-    # except Exception as e:
-    #     logger.warning(f'  Error Reading CIF File: {e}')
-    #     logger.warning('  !!! Preprocessing Failed !!!')
-    #     logger.info('')
-    #     return (0, 0)
-    # else:
-    #     logger.info('  Successfully Loaded Coordinate Data')
-    # protein_coords = np.array(atom_coord_cif(protein)).reshape(-1, 3)
+    # Load the CIF file
+    try:
+        protein = gemmi.read_structure(model_path)
+    except Exception as e:
+        logger.warning(f'  Error Reading CIF File: {e}')
+        logger.warning('  !!! Preprocessing Failed !!!')
+        logger.info('')
+        return (0, 0)
+    else:
+        logger.info('  Successfully Loaded Coordinate Data')
+    protein_coords = np.array(atom_coord_cif(protein)).reshape(-1, 3)
 
     # # Adjust atom coordinates if origin is not (0,0,0)
     # protein_coords -= origin_info
@@ -402,14 +410,9 @@ def map_normalizing(raw_map_path, recl=0.0):
         # Normalize map values to the range (0.0, 1.0)
         data_99_9 = np.percentile(map_data, 99.9)
         if data_99_9 == 0.:
-            #print('data_99_9 == 0!!')
             raise ValueError('Empty map (99.9th percentile of map data is zero)')
         map_data /= data_99_9
         map_data = np.clip(map_data, 0., 1.)
-
-        if mrc.header.nzstart != 0 or mrc.header.nystart != 0 or mrc.header.nxstart != 0:
-            #print('The start of axis is not 0!!')
-            raise ValueError('The start of axis is not zero.')
 
     return map_data, map_origin, map_orientation
 
