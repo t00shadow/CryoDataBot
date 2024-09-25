@@ -262,12 +262,13 @@ def preprocess_one_map(recl: float, raw_map_path: str, model_path: str, give_map
     with mrcfile.mmap(raw_map_path) as mrc:
         if mrc.header.nzstart != 0 or mrc.header.nystart != 0 or mrc.header.nxstart != 0:
             raise ValueError('The start of axis is not zero.')
-    ......
 
     # if the origin is [0, 0, 0], then the following steps
     # Load the map
     try:
-        map_F, origin_info, _ = map_normalizing(raw_map_path, recl)
+        map_F = map_normalizing(raw_map_path, recl)
+        # map_F, origin_info, _ = map_normalizing(raw_map_path, recl)
+
         if give_map:
             map_path = f"{raw_map_path.split('.map')[0]}_normalized.mrc"
             map_output(raw_map_path, map_F, map_path, is_model=False)
@@ -301,58 +302,53 @@ def preprocess_one_map(recl: float, raw_map_path: str, model_path: str, give_map
 
     # # Adjust atom coordinates if origin is not (0,0,0)
     # protein_coords -= origin_info
+    logger.info(f'  Number of Atoms in CIF: {len(protein_coords)}')
 
-    # logger.info(f'  Number of Atoms in CIF: {len(protein_coords)}')
+    # Check if any atom coordinates are out of bounds
+    try:
+        if np.any(np.any(protein_coords > map_boundary, axis=1)):
+            raise ValueError('Out of bounds - atom coordinates exceed map boundaries')
+    except ValueError as e:
+        logger.warning(f'  Bound Error: {e}')
+        logger.warning('  !!! Preprocessing Failed !!!')
+        logger.info('')
+        return (0, 0)
 
-    # # Check if any atom coordinates are out of bounds
-    # try:
-    #     if np.any(np.any(protein_coords > map_boundary, axis=1)):
-    #         raise ValueError('Out of bounds - atom coordinates exceed map boundaries')
-    # except ValueError as e:
-    #     logger.warning(f'  Bound Error: {e}')
-    #     logger.warning('  !!! Preprocessing Failed !!!')
-    #     logger.info('')
-    #     return (0, 0)
+    try:
+        # Create a binary map for the protein coordinates
+        protein_tag = cp.zeros(map_boundary, dtype=np.int8)
 
-    # try:
-    #     # Create a binary map for the protein coordinates
-    #     protein_tag = cp.zeros(map_boundary, dtype=np.int8)
+        # Round the coordinates to integers
+        protein_coords = np.round(protein_coords).astype(int)
+        protein_tag[protein_coords[:, 0], protein_coords[:, 1], protein_coords[:, 2]] = 1
 
-    #     # Round the coordinates to integers
-    #     protein_coords = np.round(protein_coords).astype(int)
-    #     protein_tag[protein_coords[:, 0], protein_coords[:, 1], protein_coords[:, 2]] = 1
+        # Perform binary dilation to create spheres around atoms
+        structure = cp.ones((protein_tag_dist*2+1,) * 3, dtype=np.int8)
+        protein_tag = cp.asnumpy(binary_dilation(protein_tag, structure=structure).astype(np.int8))
 
-    #     # Perform binary dilation to create spheres around atoms
-    #     structure = cp.ones((protein_tag_dist*2+1,) * 3, dtype=np.int8)
-    #     protein_tag = cp.asnumpy(binary_dilation(protein_tag, structure=structure).astype(np.int8))
+        # Apply the map threshold
+        map_F = np.where(map_F > map_threashold, 1, 0)
 
-    #     # Apply the map threshold
-    #     map_F = np.where(map_F > map_threashold, 1, 0)
+        # Calculate overlap between the protein and the map
+        overlap = np.logical_and(protein_tag, map_F)
+        overlap_count = np.sum(overlap)
 
-    #     # Calculate overlap between the protein and the map
-    #     overlap = np.logical_and(protein_tag, map_F)
-    #     overlap_count = np.sum(overlap)
+        # Calculate the volume overlap fraction (VOF)
+        total_voxels_union = np.sum(np.logical_or(protein_tag, map_F))
+        vof = overlap_count / total_voxels_union
 
-    #     # Calculate the volume overlap fraction (VOF)
-    #     total_voxels_union = np.sum(np.logical_or(protein_tag, map_F))
-    #     vof = overlap_count / total_voxels_union
-
-    #     # Calculate Dice coefficient
-    #     dice = 2 * overlap_count / (np.sum(protein_tag) + np.sum(map_F))
-    # except Exception as e:
-    #         logger.warning(f'  Error Calculating Map to Model Fitness: {e}\n  !!! Preprocessing Failed !!!')
-    #         return (0, 0)
-    # else:
-    #     logger.info(f'  Calculation Completed: Volume Overlap Fraction (VOF): {(vof*100):.4f}%, Dice Coefficient: {(dice*100):.4f}%')
+        # Calculate Dice coefficient
+        dice = 2 * overlap_count / (np.sum(protein_tag) + np.sum(map_F))
+    except Exception as e:
+            logger.warning(f'  Error Calculating Map to Model Fitness: {e}\n  !!! Preprocessing Failed !!!')
+            return (0, 0)
+    else:
+        logger.info(f'  Calculation Completed: Volume Overlap Fraction (VOF): {(vof*100):.4f}%, Dice Coefficient: {(dice*100):.4f}%')
 
     # if give_map:
     #     with mrcfile.new(os.path.join(save_path, f'CIF_{pdb}.mrc'), overwrite=True) as mrc:
     #         mrc.set_data(protein_tag)
     #     logger.info(f'  Binary Map of {emdb_id} Saved as "BINARY_{emdb_id}.mrc"\n')
-
-    #test:
-    vof, dice = 1, 1
-    return (vof, dice)
 
 
 # Step3.1.1: normalize one map - make the grid size 1A and make the density range [0,1]
@@ -383,8 +379,8 @@ def map_normalizing(raw_map_path, recl=0.0):
     with mrcfile.mmap(raw_map_path) as mrc:
         # Load map data
         map_data = cp.array(mrc.data, dtype=np.float32)
-        map_origin = np.array([mrc.header.nxstart, mrc.header.nystart, mrc.header.nzstart], dtype=np.int8)
-        map_orientation = np.array([mrc.header.mapc, mrc.header.mapr, mrc.header.maps], dtype=np.float32)
+        # map_origin = np.array([mrc.header.nxstart, mrc.header.nystart, mrc.header.nzstart], dtype=np.int8)
+        # map_orientation = np.array([mrc.header.mapc, mrc.header.mapr, mrc.header.maps], dtype=np.float32)
 
         # Resample map to 1.0A*1.0A*1.0A grid size
         zoom_factors = [mrc.voxel_size.z, mrc.voxel_size.y, mrc.voxel_size.x]
@@ -414,7 +410,8 @@ def map_normalizing(raw_map_path, recl=0.0):
         map_data /= data_99_9
         map_data = np.clip(map_data, 0., 1.)
 
-    return map_data, map_origin, map_orientation
+    return map_data
+    # return map_data, map_origin, map_orientation
 
 
 # Step3.1.2: generate .mrc file
