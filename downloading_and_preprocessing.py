@@ -239,7 +239,7 @@ def preprocess_maps(csv_info, path_info, metadata_path, give_map: bool=True, pro
     # Remove failed entries from metadata file
     new_df = pd.read_csv(metadata_path)
     new_df = new_df[~new_df['emdb_id'].isin(failed)]
-    new_df_path = os.path.join(os.path.dirname(metadata_path), f"{os.path.basename(os.path.dirname(metadata_path))}_failed_droped.csv")
+    new_df_path = os.path.join(os.path.dirname(metadata_path), f"{os.path.basename(os.path.dirname(metadata_path))}_failed_dropped.csv")
     new_df.to_csv(new_df_path, index=False)
     logger.info('')
     logger.info(f'Failed Entries Were Removed from Metadata File; New Meatadata File Written at:\n"{os.path.abspath(new_df_path)}"')
