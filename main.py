@@ -23,9 +23,9 @@ def main(
     sample_path = os.path.join(cryo_data_bot_path, 'Sample')
     temp_path = os.path.join(cryo_data_bot_path, 'Temp')
 
-    csv_path = search_emdb(search_query, metadata_path, rows=3, fetch_classification=True)
+    csv_path = search_emdb(search_query, metadata_path, rows=10, fetch_classification=True)
 
-    download_and_preprocessing(csv_path, raw_path, overwrite=True)
+    download_and_preprocessing(csv_path, raw_path, overwrite=False)
 
     label_maps(label_groups,csv_path,raw_path,group_names, 
                temp_sample_path=temp_path, sample_path=sample_path)

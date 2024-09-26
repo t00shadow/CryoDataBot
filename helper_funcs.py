@@ -1,3 +1,5 @@
+import os
+
 from pandas import read_csv
 
 
@@ -47,18 +49,10 @@ def read_csv_info(csv_path, raw_dir):
     raw_maps = [f"emd_{emdb_id}.map" for emdb_id in emdb_ids]
     models = [f"{pdb}.cif" for pdb in pdbs]
 
-    raw_map_paths = [
-        f"{raw_dir}/{folder}/{raw_map}"
-        for folder, raw_map in zip(folders, raw_maps)
-    ]
-    model_paths = [
-        f"{raw_dir}/{folder}/{model}"
-        for folder, model in zip(folders, models)
-    ]
-    normalized_map_paths = [
-        f"{raw_dir}/{folder}/{raw_map_path.split('/')[-1].split('.')[0]}_normalized.mrc"
-        for folder, raw_map_path in zip(folders, raw_map_paths)
-    ]
+    raw_map_paths = [os.path.join(raw_dir, folder, raw_map) for folder, raw_map in zip(folders, raw_maps)]
+    model_paths = [os.path.join(raw_dir, folder, model) for folder, model in zip(folders, models)]
+    normalized_map_paths = [os.path.join(raw_dir, folder, f"{os.path.splitext(os.path.basename(raw_map_path))[0]}_normalized.mrc")\
+                             for folder, raw_map_path in zip(folders, raw_map_paths)]
 
     csv_info = (emdbs, pdbs, resolutions, emdb_ids)
     path_info = (raw_map_paths, model_paths, normalized_map_paths)

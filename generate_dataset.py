@@ -4,7 +4,7 @@ import os
 import shutil
 from concurrent.futures import ProcessPoolExecutor, as_completed
 from concurrent.futures.process import BrokenProcessPool
-from multiprocessing import Manager
+from multiprocessing import Lock, Manager
 
 import gemmi
 import mrcfile
@@ -681,7 +681,7 @@ def label_maps(label_group,
     csv_info, path_info = read_csv_info(metadata_path, raw_path)
     _, _, _, emdb_ids = csv_info
     _, model_paths, normalized_map_paths = path_info
-    training_set_name = metadata_path.split('/')[-1].split('.')[0]
+    training_set_name = os.path.splitext(os.path.basename(metadata_path))[0]
 
     # configure logger
     logger = logging.getLogger('Dataset_Generation_Logger')

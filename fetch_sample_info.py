@@ -6,6 +6,7 @@ import pandas as pd
 import requests
 from requests.adapters import HTTPAdapter
 from tqdm import tqdm
+from tqdm.contrib.logging import logging_redirect_tqdm
 from urllib3.util.retry import Retry
 
 from helper_funcs import calculate_title_padding
@@ -42,7 +43,7 @@ def search_emdb(
     """
     # get logger
     logger = logging.getLogger('Fetch_Sample_Info_Logger')
-    logger.setLevel(logging.INFO)
+    logger.setLevel(logging.DEBUG)
 
     # check file names
     num = 1
@@ -119,8 +120,8 @@ def search_emdb(
 
     df = pd.read_csv(file_path)
     # List of required columns
-    review_columns = ['title', 'resolution', 'emdb_id', 'fitted_pdbs', 'xref_UNIPROTKB',
-                      'xref_ALPHAFOLD', 'Q-score', 'atom_inclusion', 'recommended_contour_level']
+    review_columns = ['title', 'resolution', 'emdb_id', 'fitted_pdbs', 'xref_UNIPROTKB',\
+                       'xref_ALPHAFOLD', 'Q-score', 'atom_inclusion', 'recommended_contour_level']
     # Check which required columns are present in the DataFrame
     existing_columns = [col for col in review_columns if col in df.columns]
     # Print a message if any columns are missing
@@ -152,13 +153,14 @@ def get_class(pdb_id):
     Returns:
     tuple: A tuple containing the classification and description.
     """
+    logger = logging.getLogger('Fetch_Sample_Info_Logger')
+    logger.info(f'Fetching for {pdb_id}...')
     # for handling api calls
     session = requests.Session()
     retry = Retry(connect=3, backoff_factor=0.1, status_forcelist=[429])   # status_forcelist defaults to None; can be set to custom values or Retry.RETRY_AFTER_STATUS_CODES, which is [413, 429, 503]
     adapter = HTTPAdapter(max_retries=retry)
     session.mount('http://', adapter)
     session.mount('https://', adapter)
-
     url = 'https://data.rcsb.org/rest/v1/core/entry/'
     if pdb_id == '':
         return '', ''
@@ -193,13 +195,14 @@ def search_rcsb(file_path):
             else:
                 pdb_id = pdb_id.split(',')
                 pdb_id = pdb_id[0]
-                pdb_ids.append(pdb_id)
+                pdb_ids.append(pdb_id)      
 
         # Use ThreadPoolExecutor to process rows in parallel
-        logging.disable(logging.WARNING)
-        with ThreadPoolExecutor() as executor:
-            results = list(tqdm(executor.map(get_class, pdb_ids), total=len(df)))
-        logging.disable(logging.NOTSET)
+        #logging.disable(logging.WARNING)
+        with logging_redirect_tqdm([logger]):
+            with ThreadPoolExecutor() as executor:
+                results = list(tqdm(executor.map(get_class, pdb_ids), total=len(df)))
+        #logging.disable(logging.NOTSET)
 
         # Unpack results into separate lists
         RCSB_classification, RCSB_description = zip(*results)
@@ -215,9 +218,12 @@ def search_rcsb(file_path):
             if info == '':
                 error_entries.append(str(df['emdb_id'][index]))
         if error_entries:
-            logger.warning(f"Classification Info not Found for {len(error_entries)} Enterie(s):\n{error_entries}")
+            logger.warning(f"Classification Info not Found for {len(error_entries)} Enterie(s):")
+            length = len(error_entries)
+            for idx in range(0, length, num:=10):
+                logger.info(f'  {", ".join(error_entries[idx:idx + num])}')
     else:
-        # print("The column 'fitted_pdbs' does not exist in the DataFrame.")
+        #print("The column 'fitted_pdbs' does not exist in the DataFrame.")
         logger.warning(f"The Column 'fitted_pdbs' Does not Exist in the DataFrame, Cannot Fetch Classification Info")
 
 
@@ -231,20 +237,28 @@ def get_qscore(emdb_map_id):
     Returns:
     tuple: A tuple containing the Q-score, atom inclusion, and recommended contour level.
     """
+    # get logger
+    logger = logging.getLogger('Fetch_Sample_Info_Logger')
+
+    logger.info(f'Fetching for {emdb_map_id}...')
     entry_id = emdb_map_id.replace('EMD-', '')
     url = f"https://www.ebi.ac.uk/emdb/api/analysis/{entry_id}"
     file = requests.get(url).json()
+
     try:
         qscore = file[entry_id]["qscore"]["allmodels_average_qscore"]
-    except Exception:
+    except KeyError as e:
+        #logger.debug(f"Error Fetching Q-score for {emdb_map_id}: {e}")
         qscore = ''
     try:
         atom_inclusion = file[entry_id]["atom_inclusion_by_level"]["average_ai_allmodels"]
-    except Exception:
+    except KeyError as e:
+        #logger.debug(f"Error Fetching atom_inclusion for {emdb_map_id}: {e}")
         atom_inclusion = ''
     try:
         recl = file[entry_id]["recommended_contour_level"]["recl"]
-    except Exception:
+    except KeyError as e:
+        #logger.debug(f"Error Fetching recommended_contour_level for {emdb_map_id}: {e}")
         recl = ''
 
     return qscore, atom_inclusion, recl
@@ -260,18 +274,18 @@ def search_qscore(file_path):
     #print('\nFetching Q-score and atom inclusion...')
     logger = logging.getLogger('Fetch_Sample_Info_Logger')
     logger.info('')
-    logger.info('Fetching Q-score and atom inclusion...')
+    logger.info('Fetching Q-score, atom inclusion, and recommended_contour_level...')
     tqdm.pandas()
     df = pd.read_csv(file_path)
-    logging.disable(logging.WARNING)
+    #logging.disable(logging.WARNING)
     with ThreadPoolExecutor() as executor:
-        results = list(tqdm(executor.map(get_qscore, df['emdb_id']), total=len(df)))
-    logging.disable(logging.NOTSET)
+        with logging_redirect_tqdm([logger]):
+            results = list(tqdm(executor.map(get_qscore, df['emdb_id']), total=len(df)))
+    #logging.disable(logging.NOTSET)
     df['Q-score'], df['atom_inclusion'], df['recommended_contour_level'] = zip(*results)
     df.to_csv(file_path, index=False)
     #print('Q-score, atom_inclusion, and recommended_contour_level fetched.')
     logger.info('Q-score, atom_inclusion, and recommended_contour_level Fetched')
-    #logger.info('\n')
     
     # Output error message
     q_error = []
@@ -286,20 +300,32 @@ def search_qscore(file_path):
             c_error.append(str(df['emdb_id'][index]))
     if q_error:
         #print(f'No Q-score fetched for {len(q_error)} enterie(s):\n{q_error}')
-        logger.warning(f'No Q-score Fetched for {len(q_error)} Enterie(s):\n{q_error}')
+        logger.info('')
+        logger.warning(f'No Q-score Fetched for {len(q_error)} Enterie(s):')
+        length = len(q_error)
+        for idx in range(0, length, num:=10):
+            logger.info(f'  {", ".join(q_error[idx:idx + num])}')
     if a_error:
         #print(f'No atom_inclusion fetched for {len(a_error)} enterie(s):\n{a_error}')
-        logger.warning(f'No atom_inclusion Fetched for {len(a_error)} Enterie(s):\n{a_error}')
+        logger.info('')
+        logger.warning(f'No atom_inclusion Fetched for {len(a_error)} Enterie(s):')
+        length = len(a_error)
+        for idx in range(0, length, num:=10):
+            logger.info(f'  {", ".join(a_error[idx:idx + num])}')
     if c_error:
         #print(f'No recommended_contour_level fetched for {len(c_error)} enterie(s):\n{c_error}')
-        logger.warning(f'No recommended_contour_level Fetched for {len(c_error)} Enterie(s):\n{c_error}')
+        logger.info('')
+        logger.warning(f'No recommended_contour_level Fetched for {len(c_error)} Enterie(s):')
+        length = len(c_error)
+        for idx in range(0, length, num:=10):
+            logger.info(f'  {", ".join(c_error[idx:idx + num])}')
 
 
 if __name__ == '__main__':
-    save_path = '/home/qiboxu/Database/CryoDataBot_Data/Metadata'
-    path = search_emdb(query="ribosome AND resolution:[3 TO 4}",
-                       save_path=save_path,
-                       file_name='ribosome_res_3-4_20240924',
-                       fetch_qscore=True,
-                       fetch_classification=True)
+    path = search_emdb(query="ribosome AND resolution:[1 TO 4}",
+                file_name='ribosome_res_1-4',
+                fetch_qscore=True,
+                fetch_classification=True
+                , rows=20
+                )
     #print(path)

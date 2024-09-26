@@ -1,5 +1,7 @@
+from curses import meta
 import gzip
 import logging
+from math import log
 import os
 import shutil
 import urllib.request
@@ -9,11 +11,12 @@ import cupy as cp
 import gemmi
 import mrcfile
 import numpy as np
+import pandas as pd
 from cupyx.scipy.ndimage import binary_dilation, zoom
 from tqdm import tqdm
 from tqdm.contrib.logging import logging_redirect_tqdm
 
-from helper_funcs import calculate_title_padding, csv_col_reader, read_csv_info 
+from helper_funcs import calculate_title_padding, csv_col_reader, read_csv_info
 
 
 # main function
@@ -39,13 +42,12 @@ def download_and_preprocessing(metadata_path, raw_dir: str = 'Raw', overwrite = 
        - Uses preprocess_maps(path_info) to preprocess the downloaded map files.
     """ 
     # configure logger
-    # get logger
-    logger = logging.getLogger('Download_and_Preprocessing_Logger')
+    logger = logging.getLogger('Downloading_and_Preprocessing_Logger')
     logger.setLevel(logging.INFO)  
     std_out_hdlr = logging.StreamHandler()
     std_out_hdlr.setLevel(logging.INFO)
-    log_file_path = os.path.join(dir:=os.path.dirname(metadata_path), dir.split('/')[-1]+\
-                                 '_download_and_preprocessing.log')
+    log_file_path = os.path.join(dir:=os.path.dirname(metadata_path), os.path.basename(dir)\
+                                  + '_downloading_and_preprocessing.log')
     file_hdlr = logging.FileHandler(log_file_path)
     file_hdlr.setLevel(logging.INFO)
     #std_out_hdlr.setFormatter(logging.Formatter(''))
@@ -59,15 +61,15 @@ def download_and_preprocessing(metadata_path, raw_dir: str = 'Raw', overwrite = 
     csv_info, path_info = read_csv_info_with_recl(metadata_path, raw_dir)
 
     # # Step2: download maps and models using multithreasing
-    # logger.info(calculate_title_padding('Downloading Map & PDB Files'))
-    # logger.info(f'MetaData Path: {metadata_path}')
-    # fetch_map_model(csv_info, path_info, overwrite)
-    # logger.info(calculate_title_padding('Downloading Completed'))
-    # logger.info('')
+    logger.info(calculate_title_padding('Downloading Map & PDB Files'))
+    logger.info(f'MetaData Path: "{os.path.abspath(metadata_path)}"')
+    fetch_map_model(csv_info, path_info, overwrite)
+    logger.info(calculate_title_padding('Downloading Completed'))
+    logger.info('')
 
     # Step3: preprocess maps using multithreasing (Resample and normalize map files)
     logger.info(calculate_title_padding('Preprocessing Maps'))
-    preprocess_maps(csv_info, path_info)
+    preprocess_maps(csv_info, path_info, metadata_path)
     logger.info(calculate_title_padding('Preprocessing Completed'))
     logger.info('')
 
@@ -90,7 +92,7 @@ def fetch_map_model(csv_info, path_info, overwrite=False):
        - Submits download_one_map function for each map and model file.
     4. Uses tqdm to display a progress bar for the download tasks.
     """
-    logger = logging.getLogger('Download_and_Preprocessing_Logger')
+    logger = logging.getLogger('Downloading_and_Preprocessing_Logger')
     emdbs, pdbs, _, emdb_ids, _ = csv_info
     raw_map_paths, model_paths, _ = path_info
     with ThreadPoolExecutor() as executor:
@@ -136,7 +138,7 @@ def download_one_map(emdb, pdb, emdb_id, raw_map_path, model_path, overwrite=Fal
     - Logs warnings if there are errors during the download process.
     - Logs info messages when files are successfully downloaded.
     """
-    logger = logging.getLogger('Download_and_Preprocessing_Logger')
+    logger = logging.getLogger('Downloading_and_Preprocessing_Logger')
 
     path = os.path.dirname(raw_map_path)
     if os.path.exists(path):
@@ -176,7 +178,7 @@ def download_one_map(emdb, pdb, emdb_id, raw_map_path, model_path, overwrite=Fal
 
 
 # Step3: preprocess maps using multithreasing
-def preprocess_maps(csv_info, path_info, give_map: bool=True, protein_tag_dist: int=1, map_threashold: float=0.01):
+def preprocess_maps(csv_info, path_info, metadata_path, give_map: bool=True, protein_tag_dist: int=1, map_threashold: float=0.01):
     """
     Preprocesses multiple map files by normalizing them and calculating their fitness with models.
 
@@ -196,15 +198,51 @@ def preprocess_maps(csv_info, path_info, give_map: bool=True, protein_tag_dist: 
        - Appends the result to the results list.
     5. Logs the completion of the preprocessing process.
     """
-    logger = logging.getLogger('Download_and_Preprocessing_Logger')
+    logger = logging.getLogger('Downloading_and_Preprocessing_Logger')
+
     _, _, _, _, recls = csv_info
     raw_map_paths, model_paths, _ = path_info
-    results = []
-    with logging_redirect_tqdm([logger]):
 
+    results = []
+    failed: list[str] = []
+    with logging_redirect_tqdm([logger]):
         for raw_map_path, model_path, recl in tqdm(zip(raw_map_paths, model_paths, recls), total=len(raw_map_paths), desc='Preprocessing Maps'):
-            result = preprocess_one_map(recl, raw_map_path, model_path, give_map, protein_tag_dist, map_threashold)
-            results.append(result)
+            try:
+                vof, dice = preprocess_one_map(recl, raw_map_path, model_path, give_map, protein_tag_dist, map_threashold)
+                results.append(('EMD-'+os.path.basename(raw_map_path).split(".")[0].split('_')[1], os.path.basename(model_path).split(".")[0],\
+                                vof, dice))
+            except ValueError as e:
+                logger.warning(f'  Error Preprocessing Map: {e}')
+                logger.warning('  !!! Preprocessing Failed !!!')
+                logger.info('')
+                failed.append('EMD-'+os.path.basename(raw_map_path).split(".")[0].split('_')[1])
+
+    # save VOF/Dice            
+    result_df = pd.DataFrame(results, columns=['EMDB_ID', 'PDB_ID', 'VOF', 'Dice_Coefficient'])
+    df_path = os.path.join(os.path.dirname(metadata_path), 'map_to_model_fitnesses.csv')
+    result_df.to_csv(df_path, index=False)
+    logger.info('')
+    logger.info(f'Preprocessing Results Written at:\n"{os.path.abspath(df_path)}"')
+    logger.info('')
+
+    # Print out failed maps
+    if failed:
+        logger.info('Failed to Preprocess Maps:')
+        length = len(failed)
+        for idx in range(0, length, num:=10):
+            logger.info(f'  {", ".join(failed[idx:idx + num])}')
+    log_dir = os.path.dirname(metadata_path)
+    log_file_name = f"{os.path.basename(os.path.dirname(metadata_path))}_downloading_and_preprocessing.log"
+    log_path = os.path.join(log_dir, log_file_name)
+    print(f'Please Check Failed Entries at\n"{os.path.abspath(log_path)}"')
+
+    # Remove failed entries from metadata file
+    new_df = pd.read_csv(metadata_path)
+    new_df = new_df[~new_df['emdb_id'].isin(failed)]
+    new_df_path = os.path.join(os.path.dirname(metadata_path), f"{os.path.basename(os.path.dirname(metadata_path))}_failed_droped.csv")
+    new_df.to_csv(new_df_path, index=False)
+    logger.info('')
+    logger.info(f'Failed Entries Were Removed from Metadata File; New Meatadata File Written at:\n"{os.path.abspath(new_df_path)}"')
 
 
 # Step3.1: preprocess the map of one entry
@@ -250,11 +288,11 @@ def preprocess_one_map(recl: float, raw_map_path: str, model_path: str, give_map
     17. Saves the normalized map and binary map if give_map is True.
     18. Returns the VOF and Dice coefficient.
     """
-    logger = logging.getLogger('Download_and_Preprocessing_Logger')
+    logger = logging.getLogger('Downloading_and_Preprocessing_Logger')
 
     pdb = os.path.basename(model_path).split(".")[0]
-    emdb_id = os.path.basename(raw_map_path).split(".")[0]
-    save_path = os.path.dirname(raw_map_path)
+    emdb_id = os.path.basename(raw_map_path).split(".")[0].split('_')[1]
+    #save_path = os.path.dirname(raw_map_path)
 
     logger.info(f'Preprocessing Map: FITTED_PDB: {pdb} EMDB_ID: EMD-{emdb_id}')
 
@@ -266,6 +304,7 @@ def preprocess_one_map(recl: float, raw_map_path: str, model_path: str, give_map
     # if the origin is [0, 0, 0], then the following steps
     # Load the map
     try:
+        logger.info('  Normalizing Map')
         map_F = map_normalizing(raw_map_path, recl)
         # map_F, origin_info, _ = map_normalizing(raw_map_path, recl)
 
@@ -284,10 +323,10 @@ def preprocess_one_map(recl: float, raw_map_path: str, model_path: str, give_map
         logger.info('')
         return (0, 0)
     else:
-        logger.info('  Successfully Loaded Voxel Data.')
+        logger.info('  Successfully Normalized Map')
     map_boundary = np.shape(map_F)
 
-    logger.info(f'  Calculating Map to Model Fitness with Theoretical Atomic Radii as "{protein_tag_dist}" and Normalized Map Density Cutoff as "{map_threashold}"')
+    #logger.info(f'  Calculating Map to Model Fitness with Theoretical Atomic Radii as "{protein_tag_dist}" and Normalized Map Density Cutoff as "{map_threashold}"')
     # Load the CIF file
     try:
         protein = gemmi.read_structure(model_path)
@@ -296,13 +335,12 @@ def preprocess_one_map(recl: float, raw_map_path: str, model_path: str, give_map
         logger.warning('  !!! Preprocessing Failed !!!')
         logger.info('')
         return (0, 0)
-    else:
-        logger.info('  Successfully Loaded Coordinate Data')
+
     protein_coords = np.array(atom_coord_cif(protein)).reshape(-1, 3)
 
     # # Adjust atom coordinates if origin is not (0,0,0)
     # protein_coords -= origin_info
-    logger.info(f'  Number of Atoms in CIF: {len(protein_coords)}')
+    #logger.info(f'  Number of Atoms in CIF: {len(protein_coords)}')
 
     # Check if any atom coordinates are out of bounds
     try:
@@ -340,15 +378,21 @@ def preprocess_one_map(recl: float, raw_map_path: str, model_path: str, give_map
         # Calculate Dice coefficient
         dice = 2 * overlap_count / (np.sum(protein_tag) + np.sum(map_F))
     except Exception as e:
-            logger.warning(f'  Error Calculating Map to Model Fitness: {e}\n  !!! Preprocessing Failed !!!')
+            logger.warning(f'  Error Calculating Map to Model Fitness: {e}')
+            logger.warning('  !!! Preprocessing Failed !!!')
+            logger.info('')
             return (0, 0)
     else:
-        logger.info(f'  Calculation Completed: Volume Overlap Fraction (VOF): {(vof*100):.4f}%, Dice Coefficient: {(dice*100):.4f}%')
-
+        logger.info('  Map_to_Model Calculation Completed:')
+        logger.info(f'  Volume Overlap Fraction (VOF): {(vof*100):.4f}%, Dice Coefficient: {(dice*100):.4f}%')
+    
     # if give_map:
     #     with mrcfile.new(os.path.join(save_path, f'CIF_{pdb}.mrc'), overwrite=True) as mrc:
     #         mrc.set_data(protein_tag)
     #     logger.info(f'  Binary Map of {emdb_id} Saved as "BINARY_{emdb_id}.mrc"\n')
+    logger.info('')
+
+    return vof, dice
 
 
 # Step3.1.1: normalize one map - make the grid size 1A and make the density range [0,1]
@@ -461,6 +505,6 @@ def atom_coord_cif(structure):
 
 
 if __name__ == '__main__':
-    matadata_path = '/home/qiboxu/Database/CryoDataBot_Data/Metadata/ribosome_res_3-4_20240924_001/ribosome_res_3-4_20240924_001.csv'
-    raw_dir = '/home/qiboxu/Database/CryoDataBot_Data/Raw'
+    matadata_path = 'Metadata/ribosome_res_1-4_001/ribosome_res_1-4_001.csv'
+    raw_dir = 'Raw'
     download_and_preprocessing(matadata_path, raw_dir, overwrite=False)
