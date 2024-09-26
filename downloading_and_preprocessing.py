@@ -222,7 +222,8 @@ def preprocess_maps(csv_info, path_info, metadata_path, give_map: bool=True, pro
     df_path = os.path.join(os.path.dirname(metadata_path), 'map_to_model_fitnesses.csv')
     result_df.to_csv(df_path, index=False)
     logger.info('')
-    logger.info(f'Preprocessing Results Written at:\n"{os.path.abspath(df_path)}"')
+    logger.info('Preprocessing Results Written at:')
+    logger.info(f'"{os.path.abspath(df_path)}"')
     logger.info('')
 
     # Print out failed maps
@@ -234,7 +235,7 @@ def preprocess_maps(csv_info, path_info, metadata_path, give_map: bool=True, pro
     log_dir = os.path.dirname(metadata_path)
     log_file_name = f"{os.path.basename(os.path.dirname(metadata_path))}_downloading_and_preprocessing.log"
     log_path = os.path.join(log_dir, log_file_name)
-    print(f'Please Check Failed Entries at\n"{os.path.abspath(log_path)}"')
+    print(f'Please Check Failed Entries at:\n"{os.path.abspath(log_path)}"')
 
     # Remove failed entries from metadata file
     new_df = pd.read_csv(metadata_path)
@@ -242,7 +243,8 @@ def preprocess_maps(csv_info, path_info, metadata_path, give_map: bool=True, pro
     new_df_path = os.path.join(os.path.dirname(metadata_path), f"{os.path.basename(os.path.dirname(metadata_path))}_failed_dropped.csv")
     new_df.to_csv(new_df_path, index=False)
     logger.info('')
-    logger.info(f'Failed Entries Were Removed from Metadata File; New Meatadata File Written at:\n"{os.path.abspath(new_df_path)}"')
+    logger.info(f'Failed Entries Were Removed from Metadata File; New Meatadata File Written at:')
+    logger.info(f'"{os.path.abspath(new_df_path)}"')
 
 
 # Step3.1: preprocess the map of one entry
