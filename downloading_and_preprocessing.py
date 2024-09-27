@@ -1,7 +1,5 @@
-from curses import meta
 import gzip
 import logging
-from math import log
 import os
 import shutil
 import urllib.request
