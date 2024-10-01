@@ -92,3 +92,6 @@ SANDBOX23_customtreerowPoC (proof of concept) is gpt generated. not using that c
 SANDBOX23_sameidea is the same idea lol. source: https://stackoverflow.com/questions/72183924/add-custom-widget-to-a-qtreewidget-column-in-pyqt5
 
 SANDBOX24_py is this stack example, allows real time completion checking in a comma separated single user input (https://stackoverflow.com/questions/3779720/qt-qcompleter-multiple-matches)
+
+SANDBOX25_py is this tutorial (uses animations): https://www.pythonguis.com/tutorials/qpropertyanimation/#fn:1. EDIT: prob won't need this, but good example of how to implement animations
+    edit: code copied into the GUI_custom_widgets folder under animated_toggle.py and test_animated_toggle.py

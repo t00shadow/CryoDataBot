@@ -20,13 +20,15 @@ from PyQt5 import QtGui as qtg
 from PyQt5.QtCore import QTextCodec
 codec = QTextCodec.codecForName("UTF-8")
 
-from guiskin_DEV2 import Ui_MainWindow    # need the "Ui_" prefix
+from guiskin_DEV2_alt import Ui_MainWindow    # need the "Ui_" prefix
 #from guiskin import Ui_MainWindow
 
 import GUI_custom_widgets.z_Tag_main_alt_allcode_v2 as TTEwidget2
 from GUI_custom_widgets.LabelComboBox import LabelComboBox
 import GUI_custom_widgets.commaLineEdit as LabelLineEdit
 from GUI_custom_widgets.animated_toggle import AnimatedToggle
+from GUI_custom_widgets.popupDialog_alt import PopupDialog
+from GUI_custom_widgets.easyCloseDialog import EasyCloseDialog
 from my_logger import Handler
 
 
@@ -72,6 +74,8 @@ class MainWindow(qtw.QMainWindow):    # Make sure the root widget/class is the r
         self.default_metadata_filepath = r"C:\Users\noelu\CryoDataBot\JUNK_TEST_FOLDER\...\metadata"
         self.labels = [[]]     # list of list of dicts, initialize as list of empty list
         self.label_dict_template = {'secondary_type': '', 'residue_type': '', 'atom_type': '', 'label': ''}
+        self.main_dir_selection_locked = False
+        self.main_dir_path = ""
 
 
         # ======== SIGNALS AND SLOTS ========
@@ -84,7 +88,9 @@ class MainWindow(qtw.QMainWindow):    # Make sure the root widget/class is the r
         # self.ui.lineEdit.setClearButtonEnabled(True)
         # self.ui.lineEdit.setPlaceholderText("overwrote placeholder text via code")
         self.ui.lineEdit_p1.setText(r"C:\Users\noelu\CryoDataBot\JUNK_TEST_FOLDER")
-        self.ui.lineEdit_p2.setText(r"C:\Users\noelu\CryoDataBot\JUNK_TEST_FOLDER")
+        self.ui.lineEdit_12.setPlaceholderText("[sample] AND [range_keyword: x TO y] AND [keyword]")
+        self.ui.lineEdit_12.setText("")
+        # self.ui.lineEdit_p2.setText(r"C:\Users\noelu\CryoDataBot\JUNK_TEST_FOLDER")
         # TODO: enable elide for all filepath text fields
         self.ui.lineEdit_p3.setText(self.default_metadata_filepath)
 
@@ -97,11 +103,26 @@ class MainWindow(qtw.QMainWindow):    # Make sure the root widget/class is the r
         # page 2
         self.ui.pushButton_p2.clicked.connect(lambda: self.browse_folder(page="step1"))
         self.ui.pushButton_p2_2.clicked.connect(self.fetch_sample_info)
+
+        self.lockBtn = qtw.QPushButton()
+        self.lockBtn.setCursor(qtc.Qt.PointingHandCursor)
+        self.lockBtn.setIcon(qtg.QIcon(r"GUI_custom_widgets/svgs/lock-open-svgrepo-com.svg"))
+        # self.lockBtn.clicked.connect(lambda: self.lockBtn.setIcon(qtg.QIcon(r"GUI_custom_widgets/svgs/lock-open-svgrepo-com.svg")))
+        self.lockBtn.clicked.connect(self.lock_main_dir_selection)
+        self.ui.B1_csvFilepath.layout().insertWidget(0, self.lockBtn)
         # page 3
         self.ui.pushButton_p3.clicked.connect(lambda: self.browse_folder(page="step2"))
         self.ui.resetDefaultVal_btn.clicked.connect(lambda: self.ui.lineEdit_p3.setText(self.default_metadata_filepath))
         
-        self.ui.qScoreInfo_btn.clicked.connect(self.show_tooltip_on_click)
+        # make these tool tips in designer in rich text on a testpage, and then copy paste them from the generated ui code, and then delete the test page at runtime
+        self.ui.qScoreInfo_btn.clicked.connect(lambda: self.show_tooltip_on_click("QScore: \ndescrip... *consider using richtext (if possible) to have colors and bold, italics, etc"))
+        self.ui.mmfInfo_btn.clicked.connect(lambda: self.show_tooltip_on_click("Our calculated metric: ...what this means..."))
+        self.ui.simInfo_btn.clicked.connect(lambda: self.show_tooltip_on_click("Similarity: a measure of how similar _ are. 100 is most similar, 0 is least similar"))
+        # rename these info buttons in designer. Use rich text if possible
+        self.ui.qScoreInfo_btn_2.clicked.connect(lambda: self.show_tooltip_on_click("This step fetches metadata from EMDB. If you already have a .csv file with the columns: emdb_id, resolution, fitted_pdbs, you can skip this step."))
+        self.ui.qScoreInfo_btn_3.clicked.connect(lambda: self.show_tooltip_on_click("This step preprocesses... NOTE: Maps and models are downloaded in this step."))
+        self.ui.qScoreInfo_btn_6.clicked.connect(lambda: self.show_tooltip_on_click("Create labels for your dataset. Add groups to separate your labels."))
+
 
         self.ui.clearQScore_btn.clicked.connect(lambda: self.ui.qScoreDoubleSpinBox.setValue(0))
         self.ui.clearMMF_btn.clicked.connect(lambda: self.ui.mapModelFitnessSpinBox.setValue(0))
@@ -185,14 +206,16 @@ class MainWindow(qtw.QMainWindow):    # Make sure the root widget/class is the r
         self.ui.B2_queryBox.layout().removeWidget(self.querywidget2)
         self.querywidget2.deleteLater()
         self.querywidget2 = None
-        self.ui.baseLayer_3.setTitle("Preprocessing")
-        self.ui.B_refineCSV.setTitle("Optional")
+        # self.ui.baseLayer_3.setTitle("Preprocessing")
+        self.ui.B_refineCSV.setTitle("Filters")
         self.ui.pushButton_p3_4.setText("Preprocess")
         self.ui.pushButton_p2_2.setText("Search")
-        self.ui.lineEdit_p1_2.setText(r"C:\Users\noelu\CryoDataBot\JUNK_TEST_FOLDER\Labels")
+        # self.ui.lineEdit_p1_2.setText(r"C:\Users\noelu\CryoDataBot\JUNK_TEST_FOLDER\Labels")
+        self.ui.lineEdit_p3_2.setText(r"C:\Users\noelu\CryoDataBot\JUNK_TEST_FOLDER\Labels")
         self.ui.statusbar.showMessage("example status bar message")
 
-        self.ui.lineEdit_p1_2.findChild(qtw.QToolButton).setIcon(qtg.QIcon(r"GUI_custom_widgets/svgs/clear_small-svgrepo-com.svg"))
+        # self.ui.lineEdit_p1_2.findChild(qtw.QToolButton).setIcon(qtg.QIcon(r"GUI_custom_widgets/svgs/clear_small-svgrepo-com.svg"))
+        self.ui.lineEdit_p3_2.findChild(qtw.QToolButton).setIcon(qtg.QIcon(r"GUI_custom_widgets/svgs/clear_small-svgrepo-com.svg"))
         # ===================================================== 
 
 
@@ -233,7 +256,22 @@ class MainWindow(qtw.QMainWindow):    # Make sure the root widget/class is the r
         # self.ui.page4.layout().setSizeConstraint(1)
         # # self.ui.tab.layout().setSizeConstraint(1)   # theres's no layout set on the test page lol (intentional)
 
-        self.ui.tabWidget.setCurrentIndex(3)     # choose starting page
+        self.ui.stackedWidget.setCurrentIndex(0)     # choose starting page
+        self.ui.sidebtn.clicked.connect(lambda: self.ui.stackedWidget.setCurrentIndex(0))
+        self.ui.sidebtn_2.clicked.connect(lambda: self.ui.stackedWidget.setCurrentIndex(1))
+        self.ui.sidebtn_3.clicked.connect(lambda: self.ui.stackedWidget.setCurrentIndex(2))
+        self.ui.sidebtn_4.clicked.connect(lambda: self.ui.stackedWidget.setCurrentIndex(3))
+        self.ui.sidebtn_5.clicked.connect(lambda: self.ui.stackedWidget.setCurrentIndex(4))
+        self.ui.sidebtn_6.clicked.connect(lambda: self.ui.stackedWidget.setCurrentIndex(5))
+
+        self.ui.sidebtn.clicked.connect(self.uncheck_other_buttons)
+        self.ui.sidebtn.setChecked(True)
+        self.ui.sidebtn_2.clicked.connect(self.uncheck_other_buttons)
+        self.ui.sidebtn_3.clicked.connect(self.uncheck_other_buttons)
+        self.ui.sidebtn_4.clicked.connect(self.uncheck_other_buttons)
+        self.ui.sidebtn_5.clicked.connect(self.uncheck_other_buttons)
+        self.ui.sidebtn_6.clicked.connect(self.uncheck_other_buttons)
+
         # self.ui.statusbar.
 
         self.setup_logger()
@@ -246,9 +284,54 @@ class MainWindow(qtw.QMainWindow):    # Make sure the root widget/class is the r
 
     # functions, for bigger gui could put these in separate files and import them
     # Edit: ehh havent needed it so far
+
+    # for left panel. maybe store btns and pages in a lookup table/dictionary so can relate them easier
+    def uncheck_other_buttons(self):
+        # set all to false and then set the sender to true
+        self.ui.sidebtn.setChecked(False)
+        self.ui.sidebtn_2.setChecked(False)
+        self.ui.sidebtn_3.setChecked(False)
+        self.ui.sidebtn_4.setChecked(False)
+        self.ui.sidebtn_5.setChecked(False)
+        self.ui.sidebtn_6.setChecked(False)
+        self.sender().setChecked(True)
+
+
     
-    def show_tooltip_on_click(self):
-        qtw.QToolTip.showText(self.ui.qScoreInfo_btn.mapToGlobal(qtc.QPoint(-5, -5)), "This is a tooltip", self.ui.qScoreInfo_btn)
+    def show_tooltip_on_click(self, message: str):
+        button = self.sender()
+        qtw.QToolTip.showText(button.mapToGlobal(qtc.QPoint(15, -10)), message, button)
+
+    # makes the CryoDataBot main directory at user specified location
+    # lowkey this is unneeded if u use os.makedirs in the other steps
+    # ideas for helping visually clue viewers in that it's only needs to be set once, is having it greyed out, and then clicking a gear button to trigger a dialog window to edit it. or having a dropdown and then gear icon again idk
+    # OR make an inital page (like vscodes home page thing or chimeras, that asks users to select a home save folder upon first launch (stores it some json or smth))
+    
+    # TODO: small bug, if no folder is selected, it becomes just "CryoDataBot. like as an absolute path lol. just use os.getcwd or wtv
+    def make_main_dir(self, dir_path):
+        print("make_main_dir fxn triggered")
+        try:
+            if not os.path.exists(dir_path):
+                os.mkdir(dir_path)
+        except Exception as error:
+            print("An exception occurred:", error)    # TODO: switch to a logger statement
+
+    def lock_main_dir_selection(self):
+        if self.ui.lineEdit_p2.text() == "":
+            self.ui.statusbar.showMessage("select a folder", 1000)
+            return
+
+        if not self.main_dir_selection_locked:
+            self.lockBtn.setIcon(qtg.QIcon(r"GUI_custom_widgets/svgs/lock-closed-svgrepo-com.svg"))
+            self.ui.lineEdit_p2.setStyleSheet("background-color: white")
+            self.ui.pushButton_p2.setDisabled(True)
+            self.main_dir_selection_locked = True
+        else:
+            self.lockBtn.setIcon(qtg.QIcon(r"GUI_custom_widgets/svgs/lock-open-svgrepo-com.svg"))
+            self.ui.lineEdit_p2.setStyleSheet("background-color: white; color: black")
+            self.ui.pushButton_p2.setDisabled(False)
+            self.main_dir_selection_locked = False
+
 
     # junk fxn for testing signals and slots, can delete/comment out later
     def run_naive(self):
@@ -267,6 +350,7 @@ class MainWindow(qtw.QMainWindow):    # Make sure the root widget/class is the r
         ----------
         None
         """
+        self.make_main_dir(self.main_dir_path)
 
         query = self.userInputQuery.text()    # change this to the custom widget like in gen_dataset_quick()
         #processedstring = stringutil.process_string(query)   # TODO, concatenate array of keywords into a string (not sure how to implement and and or logic with keywords)
@@ -316,12 +400,15 @@ class MainWindow(qtw.QMainWindow):    # Make sure the root widget/class is the r
     # this code looks kinda gross
     def browse_folder(self, page="quick"):
         filepath = qtw.QFileDialog.getExistingDirectory(self, 'Select Folder')
-        print("download destination:", filepath)
+        print("selected path:", filepath)
         self.ui.statusbar.showMessage(f"selected folder: {filepath}", 2000)    # if use textChanged instead of textEdited signal in lineEdit_22 to statusbar connection, can remove this line, since textChanged is emitted the text is change by users OR programmatically (textEdited is only emited when text is changed by users)
         if page == "quick":
             self.ui.lineEdit_p1.setText(filepath)
-        elif page == "step1":
-            self.ui.lineEdit_p2.setText(filepath)
+        elif page == "step1" and not self.main_dir_selection_locked:
+            self.main_dir_path = os.path.join(filepath, "CryoDataBot")
+            self.ui.lineEdit_p2.setText(self.main_dir_path.replace("\\", "/"))    # doesnt modify self.main_dir_path btw
+            # self.make_main_dir(main_dir_path)
+            self.lock_main_dir_selection()
         elif page == "step2":
             self.ui.lineEdit_p3.setText(filepath)
 
@@ -332,7 +419,7 @@ class MainWindow(qtw.QMainWindow):    # Make sure the root widget/class is the r
 
 
 
-    #QTreeWidget stuff
+    #QTreeWidget stuff --> TODO: move to its own file, need to slightly rewrite cuz accessing ui widgets, like pass in the tree widget
     def add_group(self):
         """Add a new group to the tree widget (top-level item, editable)."""
         group_name = f"Group {self.ui.treeWidget_p4.topLevelItemCount() + 1}"
@@ -348,6 +435,8 @@ class MainWindow(qtw.QMainWindow):    # Make sure the root widget/class is the r
         group_name = f"Group {self.ui.treeWidget_p4.topLevelItemCount() + 1}"
         group_item = qtw.QTreeWidgetItem([group_name, "", ""])
         group_item.setFlags(group_item.flags() | qtc.Qt.ItemIsEditable)  # Make the group item editable
+        for i in range (1, 4):                                                  # Make the other columns in group row uneditable
+            self.ui.treeWidget_p4.setItemDelegateForColumn(i, NoEditDelegate(self))
         self.ui.treeWidget_p4.addTopLevelItem(group_item)
 
         # Automatically select the newly added group
@@ -357,13 +446,14 @@ class MainWindow(qtw.QMainWindow):    # Make sure the root widget/class is the r
         group_delbtn.setFixedWidth(16)
         group_delbtn.setFixedHeight(16)
         group_delbtn.setStyleSheet("QPushButton {\n"
-        "    background: rgb(230, 230, 230);\n"
+        "    background: transparent;\n"       # used to be a light gray
         "    border-radius: 8px;\n"
         "    color: white;\n"
         "}\n"
         "\n"
         "QPushButton:hover, QPushButton:pressed {\n"
         "    background: rgb(255, 0, 0);\n"
+        "    border-image: url(GUI_custom_widgets/svgs/clear_inverse-svgrepo-com.svg);\n"  # border-image vs image?
         "}\n"
         "\n"
         "QPushButton:pressed {\n"
@@ -372,6 +462,7 @@ class MainWindow(qtw.QMainWindow):    # Make sure the root widget/class is the r
         group_delbtn.setCursor(qtg.QCursor(qtc.Qt.PointingHandCursor))
         group_delbtn.clicked.connect(self.delete_group)
         self.ui.treeWidget_p4.setItemWidget(group_item, 4, group_delbtn)
+        self.ui.treeWidget_p4.itemClicked.connect(lambda: print("CASE\n    OH"))
 
     def add_label(self):
         """Add a label (subitem, editable) to the selected group or the parent group of the selected label."""
@@ -392,63 +483,75 @@ class MainWindow(qtw.QMainWindow):    # Make sure the root widget/class is the r
             group_item.addChild(label_item)
             group_item.setExpanded(True)  # Automatically expand the group when a label is added
 
+    # label here refers to a label item in the labels tree not a QLabel
     def add_label_custom(self):
         """Add a label (subitem, editable) to the selected group or the parent group of the selected label."""
         selected_item = self.ui.treeWidget_p4.currentItem()
 
         # Check if a group or label is selected
-        if selected_item is not None:
-            if selected_item.parent() is None:
-                # If a group is selected, add a label to the group
-                group_item = selected_item
-            else:
-                # If a label is selected, add a label to its parent group
-                group_item = selected_item.parent()
-
-            label_name = f"Label {group_item.childCount() + 1}"
-            # label_item = qtw.QTreeWidgetItem([label_name, "", ""])
-            # label_item.setFlags(label_item.flags() | qtc.Qt.ItemIsEditable)  # Allow editing of the label item
-            child_item = qtw.QTreeWidgetItem(group_item)
-            child_item.setFlags(child_item.flags() | qtc.Qt.ItemIsEditable)  # DISABLE this and add a custom line edit with a completer
-            group_item.addChild(child_item)
-
-            self.ui.treeWidget_p4.setItemWidget(child_item, 0, qtw.QLabel(label_name))
-            secondary_struct_combo = LabelComboBox()
-            secondary_struct_combo.addItems(['', 'protein - all', 'protein - helix', 'protein - sheet', 'protein - loop', 'RNA', 'DNA'])
-            self.ui.treeWidget_p4.setItemWidget(child_item, 1, secondary_struct_combo)
-            residues_combo = LabelComboBox()
-            residues_combo.addItems(['', 'All', 'A', 'T', 'C', 'G', 'U', 'alanine', 'arginine', 'asparagine', 'aspartic acid', 'cysteine', 'glutamic acid', 'glutamine', 'glycine', 'histidine', 'isoleucine', 'leucine', 'lysine', 'methionine', 'phenylalanine', 'proline', 'serine', 'threonine', 'tryptophan', 'tyrosine', 'valine'])
-            self.ui.treeWidget_p4.setItemWidget(child_item, 2, residues_combo)
-            atoms_lineedit = LabelLineEdit.CustomLineEdit(['All', 'C', 'N', 'P', 'O', 'H', 'Metals?'])
-            self.ui.treeWidget_p4.setItemWidget(child_item, 3, atoms_lineedit)
-            label_delbtn = qtw.QPushButton()
-            label_delbtn.setIcon(qtg.QIcon(r"GUI_custom_widgets/svgs/clear_inverse-svgrepo-com.svg"))
-            label_delbtn.setFixedWidth(16)
-            label_delbtn.setFixedHeight(16)
-            label_delbtn.setStyleSheet("QPushButton {\n"
-            "    background: rgb(180, 180, 180);\n"
-            "    border-radius: 8px;\n"
-            "    color: white;\n"
-            "}\n"
-            "\n"
-            "QPushButton:hover, QPushButton:pressed {\n"
-            "    background: rgb(200, 0, 0);\n"
-            "}\n"
-            "\n"
-            "QPushButton:pressed {\n"
-            "    border: 2px solid transparent;\n"
-            "}")
-            label_delbtn.setCursor(qtg.QCursor(qtc.Qt.PointingHandCursor))
-            label_delbtn.clicked.connect(self.delete_label)
-            self.ui.treeWidget_p4.setItemWidget(child_item, 4, label_delbtn)
+        if selected_item is None:
+            self.ui.statusbar.showMessage("Create a group first", 250)
             
-            # group_item.addChild(label_item)
-            group_item.setExpanded(True)  # Automatically expand the group when a label is added
+            return
+        
+        if selected_item.parent() is None:
+            # If a group is selected, add a label to the group
+            group_item = selected_item
+        else:
+            # If a label is selected, add a label to its parent group
+            group_item = selected_item.parent()
 
-            label = self.label_dict_template.copy()   # delete this later and make a separate function. More optimal way is to retrieve only when ready to generate datasets. But maybe want some method to save sessions/history later idk
-            label['secondary_type'] = "obunga"
-            self.labels.append(label)    # lol its not even right
-            print(self.labels)
+        label_name = f"Label {group_item.childCount() + 1}"
+        # label_item = qtw.QTreeWidgetItem([label_name, "", ""])
+        # label_item.setFlags(label_item.flags() | qtc.Qt.ItemIsEditable)  # Allow editing of the label item
+        child_item = qtw.QTreeWidgetItem(group_item)
+        child_item.setFlags(child_item.flags() | qtc.Qt.ItemIsEditable)  # DISABLE this and add a custom line edit with a completer
+        group_item.addChild(child_item)
+
+        self.ui.treeWidget_p4.setItemWidget(child_item, 0, qtw.QLabel(label_name))
+        secondary_struct_combo = LabelComboBox()
+        secondary_struct_combo.addItems(['', 'protein - all', 'protein - helix', 'protein - sheet', 'protein - loop', 'RNA', 'DNA'])
+        self.ui.treeWidget_p4.setItemWidget(child_item, 1, secondary_struct_combo)
+        residues_combo = LabelComboBox(placeholder_text="Choose residue(s)")
+        residues_combo.addItems(['', 'All', 'A', 'T', 'C', 'G', 'U', 'alanine', 'arginine', 'asparagine', 'aspartic acid', 'cysteine', 'glutamic acid', 'glutamine', 'glycine', 'histidine', 'isoleucine', 'leucine', 'lysine', 'methionine', 'phenylalanine', 'proline', 'serine', 'threonine', 'tryptophan', 'tyrosine', 'valine'])
+        self.ui.treeWidget_p4.setItemWidget(child_item, 2, residues_combo)
+        atoms_lineedit = LabelLineEdit.CustomLineEdit(['All', 'C', 'N', 'P', 'O', 'H', 'Metals?'])
+        atoms_lineedit.setPlaceholderText("Type in atoms")    # TODO: consider adding this to the customlineedit constructor
+        self.ui.treeWidget_p4.setItemWidget(child_item, 3, atoms_lineedit)
+        label_delbtn = qtw.QPushButton()
+        label_delbtn.setIcon(qtg.QIcon(r"GUI_custom_widgets/svgs/clear_inverse-svgrepo-com.svg"))
+        label_delbtn.setFixedWidth(16)
+        label_delbtn.setFixedHeight(16)
+        label_delbtn.setStyleSheet("QPushButton {\n"
+        "    background: transparent;\n"       # used to be a light gray
+        "    border-radius: 8px;\n"
+        "    color: white;\n"
+        "}\n"
+        "\n"
+        "QPushButton:hover, QPushButton:pressed {\n"
+        "    background: rgb(200, 0, 0);\n"
+        "    border-image: url(GUI_custom_widgets/svgs/clear_inverse-svgrepo-com.svg);\n"   # border-image vs image?
+        "}\n"
+        "\n"
+        "QPushButton:pressed {\n"
+        "    border: 2px solid transparent;\n"
+        "}")
+        label_delbtn.setCursor(qtg.QCursor(qtc.Qt.PointingHandCursor))
+        # label_delbtn.clicked.connect(self.delete_label)
+        label_delbtn.clicked.connect(self.on_click)
+        self.ui.treeWidget_p4.setItemWidget(child_item, 4, label_delbtn)
+        
+        # group_item.addChild(label_item)
+        group_item.setExpanded(True)  # Automatically expand the group when a label is added
+        self.ui.treeWidget_p4.setCurrentItem(child_item)
+
+        label = self.label_dict_template.copy()   # delete this later and make a separate function. More optimal way is to retrieve only when ready to generate datasets. But maybe want some method to save sessions/history later idk
+        label['secondary_type'] = "obunga"
+        self.labels.append(label)    # lol its not even right
+        print(self.labels)
+
+    def showDeleteButton(self):
+        pass
 
     def delete_label(self):
         selected_item = self.ui.treeWidget_p4.currentItem()
@@ -478,6 +581,33 @@ class MainWindow(qtw.QMainWindow):    # Make sure the root widget/class is the r
             label_item.setFlags(label_item.flags() | qtc.Qt.ItemIsEditable)  # Allow editing of the label item
             group_item.addChild(label_item)
             group_item.setExpanded(True)  # Automatically expand the group when a label is added
+
+
+##### discord style delete button, should move these into a separate file (not just the popup dialog but the delete button too. Literally just have to modify SANDBOX_temp.py's mainwindow to just a button)
+    def on_click(self):
+        # Detect if Shift key is held
+        if qtw.QApplication.keyboardModifiers() == qtc.Qt.ShiftModifier:
+            self.delete_without_confirmation()
+        else:
+            self.open_popup()
+
+    def open_popup(self):
+        """Show the popup dialog."""
+        dialog = PopupDialog(self, self.delete_label)    # passing fxn as a parameter. Also, changed self.dialog to dialog since not accessed outside of this method.
+        dialog.setWindowModality(False)  # Non-modal, allowing interaction with the main window
+        dialog.show()
+
+    def delete_without_confirmation(self):      # need to distinguish between gorups and labels (idea: check sender with self.sender?). Easy fix is making 2 dif fxns but thats kinda stupid
+        # Bypass confirmation dialog and delete directly
+        del_button = self.sender()
+        print(del_button)
+        print(type(del_button))
+        print(del_button.parent())
+
+        print("Deleted without confirmation!")
+        self.delete_label()
+
+
 
 # Spin box dependency
 # TLDR: spinbox1 funnels into spinbox3

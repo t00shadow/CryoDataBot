@@ -5,7 +5,7 @@ from PyQt5.QtGui import QIcon
 
 
 class LabelComboBox(QComboBox):
-    def __init__(self, parent=None):
+    def __init__(self, parent=None, placeholder_text="Select an option"):
         super().__init__(parent)
         self.setEditable(True)
         self.setInsertPolicy(QComboBox.NoInsert)
@@ -17,7 +17,7 @@ class LabelComboBox(QComboBox):
         self.view().installEventFilter(self)
 
         # Placeholder text styling
-        self.lineEdit().setPlaceholderText("Select an option")
+        self.lineEdit().setPlaceholderText(placeholder_text)
         self.setStyleSheet("color: teal;")
         self.lineEdit().setStyleSheet("color: brown;")
         self.lineEdit().setClearButtonEnabled(True)

@@ -12,3 +12,5 @@ JUNK_DONT_COMMIT.py
 
 /JUNK_TEST_FOLDER
 /TEST_FILES_noncode
+
+*.pyc

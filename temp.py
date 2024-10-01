@@ -46,3 +46,18 @@ print(df_split)
 
 new_df = df_split[[0, 2]]
 print(new_df)
+
+
+import os
+
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+
+filepath = os.path.join('files', 'one.txt')
+request_path = os.path.join(BASE_DIR, filepath)
+print(request_path, filepath, BASE_DIR)
+
+
+CURR_DIR = os.getcwd()
+print(CURR_DIR)
+complete_path = os.path.join(CURR_DIR, "Oogabooga")
+print(complete_path)

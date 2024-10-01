@@ -1,172 +1,82 @@
-from PyQt5.QtCore import (
-    Qt, QSize, QPoint, QPointF, QRectF,
-    QEasingCurve, QPropertyAnimation, QSequentialAnimationGroup,
-    pyqtSlot, pyqtProperty)
-
-from PyQt5.QtWidgets import QCheckBox
-from PyQt5.QtGui import QColor, QBrush, QPaintEvent, QPen, QPainter
+import sys
+from PyQt5.QtCore import QEvent, QPoint, Qt
+from PyQt5.QtWidgets import QApplication, QMainWindow, QDialog, QPushButton, QVBoxLayout, QLabel
 
 
-class AnimatedToggle(QCheckBox):
+#start: put this shit in a separate file (with the necessary imports)
+class PopupDialog(QDialog):
+    def __init__(self, parent=None):
+        super(PopupDialog, self).__init__(parent)
+        self.setWindowTitle("Popup Dialog")
+        self.setGeometry(150, 150, 300, 200)
 
-    _transparent_pen = QPen(Qt.transparent)
-    _light_grey_pen = QPen(Qt.lightGray)
+        # Basic layout and button in the popup
+        layout = QVBoxLayout(self)
+        text_blurb = QLabel("You sure u wanna delete?")
+        layout.addWidget(text_blurb)
+        close_button = QPushButton("Confirm")
+        layout.addWidget(close_button)
+        close_button.clicked.connect(lambda: print("deleted"))
+        close_button.clicked.connect(self.close)
 
-    def __init__(self,
-        parent=None,
-        bar_color=Qt.gray,
-        checked_color="#00B0FF",
-        handle_color=Qt.white,
-        pulse_unchecked_color="#44999999",
-        pulse_checked_color="#4400B0EE"
-        ):
-        super().__init__(parent)
+    def showEvent(self, event):
+        # Install a global event filter when the dialog is shown
+        QApplication.instance().installEventFilter(self)
+        super().showEvent(event)
 
-        # Save our properties on the object via self, so we can access them later
-        # in the paintEvent.
-        self._bar_brush = QBrush(bar_color)
-        self._bar_checked_brush = QBrush(QColor(checked_color).lighter())
+    def hideEvent(self, event):
+        # Remove the event filter when the dialog is closed
+        QApplication.instance().removeEventFilter(self)
+        super().hideEvent(event)
 
-        self._handle_brush = QBrush(handle_color)
-        self._handle_checked_brush = QBrush(QColor(checked_color))
+    def close(self):
+        print("dialog closed")
+        return super().close()
 
-        self._pulse_unchecked_animation = QBrush(QColor(pulse_unchecked_color))
-        self._pulse_checked_animation = QBrush(QColor(pulse_checked_color))
+    def eventFilter(self, watched, event):
+        # Check if a mouse button is pressed outside the dialog
+        if event.type() == QEvent.MouseButtonPress:
+            if not self.rect().contains(self.mapFromGlobal(event.globalPos())):
+                self.close()
+        return super().eventFilter(watched, event)
+#end: put this shit in a separate file (with the necessary imports)
 
-        # Setup the rest of the widget.
-        self.setContentsMargins(8, 0, 8, 0)
-        self._handle_position = 0
 
-        self._pulse_radius = 0
 
-        self.animation = QPropertyAnimation(self, b"handle_position", self)
-        self.animation.setEasingCurve(QEasingCurve.InOutCubic)
-        self.animation.setDuration(200)  # time in ms
+# TODO: CONVERT THIS CLASS TO JUST A QPUSHBUTTON. the example usage is also literally in here
+class MainWindow(QMainWindow):
+    def __init__(self):
+        super(MainWindow, self).__init__()
+        self.setWindowTitle("Main Window")
+        self.setGeometry(100, 100, 400, 300)
 
-        self.pulse_anim = QPropertyAnimation(self, b"pulse_radius", self)
-        self.pulse_anim.setDuration(350)  # time in ms
-        self.pulse_anim.setStartValue(10)
-        self.pulse_anim.setEndValue(20)
+        # Button to open the popup dialog
+        self.button = QPushButton("Delete", self)
+        self.button.setGeometry(150, 100, 100, 50)
+        self.button.clicked.connect(self.on_click)              # this is rly all u need besides the 3 fxns below
 
-        self.animations_group = QSequentialAnimationGroup()
-        self.animations_group.addAnimation(self.animation)
-        self.animations_group.addAnimation(self.pulse_anim)
-
-        self.stateChanged.connect(self.setup_animation)
-
-    def sizeHint(self):
-        return QSize(58, 45)
-
-    def hitButton(self, pos: QPoint):
-        return self.contentsRect().contains(pos)
-
-    @pyqtSlot(int)
-    def setup_animation(self, value):
-        self.animations_group.stop()
-        if value:
-            self.animation.setEndValue(1)
+    # start: move these to a separate file too, call it deleteButton? or like popupDeleteButton?
+    def on_click(self):
+        # Detect if Shift key is held
+        if QApplication.keyboardModifiers() == Qt.ShiftModifier:
+            self.delete_without_confirmation()
         else:
-            self.animation.setEndValue(0)
-        self.animations_group.start()
+            self.open_popup()
 
-    def paintEvent(self, e: QPaintEvent):
+    def open_popup(self):
+        """Show the popup dialog."""
+        self.dialog = PopupDialog(self)
+        self.dialog.setWindowModality(False)  # Non-modal, allowing interaction with the main window
+        self.dialog.show()
 
-        contRect = self.contentsRect()
-        handleRadius = round(0.24 * contRect.height())
-
-        p = QPainter(self)
-        p.setRenderHint(QPainter.Antialiasing)
-
-        p.setPen(self._transparent_pen)
-        barRect = QRectF(
-            0, 0,
-            contRect.width() - handleRadius, 0.40 * contRect.height()
-        )
-        barRect.moveCenter(contRect.center())
-        rounding = barRect.height() / 2
-
-        # the handle will move along this line
-        trailLength = contRect.width() - 2 * handleRadius
-
-        xPos = contRect.x() + handleRadius + trailLength * self._handle_position
-
-        if self.pulse_anim.state() == QPropertyAnimation.Running:
-            p.setBrush(
-                self._pulse_checked_animation if
-                self.isChecked() else self._pulse_unchecked_animation)
-            p.drawEllipse(QPointF(xPos, barRect.center().y()),
-                          self._pulse_radius, self._pulse_radius)
-
-        if self.isChecked():
-            p.setBrush(self._bar_checked_brush)
-            p.drawRoundedRect(barRect, rounding, rounding)
-            p.setBrush(self._handle_checked_brush)
-
-        else:
-            p.setBrush(self._bar_brush)
-            p.drawRoundedRect(barRect, rounding, rounding)
-            p.setPen(self._light_grey_pen)
-            p.setBrush(self._handle_brush)
-
-        p.drawEllipse(
-            QPointF(xPos, barRect.center().y()),
-            handleRadius, handleRadius)
-
-        p.end()
-
-    @pyqtProperty(float)
-    def handle_position(self):
-        return self._handle_position
-
-    @handle_position.setter
-    def handle_position(self, pos):
-        """change the property
-        we need to trigger QWidget.update() method, either by:
-            1- calling it here [ what we doing ].
-            2- connecting the QPropertyAnimation.valueChanged() signal to it.
-        """
-        self._handle_position = pos
-        self.update()
-
-    @pyqtProperty(float)
-    def pulse_radius(self):
-        return self._pulse_radius
-
-    @pulse_radius.setter
-    def pulse_radius(self, pos):
-        self._pulse_radius = pos
-        self.update()
+    def delete_without_confirmation(self):
+        # Bypass confirmation dialog and delete directly
+        print("Deleted without confirmation!")
+    # end: move these to a separate file too, call it deleteButton? or like popupDeleteButton?
 
 
-'''
-Save the above code in a file named animated_toggle.py and in the same folder save the following simple skeleton application (e.g. as app.py) which imports the AnimatedToggle class and creates a little demo.
-link: https://www.pythonguis.com/tutorials/qpropertyanimation/#fn:1
-'''
-
-
-from PyQt5.QtWidgets import QApplication, QWidget, QVBoxLayout, QLabel
-# from animated_toggle import AnimatedToggle
-
-app = QApplication([])
-
-window = QWidget()
-
-mainToggle = AnimatedToggle()
-secondaryToggle = AnimatedToggle(
-        checked_color="#FFB000",
-        pulse_checked_color="#44FFB000"
-)
-mainToggle.setFixedSize(mainToggle.sizeHint())
-secondaryToggle.setFixedSize(mainToggle.sizeHint())
-
-window.setLayout(QVBoxLayout())
-window.layout().addWidget(QLabel("Main Toggle"))
-window.layout().addWidget(mainToggle)
-
-window.layout().addWidget(QLabel("Secondary Toggle"))
-window.layout().addWidget(secondaryToggle)
-
-mainToggle.stateChanged.connect(secondaryToggle.setChecked)    # lol its THAT easy
-
-window.show()
-app.exec_()
+if __name__ == '__main__':
+    app = QApplication(sys.argv)
+    main_window = MainWindow()
+    main_window.show()
+    sys.exit(app.exec_())
