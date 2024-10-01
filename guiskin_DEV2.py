@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# Form implementation generated from reading ui file '/mnt/c/Users/noelu/Python Projects/PyQt GUI practice/QtDesigner_practice/dataset_gen_tool_GUI/dataset_gen_tool_v10_altcolorscheme.ui'
+# Form implementation generated from reading ui file '/mnt/c/Users/noelu/Python Projects/PyQt GUI practice/QtDesigner_practice/dataset_gen_tool_GUI/dataset_gen_tool_v10.ui'
 #
 # Created by: PyQt5 UI code generator 5.14.1
 #
@@ -13,7 +13,7 @@ from PyQt5 import QtCore, QtGui, QtWidgets
 class Ui_MainWindow(object):
     def setupUi(self, MainWindow):
         MainWindow.setObjectName("MainWindow")
-        MainWindow.resize(1257, 893)
+        MainWindow.resize(1101, 893)
         MainWindow.setStyleSheet("")
         self.centralwidget = QtWidgets.QWidget(MainWindow)
         self.centralwidget.setObjectName("centralwidget")
@@ -21,26 +21,72 @@ class Ui_MainWindow(object):
         self.gridLayout.setObjectName("gridLayout")
         self.splitter = QtWidgets.QSplitter(self.centralwidget)
         self.splitter.setOrientation(QtCore.Qt.Horizontal)
-        self.splitter.setHandleWidth(10)
         self.splitter.setChildrenCollapsible(False)
         self.splitter.setObjectName("splitter")
-        self.stackedWidget = QtWidgets.QStackedWidget(self.splitter)
+        self.tabWidget = QtWidgets.QTabWidget(self.splitter)
         sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Preferred, QtWidgets.QSizePolicy.Preferred)
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)
-        sizePolicy.setHeightForWidth(self.stackedWidget.sizePolicy().hasHeightForWidth())
-        self.stackedWidget.setSizePolicy(sizePolicy)
-        self.stackedWidget.setMinimumSize(QtCore.QSize(0, 0))
-        self.stackedWidget.setStyleSheet("QStackedWidget {\n"
-"    background-color: white;\n"
-"    border-radius: 8px;\n"
+        sizePolicy.setHeightForWidth(self.tabWidget.sizePolicy().hasHeightForWidth())
+        self.tabWidget.setSizePolicy(sizePolicy)
+        self.tabWidget.setMinimumSize(QtCore.QSize(0, 0))
+        self.tabWidget.setStyleSheet("QTabWidget::pane { /* The tab widget frame */\n"
+"    /*border-top: 2px solid #C2C7CB;*/\n"
+"}\n"
+"\n"
+"QTabWidget::tab-bar {\n"
+"    left: 5px; /* move to the right by 5px */\n"
+"}\n"
+"\n"
+"/* Style the tab using the tab sub-control. Note that\n"
+"    it reads QTabBar _not_ QTabWidget */\n"
+"QTabBar::tab {\n"
+"    background: qlineargradient(x1: 0, y1: 0, x2: 0, y2: 1,\n"
+"                                stop: 0 #E1E1E1, stop: 0.4 #DDDDDD,\n"
+"                                stop: 0.5 #D8D8D8, stop: 1.0 #D3D3D3);\n"
+"    border: 2px solid #C4C4C3;\n"
+"    border-bottom-color: #C2C7CB; /* same as the pane color */\n"
+"    border-top-left-radius: 4px;\n"
+"    border-top-right-radius: 4px;\n"
+"    min-width: 12ex;\n"
+"    padding: 2px 8px;\n"
+"}\n"
+"\n"
+"QTabBar::tab:selected, QTabBar::tab:hover {\n"
+"    background: qlineargradient(x1: 0, y1: 0, x2: 0, y2: 1,\n"
+"                                stop: 0 #fafafa, stop: 0.4 #f4f4f4,\n"
+"                                stop: 0.5 #e7e7e7, stop: 1.0 #fafafa);\n"
+"}\n"
+"\n"
+"QTabBar::tab:selected {\n"
+"    border-color: #9B9B9B;\n"
+"    border-bottom-color: #C2C7CB; /* same as pane color */\n"
+"}\n"
+"\n"
+"QTabBar::tab:!selected {\n"
+"    margin-top: 2px; /* make non-selected tabs look smaller */\n"
+"}\n"
+"\n"
+"QTabBar::tab:first {\n"
+"    border-top-color: #6668ad;\n"
+"    border-left-color: #6668ad;\n"
+"    border-right-color: #6668ad;\n"
+"    selection-background-color: qlineargradient(x1: 0, y1: 0, x2: 0.5, y2: 0.5,\n"
+"                                stop: 0 #FF92BB, stop: 1 white);\n"
+"}\n"
+"\n"
+"QTabBar::tab:last {\n"
+"    border-top-color: #ffaaff;\n"
+"    border-left-color: #ffaaff;\n"
+"    border-right-color: #ffaaff;\n"
+"    color: #ffaaff;\n"
 "}")
-        self.stackedWidget.setObjectName("stackedWidget")
-        self.stackedWidgetPage1 = QtWidgets.QWidget()
-        self.stackedWidgetPage1.setObjectName("stackedWidgetPage1")
-        self.gridLayout_8 = QtWidgets.QGridLayout(self.stackedWidgetPage1)
+        self.tabWidget.setObjectName("tabWidget")
+        self.page1 = QtWidgets.QWidget()
+        self.page1.setObjectName("page1")
+        self.gridLayout_8 = QtWidgets.QGridLayout(self.page1)
         self.gridLayout_8.setObjectName("gridLayout_8")
-        self.baseLayer_1 = QtWidgets.QGroupBox(self.stackedWidgetPage1)
+        self.baseLayer_1 = QtWidgets.QGroupBox(self.page1)
         self.baseLayer_1.setStyleSheet("QGroupBox#baseLayer_1 {\n"
 "    font-size: 24pt;\n"
 "    font-weight: bold;\n"
@@ -343,12 +389,12 @@ class Ui_MainWindow(object):
         spacerItem5 = QtWidgets.QSpacerItem(20, 40, QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Expanding)
         self.verticalLayout_14.addItem(spacerItem5)
         self.gridLayout_8.addWidget(self.baseLayer_1, 0, 0, 1, 1)
-        self.stackedWidget.addWidget(self.stackedWidgetPage1)
-        self.stackedWidgetPage2 = QtWidgets.QWidget()
-        self.stackedWidgetPage2.setObjectName("stackedWidgetPage2")
-        self.verticalLayout_7 = QtWidgets.QVBoxLayout(self.stackedWidgetPage2)
+        self.tabWidget.addTab(self.page1, "")
+        self.page2 = QtWidgets.QWidget()
+        self.page2.setObjectName("page2")
+        self.verticalLayout_7 = QtWidgets.QVBoxLayout(self.page2)
         self.verticalLayout_7.setObjectName("verticalLayout_7")
-        self.baseLayer_2 = QtWidgets.QWidget(self.stackedWidgetPage2)
+        self.baseLayer_2 = QtWidgets.QWidget(self.page2)
         self.baseLayer_2.setStyleSheet("QWidget#baseLayer_2 {\n"
 "    font-size: 24pt;\n"
 "    font-weight: bold;\n"
@@ -586,7 +632,7 @@ class Ui_MainWindow(object):
         self.verticalLayout.addWidget(self.fancySearchBar)
         self.verticalLayout_15.addWidget(self.B_enterQuery)
         self.verticalLayout_7.addWidget(self.baseLayer_2)
-        self.B4_downloadbtn = QtWidgets.QGroupBox(self.stackedWidgetPage2)
+        self.B4_downloadbtn = QtWidgets.QGroupBox(self.page2)
         self.B4_downloadbtn.setStyleSheet("\n"
 "QGroupBox{\n"
 "    background: transparent;\n"
@@ -629,7 +675,7 @@ class Ui_MainWindow(object):
         spacerItem10 = QtWidgets.QSpacerItem(40, 20, QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Minimum)
         self.horizontalLayout_4.addItem(spacerItem10)
         self.verticalLayout_7.addWidget(self.B4_downloadbtn)
-        self.B5_progressDisplay = QtWidgets.QGroupBox(self.stackedWidgetPage2)
+        self.B5_progressDisplay = QtWidgets.QGroupBox(self.page2)
         self.B5_progressDisplay.setTitle("")
         self.B5_progressDisplay.setObjectName("B5_progressDisplay")
         self.horizontalLayout_13 = QtWidgets.QHBoxLayout(self.B5_progressDisplay)
@@ -656,14 +702,14 @@ class Ui_MainWindow(object):
         self.verticalLayout_7.addWidget(self.B5_progressDisplay)
         spacerItem11 = QtWidgets.QSpacerItem(20, 40, QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Expanding)
         self.verticalLayout_7.addItem(spacerItem11)
-        self.stackedWidget.addWidget(self.stackedWidgetPage2)
-        self.stackedWidgetPage3 = QtWidgets.QWidget()
-        self.stackedWidgetPage3.setObjectName("stackedWidgetPage3")
-        self.gridLayout_12 = QtWidgets.QGridLayout(self.stackedWidgetPage3)
+        self.tabWidget.addTab(self.page2, "")
+        self.page3 = QtWidgets.QWidget()
+        self.page3.setObjectName("page3")
+        self.gridLayout_12 = QtWidgets.QGridLayout(self.page3)
         self.gridLayout_12.setObjectName("gridLayout_12")
         spacerItem12 = QtWidgets.QSpacerItem(20, 40, QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Expanding)
         self.gridLayout_12.addItem(spacerItem12, 5, 0, 1, 1)
-        self.baseLayer_3 = QtWidgets.QWidget(self.stackedWidgetPage3)
+        self.baseLayer_3 = QtWidgets.QWidget(self.page3)
         self.baseLayer_3.setStyleSheet("QWidget#baseLayer_3 {\n"
 "    font-size: 24pt;\n"
 "    font-weight: bold;\n"
@@ -958,12 +1004,12 @@ class Ui_MainWindow(object):
         self.horizontalLayout_5.addItem(spacerItem21)
         self.verticalLayout_16.addWidget(self.B4_downloadbtn_2)
         self.gridLayout_12.addWidget(self.baseLayer_3, 0, 0, 1, 1)
-        self.stackedWidget.addWidget(self.stackedWidgetPage3)
-        self.stackedWidgetPage4 = QtWidgets.QWidget()
-        self.stackedWidgetPage4.setObjectName("stackedWidgetPage4")
-        self.verticalLayout_18 = QtWidgets.QVBoxLayout(self.stackedWidgetPage4)
+        self.tabWidget.addTab(self.page3, "")
+        self.page4 = QtWidgets.QWidget()
+        self.page4.setObjectName("page4")
+        self.verticalLayout_18 = QtWidgets.QVBoxLayout(self.page4)
         self.verticalLayout_18.setObjectName("verticalLayout_18")
-        self.baseLayer_4 = QtWidgets.QWidget(self.stackedWidgetPage4)
+        self.baseLayer_4 = QtWidgets.QWidget(self.page4)
         self.baseLayer_4.setStyleSheet("QWidget#baseLayer_4 {\n"
 "    font-size: 24pt;\n"
 "    font-weight: bold;\n"
@@ -1279,10 +1325,14 @@ class Ui_MainWindow(object):
         self.verticalLayout_18.addWidget(self.baseLayer_4)
         spacerItem29 = QtWidgets.QSpacerItem(20, 40, QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Expanding)
         self.verticalLayout_18.addItem(spacerItem29)
-        self.stackedWidget.addWidget(self.stackedWidgetPage4)
-        self.stackedWidgetPage5 = QtWidgets.QWidget()
-        self.stackedWidgetPage5.setObjectName("stackedWidgetPage5")
-        self.formLayoutWidget = QtWidgets.QWidget(self.stackedWidgetPage5)
+        self.tabWidget.addTab(self.page4, "")
+        self.tab = QtWidgets.QWidget()
+        self.tab.setStyleSheet("QWidget#tab {\n"
+"    \n"
+"    background-color: rgb(234, 234, 234);\n"
+"}")
+        self.tab.setObjectName("tab")
+        self.formLayoutWidget = QtWidgets.QWidget(self.tab)
         self.formLayoutWidget.setGeometry(QtCore.QRect(70, 560, 160, 181))
         self.formLayoutWidget.setObjectName("formLayoutWidget")
         self.formLayout_2 = QtWidgets.QFormLayout(self.formLayoutWidget)
@@ -1319,7 +1369,7 @@ class Ui_MainWindow(object):
         self.adfasfDial = QtWidgets.QDial(self.formLayoutWidget)
         self.adfasfDial.setObjectName("adfasfDial")
         self.formLayout_2.setWidget(4, QtWidgets.QFormLayout.FieldRole, self.adfasfDial)
-        self.layoutWidget = QtWidgets.QWidget(self.stackedWidgetPage5)
+        self.layoutWidget = QtWidgets.QWidget(self.tab)
         self.layoutWidget.setGeometry(QtCore.QRect(270, 630, 186, 62))
         self.layoutWidget.setObjectName("layoutWidget")
         self.verticalLayout_5 = QtWidgets.QVBoxLayout(self.layoutWidget)
@@ -1355,7 +1405,7 @@ class Ui_MainWindow(object):
         self.label_8.setObjectName("label_8")
         self.horizontalLayout_2.addWidget(self.label_8)
         self.verticalLayout_5.addLayout(self.horizontalLayout_2)
-        self.widget_9 = QtWidgets.QWidget(self.stackedWidgetPage5)
+        self.widget_9 = QtWidgets.QWidget(self.tab)
         self.widget_9.setGeometry(QtCore.QRect(50, 10, 611, 421))
         self.widget_9.setObjectName("widget_9")
         self.verticalLayout_11 = QtWidgets.QVBoxLayout(self.widget_9)
@@ -1551,7 +1601,7 @@ class Ui_MainWindow(object):
         self.checkBox.setTristate(True)
         self.checkBox.setObjectName("checkBox")
         self.verticalLayout_11.addWidget(self.checkBox)
-        self.widget_26 = QtWidgets.QWidget(self.stackedWidgetPage5)
+        self.widget_26 = QtWidgets.QWidget(self.tab)
         self.widget_26.setGeometry(QtCore.QRect(70, 480, 593, 20))
         self.widget_26.setObjectName("widget_26")
         self.horizontalLayout_64 = QtWidgets.QHBoxLayout(self.widget_26)
@@ -1594,7 +1644,7 @@ class Ui_MainWindow(object):
         self.pushButton_20.setIconSize(QtCore.QSize(18, 18))
         self.pushButton_20.setObjectName("pushButton_20")
         self.horizontalLayout_64.addWidget(self.pushButton_20)
-        self.widget_27 = QtWidgets.QWidget(self.stackedWidgetPage5)
+        self.widget_27 = QtWidgets.QWidget(self.tab)
         self.widget_27.setGeometry(QtCore.QRect(70, 510, 593, 38))
         self.widget_27.setStyleSheet("background: black;\n"
 "border-radius: 12px;")
@@ -1649,14 +1699,14 @@ class Ui_MainWindow(object):
         self.pushButton_21.setObjectName("pushButton_21")
         self.horizontalLayout_66.addWidget(self.pushButton_21)
         self.horizontalLayout_65.addWidget(self.widget_28)
-        self.label_27 = QtWidgets.QLabel(self.stackedWidgetPage5)
+        self.label_27 = QtWidgets.QLabel(self.tab)
         self.label_27.setGeometry(QtCore.QRect(70, 450, 471, 21))
         self.label_27.setStyleSheet("background-color: #ababab;")
         self.label_27.setObjectName("label_27")
-        self.stackedWidget.addWidget(self.stackedWidgetPage5)
-        self.stackedWidgetPage6 = QtWidgets.QWidget()
-        self.stackedWidgetPage6.setObjectName("stackedWidgetPage6")
-        self.A_notesForUser_2 = QtWidgets.QGroupBox(self.stackedWidgetPage6)
+        self.tabWidget.addTab(self.tab, "")
+        self.tab_2 = QtWidgets.QWidget()
+        self.tab_2.setObjectName("tab_2")
+        self.A_notesForUser_2 = QtWidgets.QGroupBox(self.tab_2)
         self.A_notesForUser_2.setGeometry(QtCore.QRect(10, 30, 728, 100))
         sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Ignored, QtWidgets.QSizePolicy.Ignored)
         sizePolicy.setHorizontalStretch(0)
@@ -1683,7 +1733,7 @@ class Ui_MainWindow(object):
         self.textBrowser_p2_3.setOpenExternalLinks(True)
         self.textBrowser_p2_3.setObjectName("textBrowser_p2_3")
         self.verticalLayout_20.addWidget(self.textBrowser_p2_3)
-        self.qScoreInfo_btn_4 = QtWidgets.QPushButton(self.stackedWidgetPage6)
+        self.qScoreInfo_btn_4 = QtWidgets.QPushButton(self.tab_2)
         self.qScoreInfo_btn_4.setGeometry(QtCore.QRect(90, 130, 32, 28))
         self.qScoreInfo_btn_4.setStyleSheet("background-color: transparent;\n"
 "border-image: url(:/icons/advanced_options_icon.png);")
@@ -1691,7 +1741,7 @@ class Ui_MainWindow(object):
         self.qScoreInfo_btn_4.setIcon(icon2)
         self.qScoreInfo_btn_4.setIconSize(QtCore.QSize(20, 20))
         self.qScoreInfo_btn_4.setObjectName("qScoreInfo_btn_4")
-        self.stackedWidget.addWidget(self.stackedWidgetPage6)
+        self.tabWidget.addTab(self.tab_2, "")
         self.sidebar = QtWidgets.QWidget(self.splitter)
         self.sidebar.setObjectName("sidebar")
         self.verticalLayout_13 = QtWidgets.QVBoxLayout(self.sidebar)
@@ -1736,84 +1786,10 @@ class Ui_MainWindow(object):
         self.tasksViewBox.setObjectName("tasksViewBox")
         self.verticalLayout_12.addWidget(self.tasksViewBox)
         self.verticalLayout_13.addWidget(self.splitter_2)
-        self.gridLayout.addWidget(self.splitter, 0, 1, 1, 1)
-        self.leftpanel = QtWidgets.QWidget(self.centralwidget)
-        self.leftpanel.setStyleSheet("QPushButton {\n"
-"    background-color: transparent;\n"
-"    border-radius: 15px;\n"
-"    text-align: left;\n"
-"    padding-left: 16px;\n"
-"    padding-right: 16px;\n"
-"}\n"
-"\n"
-"QPushButton:hover {\n"
-"    background-color: #c2c2c2;\n"
-"}\n"
-"\n"
-"QPushButton:checked {\n"
-"    background-color: #90bcff;\n"
-"}")
-        self.leftpanel.setObjectName("leftpanel")
-        self.verticalLayout_22 = QtWidgets.QVBoxLayout(self.leftpanel)
-        self.verticalLayout_22.setContentsMargins(0, 0, 0, 0)
-        self.verticalLayout_22.setSpacing(0)
-        self.verticalLayout_22.setObjectName("verticalLayout_22")
-        spacerItem30 = QtWidgets.QSpacerItem(20, 10, QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Fixed)
-        self.verticalLayout_22.addItem(spacerItem30)
-        self.sidebtn = QtWidgets.QPushButton(self.leftpanel)
-        self.sidebtn.setMinimumSize(QtCore.QSize(0, 30))
-        font = QtGui.QFont()
-        font.setPointSize(10)
-        self.sidebtn.setFont(font)
-        self.sidebtn.setCheckable(True)
-        self.sidebtn.setObjectName("sidebtn")
-        self.verticalLayout_22.addWidget(self.sidebtn)
-        self.sidebtn_2 = QtWidgets.QPushButton(self.leftpanel)
-        self.sidebtn_2.setMinimumSize(QtCore.QSize(0, 30))
-        font = QtGui.QFont()
-        font.setPointSize(10)
-        self.sidebtn_2.setFont(font)
-        self.sidebtn_2.setCheckable(True)
-        self.sidebtn_2.setObjectName("sidebtn_2")
-        self.verticalLayout_22.addWidget(self.sidebtn_2)
-        self.sidebtn_3 = QtWidgets.QPushButton(self.leftpanel)
-        self.sidebtn_3.setMinimumSize(QtCore.QSize(0, 30))
-        font = QtGui.QFont()
-        font.setPointSize(10)
-        self.sidebtn_3.setFont(font)
-        self.sidebtn_3.setCheckable(True)
-        self.sidebtn_3.setObjectName("sidebtn_3")
-        self.verticalLayout_22.addWidget(self.sidebtn_3)
-        self.sidebtn_4 = QtWidgets.QPushButton(self.leftpanel)
-        self.sidebtn_4.setMinimumSize(QtCore.QSize(0, 30))
-        font = QtGui.QFont()
-        font.setPointSize(10)
-        self.sidebtn_4.setFont(font)
-        self.sidebtn_4.setCheckable(True)
-        self.sidebtn_4.setObjectName("sidebtn_4")
-        self.verticalLayout_22.addWidget(self.sidebtn_4)
-        self.sidebtn_5 = QtWidgets.QPushButton(self.leftpanel)
-        self.sidebtn_5.setMinimumSize(QtCore.QSize(0, 30))
-        font = QtGui.QFont()
-        font.setPointSize(10)
-        self.sidebtn_5.setFont(font)
-        self.sidebtn_5.setCheckable(True)
-        self.sidebtn_5.setObjectName("sidebtn_5")
-        self.verticalLayout_22.addWidget(self.sidebtn_5)
-        self.sidebtn_6 = QtWidgets.QPushButton(self.leftpanel)
-        self.sidebtn_6.setMinimumSize(QtCore.QSize(0, 30))
-        font = QtGui.QFont()
-        font.setPointSize(10)
-        self.sidebtn_6.setFont(font)
-        self.sidebtn_6.setCheckable(True)
-        self.sidebtn_6.setObjectName("sidebtn_6")
-        self.verticalLayout_22.addWidget(self.sidebtn_6)
-        spacerItem31 = QtWidgets.QSpacerItem(20, 40, QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Expanding)
-        self.verticalLayout_22.addItem(spacerItem31)
-        self.gridLayout.addWidget(self.leftpanel, 0, 0, 1, 1)
+        self.gridLayout.addWidget(self.splitter, 0, 0, 1, 1)
         MainWindow.setCentralWidget(self.centralwidget)
         self.menubar = QtWidgets.QMenuBar(MainWindow)
-        self.menubar.setGeometry(QtCore.QRect(0, 0, 1257, 22))
+        self.menubar.setGeometry(QtCore.QRect(0, 0, 1101, 22))
         self.menubar.setObjectName("menubar")
         MainWindow.setMenuBar(self.menubar)
         self.statusbar = QtWidgets.QStatusBar(MainWindow)
@@ -1823,7 +1799,8 @@ class Ui_MainWindow(object):
         MainWindow.setStatusBar(self.statusbar)
 
         self.retranslateUi(MainWindow)
-        self.stackedWidget.setCurrentIndex(1)
+        self.tabWidget.setCurrentIndex(3)
+        self.horizontalSlider.valueChanged['int'].connect(self.label_8.setNum)
         QtCore.QMetaObject.connectSlotsByName(MainWindow)
 
     def retranslateUi(self, MainWindow):
@@ -1856,6 +1833,7 @@ class Ui_MainWindow(object):
         self.lineEdit_p1.setPlaceholderText(_translate("MainWindow", "save location"))
         self.pushButton_p1_3.setToolTip(_translate("MainWindow", "<html><head/><body><p><span style=\" font-weight:400;\">this is limiting the window\'s thickness when shrinking btw, prob a better way to go about sizepolicys</span></p></body></html>"))
         self.pushButton_p1_3.setText(_translate("MainWindow", "Generate"))
+        self.tabWidget.setTabText(self.tabWidget.indexOf(self.page1), _translate("MainWindow", "Quick Start"))
         self.page2TitleLabel.setText(_translate("MainWindow", "Fetch Metadata"))
         self.label_4.setText(_translate("MainWindow", "CryoDataBot data storage location:"))
         self.lineEdit_p2.setToolTip(_translate("MainWindow", "<html><head/><body><p><span style=\" font-family:\'Segoe UI\'; font-size:9pt; color:#000000;\">Valid query format: </span><span style=\" font-family:\'Segoe UI\'; font-size:9pt; font-weight:600; color:#000000;\">sample</span><span style=\" font-family:\'Segoe UI\'; font-size:9pt; font-weight:600; color:#ff6969;\">*</span><span style=\" font-family:\'Segoe UI\'; font-size:9pt; font-weight:600; color:#000000;\">,</span><span style=\" font-family:\'Segoe UI\'; font-size:9pt; color:#000000;\"> keyword1, keyword2, ... <br/></span><span style=\" font-family:\'Segoe UI\'; font-size:6pt; font-weight:600; color:#ff6969;\">*required</span></p><p><span style=\" font-family:\'Segoe UI\'; font-size:9pt; color:#000000;\">Available keywords shown in dropdown. Keywords are connected by boolean operators (AND, OR, NOT). Default is AND.<br/><br/>ex. </span><span style=\" font-family:\'Segoe UI\'; font-size:9pt; color:#00007f;\">spliceosome AND resolution:[2 TO 4]<br/></span><span style=\" font-family:\'Segoe UI\'; font-size:9pt; color:#000000;\">ex. </span><span style=\" font-family:\'Segoe UI\'; font-size:9pt; color:#00007f;\">(spliceosome OR ribonucleoprotein) AND NOT human AND xref_UNIPROTKB:[* TO *]</span></p></body></html>"))
@@ -1877,6 +1855,7 @@ class Ui_MainWindow(object):
         self.lineEdit_12.setText(_translate("MainWindow", "new fancy search bar (tweak border width under qwidget\'s layout props, and height via maxHeight for lineedit AND btn)"))
         self.pushButton_p2_2.setToolTip(_translate("MainWindow", "<html><head/><body><p><span style=\" font-weight:400;\">this is limiting the window\'s thickness when shrinking btw, prob a better way to go about sizepolicys</span></p></body></html>"))
         self.pushButton_p2_2.setText(_translate("MainWindow", "Download CSV"))
+        self.tabWidget.setTabText(self.tabWidget.indexOf(self.page2), _translate("MainWindow", "Metadata"))
         self.page3TitleLabel.setText(_translate("MainWindow", "Preprocessing"))
         self.A_chooseCSV.setTitle(_translate("MainWindow", "Choose Metadata File"))
         self.lineEdit_p3.setToolTip(_translate("MainWindow", "type or browse (note to self: check that file exists, if not spit the error out to the statusbar)"))
@@ -1890,6 +1869,7 @@ class Ui_MainWindow(object):
         self.similarityLabel.setText(_translate("MainWindow", "Redundancy (similarity of subunits less than):"))
         self.pushButton_p3_4.setToolTip(_translate("MainWindow", "<html><head/><body><p><span style=\" font-weight:400;\">this is limiting the window\'s thickness when shrinking btw, prob a better way to go about sizepolicys</span></p></body></html>"))
         self.pushButton_p3_4.setText(_translate("MainWindow", "[name TBD]"))
+        self.tabWidget.setTabText(self.tabWidget.indexOf(self.page3), _translate("MainWindow", "Preprocess"))
         self.page4TitleLabel.setText(_translate("MainWindow", "Generate Dataset"))
         self.A_chooseCSV_2.setTitle(_translate("MainWindow", "Choose Maps and Models to Label"))
         self.lineEdit_p3_2.setToolTip(_translate("MainWindow", "type or browse (note to self: check that file exists, if not spit the error out to the statusbar)"))
@@ -1930,6 +1910,7 @@ class Ui_MainWindow(object):
         self.label_12.setText(_translate("MainWindow", "Validation:"))
         self.spinBox_3.setSuffix(_translate("MainWindow", "%"))
         self.pushButton_p4_2.setText(_translate("MainWindow", "Generate Dataset(s)"))
+        self.tabWidget.setTabText(self.tabWidget.indexOf(self.page4), _translate("MainWindow", "Generate Dataset"))
         self.option1Label_2.setText(_translate("MainWindow", "option 1"))
         self.option2Label.setText(_translate("MainWindow", "option 2"))
         self.option3Label.setText(_translate("MainWindow", "option 3"))
@@ -1957,20 +1938,16 @@ class Ui_MainWindow(object):
         self.lineEdit_16.setText(_translate("MainWindow", "abcdefghijklmnopqrstuvwxyzabcdefghijklmnopqrstuvwxyzabcdefghijklmnopqrstuvwxyzabcdefghijklmnopqrstuvwxy"))
         self.lineEdit_17.setText(_translate("MainWindow", "abcdefghijklmnopqrstuvwxyzabcdefghijklmnopqrstuvwxyzabcdefghijklmnopqrstuvwxyzabcdefghijklmnopqrstuvwxy"))
         self.label_27.setText(_translate("MainWindow", "these 2 are just for templates (missing/empty base widget so may look weird in python)"))
+        self.tabWidget.setTabText(self.tabWidget.indexOf(self.tab), _translate("MainWindow", "TEST"))
         self.textBrowser_p2_3.setHtml(_translate("MainWindow", "<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.0//EN\" \"http://www.w3.org/TR/REC-html40/strict.dtd\">\n"
 "<html><head><meta name=\"qrichtext\" content=\"1\" /><style type=\"text/css\">\n"
 "p, li { white-space: pre-wrap; }\n"
 "</style></head><body style=\" font-family:\'MS Shell Dlg 2\'; font-size:8pt; font-weight:400; font-style:normal;\">\n"
 "<p style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\"><span style=\" font-family:\'Segoe UI\'; font-size:9pt; font-weight:696; color:#616161;\">This step fetches metadata from EMDB. If you already have a .csv file with the columns: </span><span style=\" font-family:\'Segoe UI\'; font-size:9pt; color:#616161;\">emdb_id, resolution, fitted_pdbs,</span><span style=\" font-family:\'Segoe UI\'; font-size:9pt; font-weight:696; color:#616161;\"> you can </span><span style=\" font-family:\'Segoe UI\'; font-size:9pt; font-weight:696; color:#0000ff;\">skip</span><span style=\" font-family:\'Segoe UI\'; font-size:9pt; font-weight:696; color:#616161;\"> this step.</span></p>\n"
 "<p style=\"-qt-paragraph-type:empty; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px; font-family:\'Segoe UI\'; font-size:9pt;\"><br /></p></body></html>"))
+        self.tabWidget.setTabText(self.tabWidget.indexOf(self.tab_2), _translate("MainWindow", "RichText"))
         self.label_13.setText(_translate("MainWindow", "Logs"))
         self.label_15.setText(_translate("MainWindow", "Running Tasks"))
-        self.sidebtn.setText(_translate("MainWindow", "Quick Start"))
-        self.sidebtn_2.setText(_translate("MainWindow", "Query"))
-        self.sidebtn_3.setText(_translate("MainWindow", "Preprocess"))
-        self.sidebtn_4.setText(_translate("MainWindow", "Generate Datasets"))
-        self.sidebtn_5.setText(_translate("MainWindow", "TEST"))
-        self.sidebtn_6.setText(_translate("MainWindow", "Rich Style"))
 import resources_rc
 
 
