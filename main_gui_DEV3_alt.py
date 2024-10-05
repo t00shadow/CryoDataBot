@@ -755,4 +755,5 @@ if __name__ == '__main__':
     app.setStyle("QWindowsStyle")
     # app.setStyle(qtw.QStyleFactory.create("Fusion"))
     w = MainWindow()
+    # w.showFullScreen()   # no top bar
     sys.exit(app.exec_())

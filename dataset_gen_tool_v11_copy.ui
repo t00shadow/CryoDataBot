@@ -68,6 +68,7 @@ QPushButton:hover {
 
 QPushButton:checked {
 	background-color: #90bcff;
+	border: transparent;
 }</string>
        </property>
        <layout class="QVBoxLayout" name="verticalLayout_22">
