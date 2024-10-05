@@ -144,12 +144,18 @@ class MainWindow(qtw.QMainWindow):    # Make sure the root widget/class is the r
         self.ui.treeWidget_p4.setColumnWidth(2, 150)
         self.ui.treeWidget_p4.setColumnWidth(3, 150)
         self.ui.treeWidget_p4.setColumnWidth(4, 50)
+        self.ui.treeWidget_p4.header().setSectionResizeMode(qtw.QHeaderView.Stretch)   # TODO: figure out how to keep last column fixed width
         self.ui.addlabel_btn.setDisabled(True)
         self.add_group_w_del_btn()
         self.add_label_custom()
 
 
         ### Spinboxes
+        # name aliases (less lines to change zzz)
+        self.ui.spinBox = self.ui.training_spinBox
+        self.ui.spinBox_2 = self.ui.testing_spinBox
+        self.ui.spinBox_3 = self.ui.validation_spinBox
+
         self.ui.spinBox.valueChanged.connect(self.on_spin_box1_changed)
         self.ui.spinBox_2.valueChanged.connect(self.on_spin_box2_changed)
         self.ui.spinBox_3.valueChanged.connect(self.on_spin_box3_changed)
@@ -738,12 +744,14 @@ class MainWindow(qtw.QMainWindow):    # Make sure the root widget/class is the r
 
 if __name__ == '__main__':
     os.environ["QT_AUTO_SCREEN_SCALE_FACTOR"] = "1"                          # choose one
-    os.environ["SCALE_FACTOR"] = "3"
+    # os.environ["SCALE_FACTOR"] = "3"
     # qtw.QApplication.setAttribute(qtc.Qt.AA_EnableHighDpiScaling)            # choose one
     # os.environ["QT_FONT_DPI"] = "96" # FIX Problem for High DPI and Scale above 100%    <-- from pydracula tutorial, super elegant solution
 
     app = qtw.QApplication(sys.argv)
-    app.setAttribute(qtc.Qt.AA_UseHighDpiPixmaps)
+    # app.setAttribute(qtc.Qt.AA_UseHighDpiPixmaps)
+    app.setAttribute(qtc.Qt.AA_EnableHighDpiScaling, True) #enable highdpi scaling
+    app.setAttribute(qtc.Qt.AA_UseHighDpiPixmaps, True) #use highdpi icons
     app.setStyle("QWindowsStyle")
     # app.setStyle(qtw.QStyleFactory.create("Fusion"))
     w = MainWindow()
