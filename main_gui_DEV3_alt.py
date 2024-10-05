@@ -25,6 +25,7 @@ from guiskin_DEV2_alt import Ui_MainWindow    # need the "Ui_" prefix
 
 import GUI_custom_widgets.z_Tag_main_alt_allcode_v2 as TTEwidget2
 from GUI_custom_widgets.LabelComboBox import LabelComboBox
+from GUI_custom_widgets.LabelComboBox_v2 import LabelComboBox_v2
 import GUI_custom_widgets.commaLineEdit as LabelLineEdit
 from GUI_custom_widgets.animated_toggle import AnimatedToggle
 from GUI_custom_widgets.popupDialog_alt import PopupDialog
@@ -76,6 +77,7 @@ class MainWindow(qtw.QMainWindow):    # Make sure the root widget/class is the r
         self.label_dict_template = {'secondary_type': '', 'residue_type': '', 'atom_type': '', 'label': ''}
         self.main_dir_selection_locked = False
         self.main_dir_path = ""
+        self.leftpanel_buttons = {}    # key, value = QPushButton, text().  Alternatively just use two lists
 
 
         # ======== SIGNALS AND SLOTS ========
@@ -87,7 +89,7 @@ class MainWindow(qtw.QMainWindow):    # Make sure the root widget/class is the r
         # self.ui.lineEdit.createStandardContextMenu()
         # self.ui.lineEdit.setClearButtonEnabled(True)
         # self.ui.lineEdit.setPlaceholderText("overwrote placeholder text via code")
-        self.ui.lineEdit_p1.setText(r"C:\Users\noelu\CryoDataBot\JUNK_TEST_FOLDER")
+        # self.ui.lineEdit_p1.setText(r"C:\Users\noelu\CryoDataBot\JUNK_TEST_FOLDER")
         self.ui.lineEdit_12.setPlaceholderText("[sample] AND [range_keyword: x TO y] AND [keyword]")
         self.ui.lineEdit_12.setText("")
         # self.ui.lineEdit_p2.setText(r"C:\Users\noelu\CryoDataBot\JUNK_TEST_FOLDER")
@@ -97,8 +99,8 @@ class MainWindow(qtw.QMainWindow):    # Make sure the root widget/class is the r
 
         ## buttons
         # page 1
-        self.ui.pushButton_p1.clicked.connect(lambda: self.browse_folder(page="quick"))
-        self.ui.pushButton_p1_2.clicked.connect(lambda: self.ui.statusbar.showMessage("query (preview): " + self.parseQuery(page="quick")))    # intentionally didnt add time limit for this message so users can take their time to read it
+        # self.ui.pushButton_p1.clicked.connect(lambda: self.browse_folder(page="quick"))
+        # self.ui.pushButton_p1_2.clicked.connect(lambda: self.ui.statusbar.showMessage("query (preview): " + self.parseQuery(page="quick")))    # intentionally didnt add time limit for this message so users can take their time to read it
         self.ui.pushButton_p1_3.clicked.connect(self.gen_dataset_quick)
         # page 2
         self.ui.pushButton_p2.clicked.connect(lambda: self.browse_folder(page="step1"))
@@ -142,6 +144,7 @@ class MainWindow(qtw.QMainWindow):    # Make sure the root widget/class is the r
         self.ui.treeWidget_p4.setColumnWidth(2, 150)
         self.ui.treeWidget_p4.setColumnWidth(3, 150)
         self.ui.treeWidget_p4.setColumnWidth(4, 50)
+        self.ui.addlabel_btn.setDisabled(True)
         self.add_group_w_del_btn()
         self.add_label_custom()
 
@@ -166,7 +169,7 @@ class MainWindow(qtw.QMainWindow):    # Make sure the root widget/class is the r
 
         ## status bar      (page numbers refer to the signals here. status bar is almost always the slot)
         # page 1
-        self.ui.lineEdit_p1.textEdited['QString'].connect(self.ui.statusbar.showMessage)
+        # self.ui.lineEdit_p1.textEdited['QString'].connect(self.ui.statusbar.showMessage)
         # self.querywidget.tagTextEdited.connect(self.ui.statusbar.showMessage)
         #self.ui.lineEdit_p1.textEdited.connect(self.ui.statusbar.showMessage)     # works without the ['QString'], look into why
         #self.querywidget.tagTextEdited.connect(print)
@@ -181,6 +184,25 @@ class MainWindow(qtw.QMainWindow):    # Make sure the root widget/class is the r
         # self.previewQueryBtn = self.ui.validateQuery_btn
         self.previewQueryBtn = self.ui.pushButton_16
         self.previewQueryBtn.clicked.connect(lambda: self.ui.statusbar.showMessage("query (preview): " + self.parseQuery(page="step1")))
+
+
+        ### left panel buttons (for splitter behavior)
+        # add buttons and names to the dictr
+        self.leftpanel_buttons[self.ui.sidebtn_0] = self.ui.sidebtn_0.text()
+        self.leftpanel_buttons[self.ui.sidebtn_1] = self.ui.sidebtn_1.text()
+        self.leftpanel_buttons[self.ui.sidebtn_2] = self.ui.sidebtn_2.text()
+        self.leftpanel_buttons[self.ui.sidebtn_3] = self.ui.sidebtn_3.text()
+        self.leftpanel_buttons[self.ui.sidebtn_4] = self.ui.sidebtn_4.text()
+        self.leftpanel_buttons[self.ui.sidebtn_5] = self.ui.sidebtn_5.text()
+        self.leftpanel_buttons[self.ui.sidebtn_6] = self.ui.sidebtn_6.text()
+        print("dict:\n", self.leftpanel_buttons)
+        print("keys:\n", self.leftpanel_buttons.keys())
+        print("values:\n", self.leftpanel_buttons.values())
+        self.ui.splitter.splitterMoved.connect(print)
+        self.ui.sidebtn_5.clicked.connect(self.toggle_sidebar)
+        self.ui.splitter.setCollapsible(0, False)
+        self.ui.splitter.setCollapsible(1, False)
+
 
 
         '''
@@ -201,8 +223,11 @@ class MainWindow(qtw.QMainWindow):    # Make sure the root widget/class is the r
         ### TEMPORARY, THESE ARE COSMETIC CHANGES FOR TAKING NICER PICTURES
         # =====================================================
         self.ui.B2_queryBox.layout().removeWidget(self.ui.widget_7)
-        self.ui.widget_7.deleteLater()
-        self.ui.widget_7 = None
+        try:
+            self.ui.widget_7.deleteLater()
+            self.ui.widget_7 = None
+        except Exception as e:
+            print("idk why there'd ever be one but here u go:", e)
         self.ui.B2_queryBox.layout().removeWidget(self.querywidget2)
         self.querywidget2.deleteLater()
         self.querywidget2 = None
@@ -257,15 +282,18 @@ class MainWindow(qtw.QMainWindow):    # Make sure the root widget/class is the r
         # # self.ui.tab.layout().setSizeConstraint(1)   # theres's no layout set on the test page lol (intentional)
 
         self.ui.stackedWidget.setCurrentIndex(0)     # choose starting page
-        self.ui.sidebtn.clicked.connect(lambda: self.ui.stackedWidget.setCurrentIndex(0))
-        self.ui.sidebtn_2.clicked.connect(lambda: self.ui.stackedWidget.setCurrentIndex(1))
-        self.ui.sidebtn_3.clicked.connect(lambda: self.ui.stackedWidget.setCurrentIndex(2))
-        self.ui.sidebtn_4.clicked.connect(lambda: self.ui.stackedWidget.setCurrentIndex(3))
-        self.ui.sidebtn_5.clicked.connect(lambda: self.ui.stackedWidget.setCurrentIndex(4))
-        self.ui.sidebtn_6.clicked.connect(lambda: self.ui.stackedWidget.setCurrentIndex(5))
+        self.ui.sidebtn_0.clicked.connect(lambda: self.ui.stackedWidget.setCurrentIndex(0))
+        self.ui.sidebtn_1.clicked.connect(lambda: self.ui.stackedWidget.setCurrentIndex(1))
+        self.ui.sidebtn_2.clicked.connect(lambda: self.ui.stackedWidget.setCurrentIndex(2))
+        self.ui.sidebtn_3.clicked.connect(lambda: self.ui.stackedWidget.setCurrentIndex(3))
+        self.ui.sidebtn_4.clicked.connect(lambda: self.ui.stackedWidget.setCurrentIndex(4))
+        self.ui.sidebtn_5.clicked.connect(lambda: self.ui.stackedWidget.setCurrentIndex(5))
+        self.ui.sidebtn_6.clicked.connect(lambda: self.ui.stackedWidget.setCurrentIndex(6))
 
-        self.ui.sidebtn.clicked.connect(self.uncheck_other_buttons)
-        self.ui.sidebtn.setChecked(True)
+        self.ui.sidebtn_0.clicked.connect(self.uncheck_other_buttons)
+        self.ui.sidebtn_0.setChecked(True)
+        self.ui.sidebtn_1.clicked.connect(self.uncheck_other_buttons)
+        # self.ui.sidebtn_1.setChecked(True)
         self.ui.sidebtn_2.clicked.connect(self.uncheck_other_buttons)
         self.ui.sidebtn_3.clicked.connect(self.uncheck_other_buttons)
         self.ui.sidebtn_4.clicked.connect(self.uncheck_other_buttons)
@@ -285,10 +313,38 @@ class MainWindow(qtw.QMainWindow):    # Make sure the root widget/class is the r
     # functions, for bigger gui could put these in separate files and import them
     # Edit: ehh havent needed it so far
 
+    def collapse_leftpanel(self):
+        """Collapse sidebar by hiding button text, showing only icons."""
+        self.ui.leftpanel.resize(self.ui.leftpanel.minimumWidth(), self.ui.leftpanel.height())
+        for button in self.leftpanel_buttons.keys():
+            button.setText("")  # Hide the text
+        print("collapsed")
+        print(self.ui.leftpanel.width(), self.ui.leftpanel.height())
+    
+    def expand_leftpanel(self):
+        """Expand sidebar by showing button text along with icons."""
+        self.ui.leftpanel.resize(self.ui.leftpanel.maximumWidth(), self.ui.leftpanel.height())
+        for button in self.leftpanel_buttons.keys():
+            button.setText(self.leftpanel_buttons[button])  # Show the text
+        print("expanded")
+        print(self.ui.leftpanel.width(), self.ui.leftpanel.height())
+
+    def toggle_sidebar(self):
+        """Toggle sidebar collapse/expand manually using the button."""
+        print(self.ui.leftpanel.width())
+        print(self.ui.leftpanel.baseSize)
+        if self.ui.leftpanel.width() < self.ui.leftpanel.maximumWidth():   # seems like might be a sizepolicy issue
+            self.expand_leftpanel()
+        else:
+            self.collapse_leftpanel()
+
+
+
     # for left panel. maybe store btns and pages in a lookup table/dictionary so can relate them easier
     def uncheck_other_buttons(self):
         # set all to false and then set the sender to true
-        self.ui.sidebtn.setChecked(False)
+        self.ui.sidebtn_0.setChecked(False)
+        self.ui.sidebtn_1.setChecked(False)
         self.ui.sidebtn_2.setChecked(False)
         self.ui.sidebtn_3.setChecked(False)
         self.ui.sidebtn_4.setChecked(False)
@@ -307,7 +363,7 @@ class MainWindow(qtw.QMainWindow):    # Make sure the root widget/class is the r
     # ideas for helping visually clue viewers in that it's only needs to be set once, is having it greyed out, and then clicking a gear button to trigger a dialog window to edit it. or having a dropdown and then gear icon again idk
     # OR make an inital page (like vscodes home page thing or chimeras, that asks users to select a home save folder upon first launch (stores it some json or smth))
     
-    # TODO: small bug, if no folder is selected, it becomes just "CryoDataBot. like as an absolute path lol. just use os.getcwd or wtv
+    # TODO: small bug, if no folder is selected, it becomes just "CryoDataBot. like as the absolute path lol. just use os.getcwd or wtv
     def make_main_dir(self, dir_path):
         print("make_main_dir fxn triggered")
         try:
@@ -442,6 +498,7 @@ class MainWindow(qtw.QMainWindow):    # Make sure the root widget/class is the r
         # Automatically select the newly added group
         self.ui.treeWidget_p4.setCurrentItem(group_item)
         group_delbtn = qtw.QPushButton()
+        # group_delbtn.setIcon(qtg.QIcon(r"GUI_custom_widgets/svgs/browsefilesicon.png"))
         group_delbtn.setIcon(qtg.QIcon(r"GUI_custom_widgets/svgs/clear_inverse-svgrepo-com.svg"))
         group_delbtn.setFixedWidth(16)
         group_delbtn.setFixedHeight(16)
@@ -463,6 +520,8 @@ class MainWindow(qtw.QMainWindow):    # Make sure the root widget/class is the r
         group_delbtn.clicked.connect(self.delete_group)
         self.ui.treeWidget_p4.setItemWidget(group_item, 4, group_delbtn)
         self.ui.treeWidget_p4.itemClicked.connect(lambda: print("CASE\n    OH"))
+
+        self.ui.addlabel_btn.setEnabled(True)
 
     def add_label(self):
         """Add a label (subitem, editable) to the selected group or the parent group of the selected label."""
@@ -509,8 +568,9 @@ class MainWindow(qtw.QMainWindow):    # Make sure the root widget/class is the r
         group_item.addChild(child_item)
 
         self.ui.treeWidget_p4.setItemWidget(child_item, 0, qtw.QLabel(label_name))
-        secondary_struct_combo = LabelComboBox()
+        secondary_struct_combo = LabelComboBox_v2()
         secondary_struct_combo.addItems(['', 'protein - all', 'protein - helix', 'protein - sheet', 'protein - loop', 'RNA', 'DNA'])
+        secondary_struct_combo.currentTextChanged.connect(lambda: print("item changed"))
         self.ui.treeWidget_p4.setItemWidget(child_item, 1, secondary_struct_combo)
         residues_combo = LabelComboBox(placeholder_text="Choose residue(s)")
         residues_combo.addItems(['', 'All', 'A', 'T', 'C', 'G', 'U', 'alanine', 'arginine', 'asparagine', 'aspartic acid', 'cysteine', 'glutamic acid', 'glutamine', 'glycine', 'histidine', 'isoleucine', 'leucine', 'lysine', 'methionine', 'phenylalanine', 'proline', 'serine', 'threonine', 'tryptophan', 'tyrosine', 'valine'])
@@ -562,6 +622,8 @@ class MainWindow(qtw.QMainWindow):    # Make sure the root widget/class is the r
         selected_item = self.ui.treeWidget_p4.currentItem()
         if selected_item:          # functionally equivalent to if selection_item is not None:
             self.ui.treeWidget_p4.takeTopLevelItem(self.ui.treeWidget_p4.indexOfTopLevelItem(selected_item))
+        if self.ui.treeWidget_p4.topLevelItemCount() == 0:
+            self.ui.addlabel_btn.setDisabled(True)
 
     def duplicate_label(self):
         """Add a label (subitem, editable) to the selected group or the parent group of the selected label."""
@@ -676,9 +738,13 @@ class MainWindow(qtw.QMainWindow):    # Make sure the root widget/class is the r
 
 if __name__ == '__main__':
     os.environ["QT_AUTO_SCREEN_SCALE_FACTOR"] = "1"                          # choose one
+    os.environ["SCALE_FACTOR"] = "3"
     # qtw.QApplication.setAttribute(qtc.Qt.AA_EnableHighDpiScaling)            # choose one
+    # os.environ["QT_FONT_DPI"] = "96" # FIX Problem for High DPI and Scale above 100%    <-- from pydracula tutorial, super elegant solution
+
     app = qtw.QApplication(sys.argv)
     app.setAttribute(qtc.Qt.AA_UseHighDpiPixmaps)
+    app.setStyle("QWindowsStyle")
     # app.setStyle(qtw.QStyleFactory.create("Fusion"))
     w = MainWindow()
     sys.exit(app.exec_())

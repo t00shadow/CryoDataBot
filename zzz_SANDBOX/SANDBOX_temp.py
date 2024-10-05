@@ -1,82 +1,103 @@
 import sys
-from PyQt5.QtCore import QEvent, QPoint, Qt
-from PyQt5.QtWidgets import QApplication, QMainWindow, QDialog, QPushButton, QVBoxLayout, QLabel
+from PyQt5.QtWidgets import QApplication, QWidget, QVBoxLayout, QPushButton, QListWidget, QListWidgetItem, QLineEdit, QHBoxLayout
+from PyQt5.QtCore import Qt
 
-
-#start: put this shit in a separate file (with the necessary imports)
-class PopupDialog(QDialog):
-    def __init__(self, parent=None):
-        super(PopupDialog, self).__init__(parent)
-        self.setWindowTitle("Popup Dialog")
-        self.setGeometry(150, 150, 300, 200)
-
-        # Basic layout and button in the popup
-        layout = QVBoxLayout(self)
-        text_blurb = QLabel("You sure u wanna delete?")
-        layout.addWidget(text_blurb)
-        close_button = QPushButton("Confirm")
-        layout.addWidget(close_button)
-        close_button.clicked.connect(lambda: print("deleted"))
-        close_button.clicked.connect(self.close)
-
-    def showEvent(self, event):
-        # Install a global event filter when the dialog is shown
-        QApplication.instance().installEventFilter(self)
-        super().showEvent(event)
-
-    def hideEvent(self, event):
-        # Remove the event filter when the dialog is closed
-        QApplication.instance().removeEventFilter(self)
-        super().hideEvent(event)
-
-    def close(self):
-        print("dialog closed")
-        return super().close()
-
-    def eventFilter(self, watched, event):
-        # Check if a mouse button is pressed outside the dialog
-        if event.type() == QEvent.MouseButtonPress:
-            if not self.rect().contains(self.mapFromGlobal(event.globalPos())):
-                self.close()
-        return super().eventFilter(watched, event)
-#end: put this shit in a separate file (with the necessary imports)
-
-
-
-# TODO: CONVERT THIS CLASS TO JUST A QPUSHBUTTON. the example usage is also literally in here
-class MainWindow(QMainWindow):
+class EditableListWidget(QWidget):
     def __init__(self):
-        super(MainWindow, self).__init__()
-        self.setWindowTitle("Main Window")
-        self.setGeometry(100, 100, 400, 300)
+        super().__init__()
 
-        # Button to open the popup dialog
-        self.button = QPushButton("Delete", self)
-        self.button.setGeometry(150, 100, 100, 50)
-        self.button.clicked.connect(self.on_click)              # this is rly all u need besides the 3 fxns below
+        self.init_ui()
 
-    # start: move these to a separate file too, call it deleteButton? or like popupDeleteButton?
-    def on_click(self):
-        # Detect if Shift key is held
-        if QApplication.keyboardModifiers() == Qt.ShiftModifier:
-            self.delete_without_confirmation()
-        else:
-            self.open_popup()
+        self.item_numbers = set()  # Internal list to store existing item numbers
 
-    def open_popup(self):
-        """Show the popup dialog."""
-        self.dialog = PopupDialog(self)
-        self.dialog.setWindowModality(False)  # Non-modal, allowing interaction with the main window
-        self.dialog.show()
+    def init_ui(self):
+        layout = QVBoxLayout()
 
-    def delete_without_confirmation(self):
-        # Bypass confirmation dialog and delete directly
-        print("Deleted without confirmation!")
-    # end: move these to a separate file too, call it deleteButton? or like popupDeleteButton?
+        # List widget to display items
+        self.list_widget = QListWidget()
+        layout.addWidget(self.list_widget)
+
+        # Add buttons
+        button_layout = QHBoxLayout()
+        self.add_button = QPushButton("Add Item")
+        self.delete_button = QPushButton("Delete Selected Item")
+        button_layout.addWidget(self.add_button)
+        button_layout.addWidget(self.delete_button)
+
+        layout.addLayout(button_layout)
+
+        # Connect button signals
+        self.add_button.clicked.connect(self.add_item)
+        self.delete_button.clicked.connect(self.delete_item)
+
+        # Handle editing finish signal
+        self.list_widget.itemChanged.connect(lambda: print("item changed"))
+        self.list_widget.itemChanged.connect(self.on_item_edited)
+
+        self.setLayout(layout)
+        self.setWindowTitle("Editable List")
+        self.show()
+
+    def add_item(self):
+        """ Add a new item to the list with the lowest available item number. """
+        # Find the lowest available item number
+        new_item_num = self.get_lowest_available_number()
+
+        # Add new item number to internal list
+        self.item_numbers.add(new_item_num)
+
+        # Create the item and make it editable
+        item_name = f"item{new_item_num}"
+        list_item = QListWidgetItem(item_name)
+        list_item.setFlags(list_item.flags() | Qt.ItemIsEditable)
+        list_item.setData(Qt.UserRole, item_name)  # Store initial name for future reference
+
+        # Add the item to the list widget
+        self.list_widget.addItem(list_item)
+
+    def delete_item(self):
+        """ Delete selected items and refresh the internal list of numbers. """
+        selected_items = self.list_widget.selectedItems()
+        if not selected_items:
+            return
+
+        # Delete selected items from the list
+        for item in selected_items:
+            self.list_widget.takeItem(self.list_widget.row(item))
+
+        # Refresh the internal list of item numbers after deletion
+        self.refresh_item_numbers()
+
+    def on_item_edited(self, item):
+        """ Update internal list of numbers when an item is edited. """
+        # Refresh the internal list of item numbers
+        self.refresh_item_numbers()
+
+    def refresh_item_numbers(self):
+        """ Refresh the internal list of numbers by analyzing all items in the list. """
+        self.item_numbers.clear()
+
+        for i in range(self.list_widget.count()):
+            list_item = self.list_widget.item(i)
+            item_name = list_item.text()
+
+            # If the item name follows the itemX format, extract the number and store it
+            if item_name.startswith("item"):
+                try:
+                    item_num = int(item_name[4:])
+                    self.item_numbers.add(item_num)
+                except ValueError:
+                    pass
+
+    def get_lowest_available_number(self):
+        """ Get the lowest available number that can be used for a new item. """
+        num = 1
+        while num in self.item_numbers:
+            num += 1
+        return num
 
 
 if __name__ == '__main__':
     app = QApplication(sys.argv)
-    main_window = MainWindow()
-    main_window.show()
+    window = EditableListWidget()
     sys.exit(app.exec_())

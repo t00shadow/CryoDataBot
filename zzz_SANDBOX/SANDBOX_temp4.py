@@ -1,112 +1,126 @@
-import sys
-from PyQt5.QtWidgets import QApplication, QMainWindow, QPushButton, QStackedWidget, QWidget, QVBoxLayout, QLabel
-from PyQt5.QtGui import QColor, QPalette
-from PyQt5.QtCore import Qt
+from PyQt5.QtWidgets import (
+    QApplication, QWidget, QVBoxLayout, QComboBox, QTableView, QTreeView
+)
+from PyQt5.QtCore import Qt, QEvent
+from PyQt5.QtGui import QMouseEvent, QStandardItemModel, QStandardItem
 
-# Create a modern-styled window with multiple pages using a color scheme
-class MainWindow(QMainWindow):
+
+class CustomComboBox(QComboBox):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.setEditable(True)  # Optional, allows typing in the combo box
+
+    # Override showPopup to install an event filter that will keep the popup open
+    def showPopup(self):
+        super().showPopup()
+        # Install an event filter to control closing the popup
+        self.view().viewport().installEventFilter(self)
+
+    # Event filter to handle clicks on items in the view
+    def eventFilter(self, obj, event):
+        if isinstance(event, QMouseEvent):
+            if event.type() == QMouseEvent.MouseButtonRelease:
+                index = self.view().indexAt(event.pos())
+                if index.isValid():
+                    # Get the item at the clicked index
+                    item = self.model().itemFromIndex(index)
+                    if item.isCheckable():
+                        # Toggle the checkbox state only if it's not already checked
+                        if item.checkState() == Qt.Unchecked:
+                            item.setCheckState(Qt.Checked)
+                        else:
+                            item.setCheckState(Qt.Unchecked)
+
+                    return True  # Return True to keep the popup open after clicking
+        return super().eventFilter(obj, event)
+
+
+class ComboBoxViewsDemo(QWidget):
     def __init__(self):
         super().__init__()
 
-        # Set window properties
-        self.setWindowTitle("Cryo-EM Themed GUI")
-        self.setGeometry(100, 100, 600, 400)
+        # Layout for the window
+        layout = QVBoxLayout(self)
 
-        # Main layout container
-        self.stack = QStackedWidget(self)
-        self.setCentralWidget(self.stack)
+        # ComboBox with QTableView and Checkboxes
+        self.table_combo = CustomComboBox(self)
+        tableView = QTableView()
+        tableView.horizontalHeader().setVisible(False)
+        tableView.verticalHeader().setVisible(False)
+        print(type(tableView))
+        self.table_combo.setView(tableView)
 
-        # Create pages
-        self.home_page = self.create_home_page()
-        self.page_1 = self.create_page("Page 1")
-        self.page_2 = self.create_page("Page 2")
+        # Set up a model with multiple columns and checkboxes for the QTableView combo
+        self.table_model = QStandardItemModel()
+        self.table_combo.setModel(self.table_model)
 
-        # Add pages to stack
-        self.stack.addWidget(self.home_page)
-        self.stack.addWidget(self.page_1)
-        self.stack.addWidget(self.page_2)
+        ### The following 2 versions of code accomplish the same thing (with maybe noteable difference in performance, setting rows is prob more efficient than single items since less function call overhead b/c less function calls)
 
-        # Set default page
-        self.stack.setCurrentWidget(self.home_page)
-
-        # Apply color scheme
-        self.apply_color_scheme()
-
-    def create_home_page(self):
-        """Create the home page with navigation buttons"""
-        page = QWidget()
-        layout = QVBoxLayout()
-
-        # Home page label
-        label = QLabel("Home Page")
-        label.setAlignment(Qt.AlignCenter)
-        label.setStyleSheet("font-size: 24px; color: #1D3557;")  # Steel Gray for text
-        layout.addWidget(label)
-
-        # Navigation buttons
-        btn_page1 = QPushButton("Go to Page 1")
-        btn_page1.clicked.connect(lambda: self.stack.setCurrentWidget(self.page_1))
-        btn_page1.setStyleSheet(self.button_style())
-
-        btn_page2 = QPushButton("Go to Page 2")
-        btn_page2.clicked.connect(lambda: self.stack.setCurrentWidget(self.page_2))
-        btn_page2.setStyleSheet(self.button_style())
-
-        layout.addWidget(btn_page1)
-        layout.addWidget(btn_page2)
-
-        page.setLayout(layout)
-        return page
-
-    def create_page(self, title):
-        """Create a generic page with a back button"""
-        page = QWidget()
-        layout = QVBoxLayout()
-
-        label = QLabel(title)
-        label.setAlignment(Qt.AlignCenter)
-        label.setStyleSheet("font-size: 24px; color: #1D3557;")  # Steel Gray for text
-        layout.addWidget(label)
-
-        # Back button to return to home
-        btn_back = QPushButton("Back to Home")
-        btn_back.clicked.connect(lambda: self.stack.setCurrentWidget(self.home_page))
-        btn_back.setStyleSheet(self.button_style())
-        layout.addWidget(btn_back)
-
-        page.setLayout(layout)
-        return page
-
-    def button_style(self):
-        """Return a modern button style"""
-        return """
-            QPushButton {
-                background-color: #457B9D;  /* Electron Blue */
-                color: #F1FAEE;             /* Frost White */
-                padding: 10px;
-                font-size: 18px;
-                border-radius: 5px;
-            }
-            QPushButton:hover {
-                background-color: #2A9D8F;  /* Cold Teal */
-            }
-        """
-
-    def apply_color_scheme(self):
-        """Set the main window's color palette to the Cryo-EM theme"""
-        palette = QPalette()
-
-        # Set primary background color (Ice Blue)
-        palette.setColor(QPalette.Window, QColor("#A8DADC"))
+        ### Set one table ROW at a time
+        # for row in range(4):
+        #     items = []
+        #     for col in range(3):
+        #         item = QStandardItem(f"Item {row} - Col {col}")
+        #         item.setCheckable(True)
+        #         item.setCheckState(Qt.Unchecked)
+        #         items.append(item)
+        #     table_model.appendRow(items)
         
-        # Set text color for labels
-        palette.setColor(QPalette.WindowText, QColor("#1D3557"))  # Steel Gray
+        ### Set one table ITEM at a time
+        for row in range(4):
+            for col in range(3):
+                item = QStandardItem(f"Item {row} - Col {col}")
+                item.setCheckable(True)  # Make each item checkable
+                item.setCheckState(Qt.Unchecked)  # Start as unchecked
+                self.table_model.setItem(row, col, item)
 
-        self.setPalette(palette)
+        self.table_model.itemChanged.connect(self.updateLineEdit)
+        layout.addWidget(self.table_combo)
 
-# Run the application
+        # ComboBox with QTreeView and Checkboxes
+        tree_combo = CustomComboBox(self)
+        treeView = QTreeView()
+        tree_combo.setView(treeView)
+
+        # Set up a tree model with checkboxes for the QTreeView combo
+        tree_model = QStandardItemModel()
+        tree_combo.setModel(tree_model)
+        root_node = tree_model.invisibleRootItem()
+
+        for i in range(3):
+            parent_item = QStandardItem(f"Parent {i}")
+            parent_item.setCheckable(True)
+            parent_item.setCheckState(Qt.Unchecked)
+            for j in range(2):
+                child_item = QStandardItem(f"Child {i}.{j}")
+                child_item.setCheckable(True)
+                child_item.setCheckState(Qt.Unchecked)
+                parent_item.appendRow(child_item)
+            root_node.appendRow(parent_item)
+
+        layout.addWidget(tree_combo)
+
+        self.setLayout(layout)
+        self.setWindowTitle('QComboBox with Persistent Popup and Checkboxes')
+    
+    def updateLineEdit(self):
+        checked_items = []
+        if self.table_model.item(0, 0).checkState() == Qt.Checked:
+            print("select all")
+        else:
+            for row in range(self.table_model.rowCount()):
+                for col in range(self.table_model.columnCount()):
+                    item = self.table_model.item(row, col)
+                    if item.checkState() == Qt.Checked:
+                        checked_items.append(item.text())
+        
+        # Update the line edit with checked items
+        self.table_combo.lineEdit().setText(", ".join(checked_items))
+
 if __name__ == '__main__':
-    app = QApplication(sys.argv)
-    window = MainWindow()
+    app = QApplication([])
+
+    window = ComboBoxViewsDemo()
     window.show()
-    sys.exit(app.exec_())
+
+    app.exec_()
