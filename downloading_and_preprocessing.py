@@ -224,7 +224,7 @@ def preprocess_maps(csv_info, path_info, metadata_path, give_map: bool=True, pro
         length = len(failed)
         for idx in range(0, length, num:=10):
             logger.info(f'  {", ".join(failed[idx:idx + num])}')
-    failed_df_path = os.path.join(os.path.dirname(metadata_path), 'Removed_Entries', 'preprocessing_failed.csv')
+    failed_df_path = os.path.join(os.path.dirname(metadata_path), 'Archive', 'preprocessing_failed.csv')
     os.makedirs(os.path.dirname(failed_df_path), exist_ok=True)
     failed_df = metadata_df[metadata_df['emdb_id'].isin(failed)]
     failed_df.to_csv(failed_df_path, index=False)
