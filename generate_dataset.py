@@ -1,5 +1,3 @@
-from curses import raw
-from importlib import metadata
 import json
 import logging
 import os

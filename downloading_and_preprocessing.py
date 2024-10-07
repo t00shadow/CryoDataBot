@@ -18,7 +18,7 @@ from helper_funcs import calculate_title_padding, csv_col_reader, read_csv_info
 
 
 # main function
-def download_and_preprocessing(metadata_path, raw_dir: str = 'Raw', overwrite = False):
+def downloading_and_preprocessing(metadata_path, raw_dir: str = 'Raw', overwrite = False):
     """
     Reads metadata, downloads map and model files, and preprocesses the map files.
 
@@ -507,4 +507,4 @@ def atom_coord_cif(structure):
 if __name__ == '__main__':
     matadata_path = 'Metadata/ribosome_res_1-4_001/ribosome_res_1-4_001.csv'
     raw_dir = 'Raw'
-    download_and_preprocessing(matadata_path, raw_dir, overwrite=False)
+    downloading_and_preprocessing(matadata_path, raw_dir, overwrite=False)
