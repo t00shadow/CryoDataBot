@@ -138,16 +138,18 @@ def data_to_npy(normalized_map_path: str,
         labels.append(group_names[member_idx])
 
         if generate_test is True:
+            classes = len(label_group[0])
+            tqdm.write(f"Generating test maps for {normalized_map_path}")
             for label in range(1, classes + 1):
                 out_map = f"{normalized_map_path.split('.mrc')[0]}_EXAMPLE_{label}.mrc"
-                print("=> Writing new map")
+                #print(f"    => Writing new map with label = {label}")
                 shutil.copy(normalized_map_path, out_map)
                 with mrcfile.open(out_map, mode='r+') as mrc:
                     TEST_data = np.zeros_like(member_data)
                     TEST_data = np.where(member_data == label, member_data, 0)
                     mrc.set_data(TEST_data)
-                print("New map is writen.")
-                continue
+                #print("    New map is writen.")
+            return None
             
             '''out_map = f"{normalized_map_path.split('.mrc')[0]}_EXAMPLE_{label}.mrc"
             print("=> Writing new map")
@@ -161,7 +163,6 @@ def data_to_npy(normalized_map_path: str,
                 #logger.info('Successfully generated test mrc(s).')
             #except Exception as e:
                 #logger.error(f'Generation failed. Exception: {e}.')'''
-            exit()
 
     data.append(map_data)
     labels.append('map_sample')
@@ -696,6 +697,7 @@ def label_maps(label_group,
     logger.addHandler(file_hdlr)
 
     logger.info(calculate_title_padding('Generating dataset'))
+    # log the label groups and their respective labels
     msg = 'Label Groups:\n'
     for idx, name in enumerate(group_names):
         msg += f'    Group {name}:\n'
@@ -785,6 +787,26 @@ def label_maps(label_group,
                 sample_path+'/'+training_set_name+'_generate_dataset.log')
 
 
+def generate_test_label_maps(label_groups,
+                             group_names,
+                             metadata_path,
+                             raw_path,
+                            ):
+    # read csv
+    csv_info, path_info = read_csv_info(metadata_path, raw_path)
+    _, _, _, emdb_ids = csv_info
+    _, model_paths, normalized_map_paths = path_info
+
+    print('Start Generating Test Label Files from Maps and Models')
+    #with logging_redirect_tqdm():
+    with ProcessPoolExecutor() as executor:
+        futures = [executor.submit(data_to_npy, normalized_map_paths[idx], model_paths[idx], label_groups,
+                'temp_sample_path', group_names, generate_test=True) for idx in range(len(emdb_ids))]
+        
+        for _ in tqdm(as_completed(futures), total=len(futures), desc='Labeling Maps'):
+            pass
+
+
 if __name__ == "__main__":
     '''
     # For Running Dataset Generation
@@ -801,11 +823,6 @@ if __name__ == "__main__":
 
     # for testing data_to_npy()
     # not for running dataset generation
-    normalized_map_path = r'path_to_save_downloaded_map_and_model/EMD-3145_re_3.3/emd_3145_normalized.mrc'
-    model_path = r'path_to_save_downloaded_map_and_model/EMD-3145_re_3.3/5an9.cif'
-    #normalized_map_path = r'path_to_save_downloaded_map_and_model/EMD-41587_re_2.92/emd_41587_normalized.mrc'
-    #odel_path = r'path_to_save_downloaded_map_and_model/EMD-41587_re_2.92/8ts1.cif'
-    # different label_group
     '''label_group = [[{'secondary_type': 'Helix', 'residue_type': '', 'atom_type': '', 'element_type': '', 'metal_type': '', 'label': 1},\
                    {'secondary_type': 'Sheet', 'residue_type': '', 'atom_type': '', 'element_type': '', 'metal_type': '', 'label': 2},\
                    {'secondary_type': 'Loop', 'residue_type': '', 'atom_type': '', 'element_type': '', 'metal_type': '', 'label': 3}]]'''
@@ -840,9 +857,9 @@ if __name__ == "__main__":
     label_group = [[{'secondary_type': '', 'residue_type': ','.join(residues_protein), 'atom_type': 'CA', 'element_type': '', 'metal_type': '', 'label': 1},\
                     {'secondary_type': '', 'residue_type': ','.join(residues_protein), 'atom_type': 'N', 'element_type': '', 'metal_type': '', 'label': 2},\
                     {'secondary_type': '', 'residue_type': ','.join(residues_protein), 'atom_type': 'O', 'element_type': '', 'metal_type': '', 'label': 3}]]
-    temp_sample_path = 'Temp_Sample'
     group_names = ['foo']
+    metadata_path = r'CryoDataBot/Metadata/download_file_002/download_file_002_Final.csv'
+    raw_path = r'CryoDataBot/Raw'
 
-    data_to_npy(normalized_map_path, model_path, label_group, temp_sample_path,
-                group_names, generate_test=True, classes=24)
+    generate_test_label_maps(label_group,group_names,metadata_path,raw_path)
 

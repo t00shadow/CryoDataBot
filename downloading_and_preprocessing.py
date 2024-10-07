@@ -1,7 +1,5 @@
-from curses import meta
 import gzip
 import logging
-from math import log
 import os
 import shutil
 import urllib.request
@@ -20,7 +18,7 @@ from helper_funcs import calculate_title_padding, csv_col_reader, read_csv_info
 
 
 # main function
-def download_and_preprocessing(metadata_path, raw_dir: str = 'Raw', overwrite = False):
+def downloading_and_preprocessing(metadata_path, raw_dir: str = 'Raw', overwrite = False):
     """
     Reads metadata, downloads map and model files, and preprocesses the map files.
 
@@ -209,42 +207,42 @@ def preprocess_maps(csv_info, path_info, metadata_path, give_map: bool=True, pro
         for raw_map_path, model_path, recl in tqdm(zip(raw_map_paths, model_paths, recls), total=len(raw_map_paths), desc='Preprocessing Maps'):
             try:
                 vof, dice = preprocess_one_map(recl, raw_map_path, model_path, give_map, protein_tag_dist, map_threashold)
-                results.append(('EMD-'+os.path.basename(raw_map_path).split(".")[0].split('_')[1], os.path.basename(model_path).split(".")[0],\
-                                vof, dice))
+                results.append(('EMD-'+os.path.basename(raw_map_path).split(".")[0].split('_')[1], vof, dice))
             except ValueError as e:
                 logger.warning(f'  Error Preprocessing Map: {e}')
                 logger.warning('  !!! Preprocessing Failed !!!')
                 logger.info('')
                 failed.append('EMD-'+os.path.basename(raw_map_path).split(".")[0].split('_')[1])
 
-    # save VOF/Dice            
-    result_df = pd.DataFrame(results, columns=['EMDB_ID', 'PDB_ID', 'VOF', 'Dice_Coefficient'])
-    df_path = os.path.join(os.path.dirname(metadata_path), 'map_to_model_fitnesses.csv')
-    result_df.to_csv(df_path, index=False)
-    logger.info('')
-    logger.info('Preprocessing Results Written at:')
-    logger.info(f'"{os.path.abspath(df_path)}"')
-    logger.info('')
+    # read metadata file
+    metadata_df = pd.read_csv(metadata_path)
 
     # Print out failed maps
+    logger.info('')
     if failed:
         logger.info('Failed to Preprocess Maps:')
         length = len(failed)
         for idx in range(0, length, num:=10):
             logger.info(f'  {", ".join(failed[idx:idx + num])}')
-    log_dir = os.path.dirname(metadata_path)
-    log_file_name = f"{os.path.basename(os.path.dirname(metadata_path))}_downloading_and_preprocessing.log"
-    log_path = os.path.join(log_dir, log_file_name)
-    print(f'Please Check Failed Entries at:\n"{os.path.abspath(log_path)}"')
+    failed_df_path = os.path.join(os.path.dirname(metadata_path), 'Archive', 'preprocessing_failed.csv')
+    os.makedirs(os.path.dirname(failed_df_path), exist_ok=True)
+    failed_df = metadata_df[metadata_df['emdb_id'].isin(failed)]
+    failed_df.to_csv(failed_df_path, index=False)
+    print(f'Please Check Failed Entries at:\n"{os.path.abspath(failed_df_path)}"')
+    logger.info('')
+
+    # save VOF/Dice            
+    result_df = pd.DataFrame(results, columns=['emdb_id', 'vof', 'dice_coefficient'])
+    metadata_df = metadata_df.merge(result_df, on='emdb_id', how='left')
 
     # Remove failed entries from metadata file
-    new_df = pd.read_csv(metadata_path)
-    new_df = new_df[~new_df['emdb_id'].isin(failed)]
-    new_df_path = os.path.join(os.path.dirname(metadata_path), f"{os.path.basename(os.path.dirname(metadata_path))}_failed_dropped.csv")
-    new_df.to_csv(new_df_path, index=False)
+    metadata_df = metadata_df[~metadata_df['emdb_id'].isin(failed)]
+
+    # save metadata file
+    metadata_df.to_csv(metadata_path, index=False)
     logger.info('')
-    logger.info(f'Failed Entries Were Removed from Metadata File; New Meatadata File Written at:')
-    logger.info(f'"{os.path.abspath(new_df_path)}"')
+    logger.info(f'VOF/DICE Written; Failed Entries Removed')
+    logger.info(f'New Meatadata File Written at: "{os.path.abspath(metadata_path)}"')
 
 
 # Step3.1: preprocess the map of one entry
@@ -507,8 +505,6 @@ def atom_coord_cif(structure):
 
 
 if __name__ == '__main__':
-    matadata_path = '/home/qiboxu/Database/CryoDataBot_Data/Metadata/ribosome_res_3-4_20240924_001/ribosome_res_3-4_20240924_001-test.csv'
-    raw_dir = '/home/qiboxu/Database/CryoDataBot_Data/Raw-test'
-    # matadata_path = 'Metadata/ribosome_res_1-4_001/ribosome_res_1-4_001.csv'
-    # raw_dir = 'Raw'
-    download_and_preprocessing(matadata_path, raw_dir, overwrite=False)
+    matadata_path = 'Metadata/ribosome_res_1-4_001/ribosome_res_1-4_001.csv'
+    raw_dir = 'Raw'
+    downloading_and_preprocessing(matadata_path, raw_dir, overwrite=False)
