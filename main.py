@@ -3,7 +3,7 @@ import os
 from atom_in_models import residues_protein
 from downloading_and_preprocessing import download_and_preprocessing
 from fetch_sample_info import search_emdb
-from generate_dataset import label_maps
+from generate_dataset import label_maps, generate_test_label_maps
 from redundancy_filter import refine_csv
 
 
@@ -14,6 +14,7 @@ def main(
         cryo_data_bot_path: str='CryoDataBot',
         metadata_path: str='Metadata',
         raw_path: str='Raw',
+        generate_test = False,
 ) -> None:   
     # create directories if not exist
     os.makedirs(cryo_data_bot_path, exist_ok=True)
@@ -33,9 +34,13 @@ def main(
     # download and preprocess raw data
     download_and_preprocessing(csv_path, raw_path, overwrite=False)
 
-    # label maps
-    label_maps(label_groups,csv_path,raw_path,group_names, 
-               temp_sample_path=temp_path, sample_path=sample_path)
+    if generate_test:
+        # generate test maps
+        generate_test_label_maps(label_groups,group_names,csv_path,raw_path)
+    else:
+        # label maps and split dataset
+        label_maps(label_groups,csv_path,raw_path,group_names, 
+                temp_sample_path=temp_path, sample_path=sample_path)
 
 
 if __name__ == '__main__':
@@ -44,5 +49,5 @@ if __name__ == '__main__':
                    {'secondary_type': '', 'residue_type': ','.join(residues_protein), 'atom_type': 'N', 'element_type': '', 'metal_type': '', 'label': 3}]]
     group_names = ['Back_Bone']
     query = "ribosome AND resolution:[1 TO 4}"
-    main(query, label_group, group_names)
+    main(query, label_group, group_names, generate_test=True)
                             
