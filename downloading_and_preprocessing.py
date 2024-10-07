@@ -177,6 +177,7 @@ def download_one_map(emdb, pdb, emdb_id, raw_map_path, model_path, overwrite=Fal
 
 # Step3: preprocess maps using multithreasing
 def preprocess_maps(csv_info, path_info, metadata_path, give_map: bool=True, protein_tag_dist: int=1, map_threashold: float=0.01):
+    print("LOOK HERE", csv_info, path_info, metadata_path, give_map, protein_tag_dist, map_threashold)
     """
     Preprocesses multiple map files by normalizing them and calculating their fitness with models.
 

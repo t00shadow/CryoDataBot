@@ -11,19 +11,19 @@ def main(
         search_query: str,
         label_groups,
         group_names: list[str],
-        cryo_data_bot_path: str='CryoDataBot',
+        cryo_data_bot_data_path: str='CryoDataBot_Data',
         metadata_path: str='Metadata',
         raw_path: str='Raw',
         generate_test = False,
 ) -> None:   
     # create directories if not exist
-    os.makedirs(cryo_data_bot_path, exist_ok=True)
-    metadata_path = os.path.join(cryo_data_bot_path, metadata_path)
+    os.makedirs(cryo_data_bot_data_path, exist_ok=True)
+    metadata_path = os.path.join(cryo_data_bot_data_path, metadata_path)
     os.makedirs(metadata_path, exist_ok=True)
-    raw_path = os.path.join(cryo_data_bot_path, raw_path)
+    raw_path = os.path.join(cryo_data_bot_data_path, raw_path)
     os.makedirs(raw_path, exist_ok=True)
-    sample_path = os.path.join(cryo_data_bot_path, 'Sample')
-    temp_path = os.path.join(cryo_data_bot_path, 'Temp')
+    sample_path = os.path.join(cryo_data_bot_data_path, 'Sample')
+    temp_path = os.path.join(cryo_data_bot_data_path, 'Temp')
 
     # download EMDB csv file
     csv_path = search_emdb(search_query, metadata_path, rows=10, fetch_classification=True)
@@ -48,6 +48,5 @@ if __name__ == '__main__':
                    {'secondary_type': '', 'residue_type': ','.join(residues_protein), 'atom_type': 'C', 'element_type': '', 'metal_type': '', 'label': 2},\
                    {'secondary_type': '', 'residue_type': ','.join(residues_protein), 'atom_type': 'N', 'element_type': '', 'metal_type': '', 'label': 3}]]
     group_names = ['Back_Bone']
-    query = "ribosome AND resolution:[1 TO 4}"
+    query = "ribosome AND resolution:[3 TO 4}"
     main(query, label_group, group_names, generate_test=True)
-                            

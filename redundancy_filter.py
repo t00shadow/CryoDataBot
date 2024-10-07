@@ -419,8 +419,9 @@ def q_score_filter(df, threshold):
 if __name__ == '__main__':
     #INPUT_CSV = "/home/qiboxu/MyProject/CryoDataBot/EVALUATION/ribosome_res_4-9/ribosome_res_4-9.csv"  # user input for inout csv file
     # INPUT_CSV = r"C:\Users\micha\OneDrive\Desktop\QIBO\DATA_CLEANUP_942024\download_file_09_review.csv"
-    INPUT_CSV = "CSV/ribosome_res_1-4.csv"
-    THRE_UNI_SIMILARITY = 0.5  # user input for check UniportID similarity
-    THRE_Q_SCORE = 0.3  # user input for check Q-score values
+    # INPUT_CSV = "CSV/ribosome_res_1-4.csv"
+    INPUT_CSV = "/home/qiboxu/Database/CryoDataBot_Data/Metadata/ribosome_res_3-4_20240924_001/ribosome_res_3-4_20240924_001.csv"
+    THRE_UNI_SIMILARITY = 0.7  # user input for check UniportID similarity
+    THRE_Q_SCORE = 0.39  # user input for check Q-score values
 
     refine_csv(input_csv=INPUT_CSV, q_threshold=THRE_Q_SCORE, uni_threshold=THRE_UNI_SIMILARITY)
