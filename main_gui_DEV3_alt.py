@@ -288,6 +288,17 @@ class MainWindow(qtw.QMainWindow):    # Make sure the root widget/class is the r
         # # self.ui.tab.layout().setSizeConstraint(1)   # theres's no layout set on the test page lol (intentional)
 
         self.ui.stackedWidget.setCurrentIndex(0)     # choose starting page
+
+        # do this in designer, but currently just testing dif font sizes
+        # self.ui.sidebtn_0.setFont(qtg.QFont("Times", 20))
+        # self.ui.sidebtn_1.setFont(qtg.QFont("Times", 20))
+        # self.ui.sidebtn_2.setFont(qtg.QFont("Times", 20))
+        # self.ui.sidebtn_3.setFont(qtg.QFont("Times", 20))
+        # self.ui.sidebtn_4.setFont(qtg.QFont("Times", 20))
+        # self.ui.sidebtn_5.setFont(qtg.QFont("Times", 20))
+        # self.ui.sidebtn_6.setFont(qtg.QFont("Times", 20))
+        # self.ui.leftpanel.setMaximumWidth(180)
+
         self.ui.sidebtn_0.clicked.connect(lambda: self.ui.stackedWidget.setCurrentIndex(0))
         self.ui.sidebtn_1.clicked.connect(lambda: self.ui.stackedWidget.setCurrentIndex(1))
         self.ui.sidebtn_2.clicked.connect(lambda: self.ui.stackedWidget.setCurrentIndex(2))
@@ -297,7 +308,7 @@ class MainWindow(qtw.QMainWindow):    # Make sure the root widget/class is the r
         self.ui.sidebtn_6.clicked.connect(lambda: self.ui.stackedWidget.setCurrentIndex(6))
 
         self.ui.sidebtn_0.clicked.connect(self.uncheck_other_buttons)
-        self.ui.sidebtn_0.setChecked(True)
+        self.ui.sidebtn_0.setChecked(True)     # match starting page
         self.ui.sidebtn_1.clicked.connect(self.uncheck_other_buttons)
         # self.ui.sidebtn_1.setChecked(True)
         self.ui.sidebtn_2.clicked.connect(self.uncheck_other_buttons)
@@ -743,16 +754,18 @@ class MainWindow(qtw.QMainWindow):    # Make sure the root widget/class is the r
 
 
 if __name__ == '__main__':
-    os.environ["QT_AUTO_SCREEN_SCALE_FACTOR"] = "1"                          # choose one
-    # os.environ["SCALE_FACTOR"] = "3"
-    # qtw.QApplication.setAttribute(qtc.Qt.AA_EnableHighDpiScaling)            # choose one
-    # os.environ["QT_FONT_DPI"] = "96" # FIX Problem for High DPI and Scale above 100%    <-- from pydracula tutorial, super elegant solution
+    # os.environ["QT_AUTO_SCREEN_SCALE_FACTOR"] = "1"                          # choose one
+    # os.environ["QT_SCREEN_SCALE_FACTORS"] = "1.2"    # can set individual scale factors for each screen (not sure how to implement into gui for users to choose, like can u change at runtime? test later and also with a 2nd monitor hooked up)
+    os.environ["QT_SCALE_FACTOR"] = "1"
+    if hasattr(qtc.Qt, 'AA_EnableHighDpiScaling'):     #https://stackoverflow.com/a/47723454,   not sure if need if guards, since gonna package my version of qt with the executable, but might as well keep it cuz it doesnt break anything
+        qtw.QApplication.setAttribute(qtc.Qt.AA_EnableHighDpiScaling, True)
+
+    if hasattr(qtc.Qt, 'AA_UseHighDpiPixmaps'):
+        qtw.QApplication.setAttribute(qtc.Qt.AA_UseHighDpiPixmaps, True)
+    # os.environ["QT_FONT_DPI"] = "96"    # scale font size (seems to be indepdent of UI elements)    <-- from pydracula tutorial
 
     app = qtw.QApplication(sys.argv)
-    # app.setAttribute(qtc.Qt.AA_UseHighDpiPixmaps)
-    app.setAttribute(qtc.Qt.AA_EnableHighDpiScaling, True) #enable highdpi scaling
-    app.setAttribute(qtc.Qt.AA_UseHighDpiPixmaps, True) #use highdpi icons
-    app.setStyle("QWindowsStyle")
+    # app.setStyle("QWindowsStyle")
     # app.setStyle(qtw.QStyleFactory.create("Fusion"))
     w = MainWindow()
     # w.showFullScreen()   # no top bar

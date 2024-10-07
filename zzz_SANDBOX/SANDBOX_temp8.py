@@ -78,4 +78,15 @@ if __name__ == "__main__":
     app = QtWidgets.QApplication(sys.argv)
     ui = UiVentana()
     ui.show()
+
+        # Create a QFontDatabase instance
+    font_db = QtGui.QFontDatabase()
+
+    # Get the list of available font families
+    font_families = font_db.families()
+
+    # Print each font family
+    for family in font_families:
+        print(family)
+
     sys.exit(app.exec_())

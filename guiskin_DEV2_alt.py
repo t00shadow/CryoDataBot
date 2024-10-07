@@ -74,7 +74,7 @@ class Ui_MainWindow(object):
         self.leftpanel.setObjectName("leftpanel")
         self.verticalLayout_22 = QtWidgets.QVBoxLayout(self.leftpanel)
         self.verticalLayout_22.setContentsMargins(10, 0, 0, 0)
-        self.verticalLayout_22.setSpacing(2)
+        self.verticalLayout_22.setSpacing(10)
         self.verticalLayout_22.setObjectName("verticalLayout_22")
         spacerItem1 = QtWidgets.QSpacerItem(20, 15, QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Fixed)
         self.verticalLayout_22.addItem(spacerItem1)
@@ -210,7 +210,7 @@ class Ui_MainWindow(object):
         self.scrollArea_5.setWidgetResizable(True)
         self.scrollArea_5.setObjectName("scrollArea_5")
         self.scrollAreaWidgetContents_5_ = QtWidgets.QWidget()
-        self.scrollAreaWidgetContents_5_.setGeometry(QtCore.QRect(0, 0, 709, 799))
+        self.scrollAreaWidgetContents_5_.setGeometry(QtCore.QRect(0, 0, 758, 799))
         self.scrollAreaWidgetContents_5_.setObjectName("scrollAreaWidgetContents_5_")
         self.verticalLayout_31 = QtWidgets.QVBoxLayout(self.scrollAreaWidgetContents_5_)
         self.verticalLayout_31.setObjectName("verticalLayout_31")
@@ -228,7 +228,6 @@ class Ui_MainWindow(object):
         font = QtGui.QFont()
         font.setPointSize(24)
         font.setBold(True)
-        font.setWeight(75)
         self.label_20.setFont(font)
         self.label_20.setObjectName("label_20")
         self.verticalLayout_24.addWidget(self.label_20)
@@ -302,7 +301,7 @@ class Ui_MainWindow(object):
         self.scrollArea_4.setWidgetResizable(True)
         self.scrollArea_4.setObjectName("scrollArea_4")
         self.scrollAreaWidgetContents_4_ = QtWidgets.QWidget()
-        self.scrollAreaWidgetContents_4_.setGeometry(QtCore.QRect(0, 0, 709, 799))
+        self.scrollAreaWidgetContents_4_.setGeometry(QtCore.QRect(0, 0, 758, 799))
         self.scrollAreaWidgetContents_4_.setObjectName("scrollAreaWidgetContents_4_")
         self.verticalLayout_30 = QtWidgets.QVBoxLayout(self.scrollAreaWidgetContents_4_)
         self.verticalLayout_30.setContentsMargins(0, 0, 0, 0)
@@ -341,7 +340,6 @@ class Ui_MainWindow(object):
         font = QtGui.QFont()
         font.setPointSize(24)
         font.setBold(True)
-        font.setWeight(75)
         self.page2TitleLabel_2.setFont(font)
         self.page2TitleLabel_2.setStyleSheet("QLabel {\n"
 "    background-color: transparent;\n"
@@ -425,7 +423,6 @@ class Ui_MainWindow(object):
         font = QtGui.QFont()
         font.setPointSize(8)
         font.setBold(True)
-        font.setWeight(75)
         self.label.setFont(font)
         self.label.setObjectName("label")
         self.verticalLayout_2.addWidget(self.label)
@@ -497,7 +494,6 @@ class Ui_MainWindow(object):
         font = QtGui.QFont()
         font.setPointSize(8)
         font.setBold(True)
-        font.setWeight(75)
         self.label_5.setFont(font)
         self.label_5.setObjectName("label_5")
         self.verticalLayout_23.addWidget(self.label_5)
@@ -544,7 +540,6 @@ class Ui_MainWindow(object):
         font = QtGui.QFont()
         font.setPointSize(8)
         font.setBold(True)
-        font.setWeight(75)
         self.label_6.setFont(font)
         self.label_6.setObjectName("label_6")
         self.horizontalLayout_8.addWidget(self.label_6)
@@ -603,7 +598,6 @@ class Ui_MainWindow(object):
         font = QtGui.QFont()
         font.setPointSize(11)
         font.setBold(True)
-        font.setWeight(75)
         self.pushButton_p1_3.setFont(font)
         self.pushButton_p1_3.setStyleSheet("QPushButton {\n"
 "    background: rgba(193, 211, 239, 255);\n"
@@ -670,7 +664,7 @@ class Ui_MainWindow(object):
         self.scrollArea_3.setWidgetResizable(True)
         self.scrollArea_3.setObjectName("scrollArea_3")
         self.scrollAreaWidgetContents_3_ = QtWidgets.QWidget()
-        self.scrollAreaWidgetContents_3_.setGeometry(QtCore.QRect(0, 0, 709, 799))
+        self.scrollAreaWidgetContents_3_.setGeometry(QtCore.QRect(0, 0, 758, 799))
         self.scrollAreaWidgetContents_3_.setObjectName("scrollAreaWidgetContents_3_")
         self.verticalLayout_29 = QtWidgets.QVBoxLayout(self.scrollAreaWidgetContents_3_)
         self.verticalLayout_29.setContentsMargins(0, 0, 0, 0)
@@ -696,7 +690,6 @@ class Ui_MainWindow(object):
         font = QtGui.QFont()
         font.setPointSize(24)
         font.setBold(True)
-        font.setWeight(75)
         self.page2TitleLabel.setFont(font)
         self.page2TitleLabel.setStyleSheet("QLabel {\n"
 "    background-color: transparent;\n"
@@ -846,7 +839,6 @@ class Ui_MainWindow(object):
         self.label_p2 = QtWidgets.QLabel(self.B2_queryBox)
         font = QtGui.QFont()
         font.setBold(True)
-        font.setWeight(75)
         self.label_p2.setFont(font)
         self.label_p2.setObjectName("label_p2")
         self.verticalLayout_4.addWidget(self.label_p2)
@@ -947,7 +939,6 @@ class Ui_MainWindow(object):
         font = QtGui.QFont()
         font.setPointSize(11)
         font.setBold(True)
-        font.setWeight(75)
         self.pushButton_p2_2.setFont(font)
         self.pushButton_p2_2.setStyleSheet("QPushButton {\n"
 "    background: #6668ad;\n"
@@ -1014,7 +1005,7 @@ class Ui_MainWindow(object):
         self.scrollArea_2.setWidgetResizable(True)
         self.scrollArea_2.setObjectName("scrollArea_2")
         self.scrollAreaWidgetContents_2 = QtWidgets.QWidget()
-        self.scrollAreaWidgetContents_2.setGeometry(QtCore.QRect(0, 0, 709, 799))
+        self.scrollAreaWidgetContents_2.setGeometry(QtCore.QRect(0, 0, 758, 799))
         self.scrollAreaWidgetContents_2.setObjectName("scrollAreaWidgetContents_2")
         self.verticalLayout_28 = QtWidgets.QVBoxLayout(self.scrollAreaWidgetContents_2)
         self.verticalLayout_28.setContentsMargins(0, 0, 0, 0)
@@ -1040,7 +1031,6 @@ class Ui_MainWindow(object):
         font = QtGui.QFont()
         font.setPointSize(24)
         font.setBold(True)
-        font.setWeight(75)
         self.page3TitleLabel.setFont(font)
         self.page3TitleLabel.setStyleSheet("QLabel {\n"
 "    background-color: transparent;\n"
@@ -1407,7 +1397,6 @@ class Ui_MainWindow(object):
         font = QtGui.QFont()
         font.setPointSize(11)
         font.setBold(True)
-        font.setWeight(75)
         self.pushButton_p3_4.setFont(font)
         self.pushButton_p3_4.setStyleSheet("QPushButton {\n"
 "    background: #6668ad;\n"
@@ -1445,7 +1434,7 @@ class Ui_MainWindow(object):
         self.scrollArea.setWidgetResizable(True)
         self.scrollArea.setObjectName("scrollArea")
         self.scrollAreaWidgetContents = QtWidgets.QWidget()
-        self.scrollAreaWidgetContents.setGeometry(QtCore.QRect(0, 0, 692, 926))
+        self.scrollAreaWidgetContents.setGeometry(QtCore.QRect(0, 0, 746, 940))
         self.scrollAreaWidgetContents.setObjectName("scrollAreaWidgetContents")
         self.verticalLayout_27 = QtWidgets.QVBoxLayout(self.scrollAreaWidgetContents)
         self.verticalLayout_27.setContentsMargins(0, 0, 0, 0)
@@ -1471,7 +1460,6 @@ class Ui_MainWindow(object):
         font = QtGui.QFont()
         font.setPointSize(24)
         font.setBold(True)
-        font.setWeight(75)
         self.page4TitleLabel.setFont(font)
         self.page4TitleLabel.setStyleSheet("QLabel {\n"
 "    background-color: transparent;\n"
@@ -1656,7 +1644,6 @@ class Ui_MainWindow(object):
         font = QtGui.QFont()
         font.setPointSize(11)
         font.setBold(True)
-        font.setWeight(75)
         self.label_p4.setFont(font)
         self.label_p4.setObjectName("label_p4")
         self.horizontalLayout_10.addWidget(self.label_p4)
@@ -1920,7 +1907,6 @@ class Ui_MainWindow(object):
         font = QtGui.QFont()
         font.setPointSize(11)
         font.setBold(True)
-        font.setWeight(75)
         self.dataset_split_title.setFont(font)
         self.dataset_split_title.setAlignment(QtCore.Qt.AlignLeading|QtCore.Qt.AlignLeft|QtCore.Qt.AlignVCenter)
         self.dataset_split_title.setObjectName("dataset_split_title")
@@ -1948,7 +1934,6 @@ class Ui_MainWindow(object):
         font = QtGui.QFont()
         font.setPointSize(11)
         font.setBold(True)
-        font.setWeight(75)
         self.pushButton_p4_2.setFont(font)
         self.pushButton_p4_2.setStyleSheet("QPushButton {\n"
 "    color: white;\n"
@@ -2375,7 +2360,7 @@ class Ui_MainWindow(object):
         self.label_27.setStyleSheet("background-color: #ababab;")
         self.label_27.setObjectName("label_27")
         self.comboBox = QtWidgets.QComboBox(self.stackedWidgetPage5)
-        self.comboBox.setGeometry(QtCore.QRect(290, 570, 101, 22))
+        self.comboBox.setGeometry(QtCore.QRect(290, 570, 119, 22))
         self.comboBox.setStyleSheet("QComboBox {\n"
 "    border: 1px solid gray;\n"
 "    border-radius: 3px;\n"
@@ -2537,7 +2522,7 @@ class Ui_MainWindow(object):
         MainWindow.setStatusBar(self.statusbar)
 
         self.retranslateUi(MainWindow)
-        self.stackedWidget.setCurrentIndex(4)
+        self.stackedWidget.setCurrentIndex(0)
         QtCore.QMetaObject.connectSlotsByName(MainWindow)
 
     def retranslateUi(self, MainWindow):
@@ -2563,7 +2548,7 @@ class Ui_MainWindow(object):
 "sd\n"
 "fas\n"
 "\n"
-"FIXED VERT scroll in expanding scrollarea\n"
+"FIXED HEIGHT scroll (QPlainTextEdit) in expanding scrollarea\n"
 "\n"
 "df\n"
 "as\n"
@@ -2575,16 +2560,19 @@ class Ui_MainWindow(object):
         self.baseLayer_1.setToolTip(_translate("MainWindow", "<html><head/><body><p><br/></p></body></html>"))
         self.page2TitleLabel_2.setText(_translate("MainWindow", "Quickstart"))
         self.textBrowser_p1.setHtml(_translate("MainWindow", "<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.0//EN\" \"http://www.w3.org/TR/REC-html40/strict.dtd\">\n"
-"<html><head><meta name=\"qrichtext\" content=\"1\" /><style type=\"text/css\">\n"
+"<html><head><meta name=\"qrichtext\" content=\"1\" /><meta charset=\"utf-8\" /><style type=\"text/css\">\n"
 "p, li { white-space: pre-wrap; }\n"
-"</style></head><body style=\" font-family:\'MS Shell Dlg 2\'; font-size:8pt; font-weight:400; font-style:normal;\">\n"
-"<p style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\"><span style=\" font-family:\'Segoe UI\'; font-size:9pt; color:#000000;\">Enter a search term</span><span style=\" font-family:\'Segoe UI\'; font-size:9pt; font-weight:600; color:#ff6969;\">*</span><span style=\" font-family:\'Segoe UI\'; font-size:9pt; color:#000000;\"> followed by optional keywords. </span></p>\n"
-"<p style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\"><span style=\" font-family:\'Segoe UI\'; font-size:6pt; color:#ff6969;\">    </span><span style=\" font-family:\'Segoe UI\'; font-size:6pt; font-weight:600; color:#ff6969;\">*required</span></p>\n"
-"<p style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\"><span style=\" font-family:\'Segoe UI\'; font-size:9pt; color:#000000;\">Keywords are connected by boolean operators (AND, OR, NOT). Default is AND.</span></p>\n"
-"<p style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\"><a href=\"https://www.ebi.ac.uk/emdb/documentation/search\"><span style=\" text-decoration: underline; color:#0000ff;\">Query follows EMDB search format.</span></a></p>\n"
-"<p style=\"-qt-paragraph-type:empty; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px; font-family:\'Segoe UI\'; font-size:9pt; color:#000000;\"><br /></p>\n"
-"<p style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\"><span style=\" font-family:\'Segoe UI\'; font-size:9pt; color:#000000;\">ex.</span><span style=\" font-family:\'Segoe UI\'; font-size:9pt; color:#007c82;\">  </span><span style=\" font-family:\'Segoe UI\'; font-size:9pt; color:#00007f;\">spliceosome AND resolution:[2 TO 4]</span></p>\n"
-"<p style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\"><span style=\" font-family:\'Segoe UI\'; font-size:9pt; color:#000000;\">ex.  </span><span style=\" font-family:\'Segoe UI\'; font-size:9pt; color:#00007f;\">(spliceosome OR ribonucleoprotein) AND NOT human AND xref_UNIPROTKB:[* TO *]</span></p></body></html>"))
+"hr { height: 1px; border-width: 0; }\n"
+"li.unchecked::marker { content: \"\\2610\"; }\n"
+"li.checked::marker { content: \"\\2612\"; }\n"
+"</style></head><body style=\" font-family:\'Segoe UI\'; font-size:9pt; font-weight:400; font-style:normal;\">\n"
+"<p style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\"><span style=\" color:#000000;\">Enter a search term</span><span style=\" font-weight:600; color:#ff6969;\">*</span><span style=\" color:#000000;\"> followed by optional keywords. </span></p>\n"
+"<p style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\"><span style=\" font-size:6pt; color:#ff6969;\">    </span><span style=\" font-size:6pt; font-weight:600; color:#ff6969;\">*required</span></p>\n"
+"<p style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\"><span style=\" color:#000000;\">Keywords are connected by boolean operators (AND, OR, NOT). Default is AND.</span></p>\n"
+"<p style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\"><a href=\"https://www.ebi.ac.uk/emdb/documentation/search\"><span style=\" font-family:\'MS Shell Dlg 2\'; font-size:8pt; text-decoration: underline; color:#0000ff;\">Query follows EMDB search format.</span></a></p>\n"
+"<p style=\"-qt-paragraph-type:empty; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px; color:#000000;\"><br /></p>\n"
+"<p style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\"><span style=\" color:#000000;\">ex.</span><span style=\" color:#007c82;\">  </span><span style=\" color:#00007f;\">spliceosome AND resolution:[2 TO 4]</span></p>\n"
+"<p style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\"><span style=\" color:#000000;\">ex.  </span><span style=\" color:#00007f;\">(spliceosome OR ribonucleoprotein) AND NOT human AND xref_UNIPROTKB:[* TO *]</span></p></body></html>"))
         self.label.setText(_translate("MainWindow", "Query"))
         self.lineEdit_15.setPlaceholderText(_translate("MainWindow", "[sample] AND [range_keyword: x TO y] AND [keyword]"))
         self.label_5.setText(_translate("MainWindow", "Refinement"))
@@ -2600,16 +2588,19 @@ class Ui_MainWindow(object):
         self.lineEdit_p2.setPlaceholderText(_translate("MainWindow", "select a folder"))
         self.B_enterQuery.setTitle(_translate("MainWindow", "Enter a Search Query"))
         self.textBrowser_p2_2.setHtml(_translate("MainWindow", "<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.0//EN\" \"http://www.w3.org/TR/REC-html40/strict.dtd\">\n"
-"<html><head><meta name=\"qrichtext\" content=\"1\" /><style type=\"text/css\">\n"
+"<html><head><meta name=\"qrichtext\" content=\"1\" /><meta charset=\"utf-8\" /><style type=\"text/css\">\n"
 "p, li { white-space: pre-wrap; }\n"
-"</style></head><body style=\" font-family:\'MS Shell Dlg 2\'; font-size:8pt; font-weight:400; font-style:normal;\">\n"
-"<p style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\"><span style=\" font-family:\'Segoe UI\'; font-size:9pt; color:#000000;\">Enter a search term</span><span style=\" font-family:\'Segoe UI\'; font-size:9pt; font-weight:600; color:#ff6969;\">*</span><span style=\" font-family:\'Segoe UI\'; font-size:9pt; color:#000000;\"> followed by optional keywords. </span></p>\n"
-"<p style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\"><span style=\" font-family:\'Segoe UI\'; font-size:6pt; color:#ff6969;\">    </span><span style=\" font-family:\'Segoe UI\'; font-size:6pt; font-weight:600; color:#ff6969;\">*required</span></p>\n"
-"<p style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\"><span style=\" font-family:\'Segoe UI\'; font-size:9pt; color:#000000;\">Keywords are connected by boolean operators (AND, OR, NOT). Default is AND.</span></p>\n"
-"<p style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\"><a href=\"https://www.ebi.ac.uk/emdb/documentation/search\"><span style=\" text-decoration: underline; color:#0000ff;\">Query follows EMDB search format.</span></a></p>\n"
-"<p style=\"-qt-paragraph-type:empty; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px; font-family:\'Segoe UI\'; font-size:9pt; color:#000000;\"><br /></p>\n"
-"<p style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\"><span style=\" font-family:\'Segoe UI\'; font-size:9pt; color:#000000;\">ex.</span><span style=\" font-family:\'Segoe UI\'; font-size:9pt; color:#007c82;\">  </span><span style=\" font-family:\'Segoe UI\'; font-size:9pt; color:#00007f;\">spliceosome AND resolution:[2 TO 4]</span></p>\n"
-"<p style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\"><span style=\" font-family:\'Segoe UI\'; font-size:9pt; color:#000000;\">ex.  </span><span style=\" font-family:\'Segoe UI\'; font-size:9pt; color:#00007f;\">(spliceosome OR ribonucleoprotein) AND NOT human AND xref_UNIPROTKB:[* TO *]</span></p></body></html>"))
+"hr { height: 1px; border-width: 0; }\n"
+"li.unchecked::marker { content: \"\\2610\"; }\n"
+"li.checked::marker { content: \"\\2612\"; }\n"
+"</style></head><body style=\" font-family:\'Segoe UI\'; font-size:9pt; font-weight:400; font-style:normal;\">\n"
+"<p style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\"><span style=\" color:#000000;\">Enter a search term</span><span style=\" font-weight:600; color:#ff6969;\">*</span><span style=\" color:#000000;\"> followed by optional keywords. </span></p>\n"
+"<p style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\"><span style=\" font-size:6pt; color:#ff6969;\">    </span><span style=\" font-size:6pt; font-weight:600; color:#ff6969;\">*required</span></p>\n"
+"<p style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\"><span style=\" color:#000000;\">Keywords are connected by boolean operators (AND, OR, NOT). Default is AND.</span></p>\n"
+"<p style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\"><a href=\"https://www.ebi.ac.uk/emdb/documentation/search\"><span style=\" font-family:\'MS Shell Dlg 2\'; font-size:8pt; text-decoration: underline; color:#0000ff;\">Query follows EMDB search format.</span></a></p>\n"
+"<p style=\"-qt-paragraph-type:empty; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px; color:#000000;\"><br /></p>\n"
+"<p style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\"><span style=\" color:#000000;\">ex.</span><span style=\" color:#007c82;\">  </span><span style=\" color:#00007f;\">spliceosome AND resolution:[2 TO 4]</span></p>\n"
+"<p style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\"><span style=\" color:#000000;\">ex.  </span><span style=\" color:#00007f;\">(spliceosome OR ribonucleoprotein) AND NOT human AND xref_UNIPROTKB:[* TO *]</span></p></body></html>"))
         self.label_p2.setText(_translate("MainWindow", "Query"))
         self.lineEdit_2.setPlaceholderText(_translate("MainWindow", "[sample] AND [range_keyword: x TO y] AND [keyword]"))
         self.lineEdit_12.setPlaceholderText(_translate("MainWindow", "[sample] AND [range_keyword: x TO y] AND [keyword]"))
@@ -2698,11 +2689,14 @@ class Ui_MainWindow(object):
         self.comboBox.setItemText(1, _translate("MainWindow", "dog"))
         self.comboBox.setItemText(2, _translate("MainWindow", "water"))
         self.textBrowser_p2_3.setHtml(_translate("MainWindow", "<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.0//EN\" \"http://www.w3.org/TR/REC-html40/strict.dtd\">\n"
-"<html><head><meta name=\"qrichtext\" content=\"1\" /><style type=\"text/css\">\n"
+"<html><head><meta name=\"qrichtext\" content=\"1\" /><meta charset=\"utf-8\" /><style type=\"text/css\">\n"
 "p, li { white-space: pre-wrap; }\n"
-"</style></head><body style=\" font-family:\'MS Shell Dlg 2\'; font-size:8pt; font-weight:400; font-style:normal;\">\n"
-"<p style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\"><span style=\" font-family:\'Segoe UI\'; font-size:9pt; font-weight:696; color:#616161;\">This step fetches metadata from EMDB. If you already have a .csv file with the columns: </span><span style=\" font-family:\'Segoe UI\'; font-size:9pt; color:#616161;\">emdb_id, resolution, fitted_pdbs,</span><span style=\" font-family:\'Segoe UI\'; font-size:9pt; font-weight:696; color:#616161;\"> you can </span><span style=\" font-family:\'Segoe UI\'; font-size:9pt; font-weight:696; color:#0000ff;\">skip</span><span style=\" font-family:\'Segoe UI\'; font-size:9pt; font-weight:696; color:#616161;\"> this step.</span></p>\n"
-"<p style=\"-qt-paragraph-type:empty; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px; font-family:\'Segoe UI\'; font-size:9pt;\"><br /></p></body></html>"))
+"hr { height: 1px; border-width: 0; }\n"
+"li.unchecked::marker { content: \"\\2610\"; }\n"
+"li.checked::marker { content: \"\\2612\"; }\n"
+"</style></head><body style=\" font-family:\'Segoe UI\'; font-size:9pt; font-weight:400; font-style:normal;\">\n"
+"<p style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\"><span style=\" font-weight:696; color:#616161;\">This step fetches metadata from EMDB. If you already have a .csv file with the columns: </span><span style=\" color:#616161;\">emdb_id, resolution, fitted_pdbs,</span><span style=\" font-weight:696; color:#616161;\"> you can </span><span style=\" font-weight:696; color:#0000ff;\">skip</span><span style=\" font-weight:696; color:#616161;\"> this step.</span></p>\n"
+"<p style=\"-qt-paragraph-type:empty; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\"><br /></p></body></html>"))
         self.label_19.setText(_translate("MainWindow", "<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.0//EN\" \"http://www.w3.org/TR/REC-html40/strict.dtd\">\n"
 "<html><head><meta name=\"qrichtext\" content=\"1\" /><style type=\"text/css\">\n"
 "p, li { white-space: pre-wrap; }\n"

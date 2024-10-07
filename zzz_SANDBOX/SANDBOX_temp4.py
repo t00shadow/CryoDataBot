@@ -1,7 +1,7 @@
 from PyQt5.QtWidgets import (
-    QApplication, QWidget, QVBoxLayout, QComboBox, QTableView, QTreeView
+    QApplication, QWidget, QVBoxLayout, QComboBox, QTableView, QTreeView, QLabel
 )
-from PyQt5.QtCore import Qt, QEvent
+from PyQt5.QtCore import Qt, QEvent, QSize
 from PyQt5.QtGui import QMouseEvent, QStandardItemModel, QStandardItem
 
 
@@ -72,10 +72,18 @@ class ComboBoxViewsDemo(QWidget):
                 item = QStandardItem(f"Item {row} - Col {col}")
                 item.setCheckable(True)  # Make each item checkable
                 item.setCheckState(Qt.Unchecked)  # Start as unchecked
+                item.setSizeHint(QSize(100,100))   # not doing anything
+                print(item.sizeHint())
                 self.table_model.setItem(row, col, item)
 
         self.table_model.itemChanged.connect(self.updateLineEdit)
         layout.addWidget(self.table_combo)
+        self.table_combo.view().setFixedSize(self.table_combo.model().columnCount() * 200, self.table_combo.model().rowCount() * 50)
+
+        self.label = QLabel("Click in this window")
+        self.setMouseTracking(True)          # https://www.reddit.com/r/pyqt/comments/11wovh1/why_doesnt_setmousetracking_work_in_pyside6/
+        self.label.setMouseTracking(True)
+        layout.addWidget(self.label)
 
         # ComboBox with QTreeView and Checkboxes
         tree_combo = CustomComboBox(self)
@@ -116,6 +124,20 @@ class ComboBoxViewsDemo(QWidget):
         
         # Update the line edit with checked items
         self.table_combo.lineEdit().setText(", ".join(checked_items))
+    
+
+
+    def mouseMoveEvent(self, e):  
+        self.label.setText("mouseMoveEvent")  
+
+    def mousePressEvent(self, e):  
+        self.label.setText("mousePressEvent")  
+
+    def mouseReleaseEvent(self, e):  
+        self.label.setText("mouseReleaseEvent") 
+
+    def mouseDoubleClickEvent(self, e):  
+        self.label.setText("mouseDoubleClickEvent")  
 
 if __name__ == '__main__':
     app = QApplication([])
