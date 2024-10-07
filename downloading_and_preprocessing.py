@@ -46,8 +46,8 @@ def download_and_preprocessing(metadata_path, raw_dir: str = 'Raw', overwrite = 
     logger.setLevel(logging.INFO)  
     std_out_hdlr = logging.StreamHandler()
     std_out_hdlr.setLevel(logging.INFO)
-    log_file_path = os.path.join(dir:=os.path.dirname(metadata_path), os.path.basename(dir)\
-                                  + '_downloading_and_preprocessing.log')
+    log_file_path = metadata_path.replace('.csv', '_downloading_and_preprocessing.log')
+
     file_hdlr = logging.FileHandler(log_file_path)
     file_hdlr.setLevel(logging.INFO)
     #std_out_hdlr.setFormatter(logging.Formatter(''))
@@ -164,7 +164,7 @@ def download_one_map(emdb, pdb, emdb_id, raw_map_path, model_path, overwrite=Fal
         except Exception as e:
             logger.warning(f"Error Downloading EMD_{emdb_id} Map File: {e}")
         else:
-            logger.info(f"emd_{emdb_id}.map is Downloaded")
+            logger.info(f"Downloaded: emd_{emdb_id}.map")
 
     if not os.path.exists(model_path) or overwrite:
         try:
@@ -172,7 +172,7 @@ def download_one_map(emdb, pdb, emdb_id, raw_map_path, model_path, overwrite=Fal
         except Exception as e:
             logger.warning(f"Error Downloading PDB-{pdb} Model File: {e}")
         else:
-            logger.info(f"{pdb}.cif is Downloaded")
+            logger.info(f"Downloaded: {pdb}.cif")
 
     return
 
@@ -248,7 +248,7 @@ def preprocess_maps(csv_info, path_info, metadata_path, give_map: bool=True, pro
 
 
 # Step3.1: preprocess the map of one entry
-def preprocess_one_map(recl: float, raw_map_path: str, model_path: str, give_map: bool=True, protein_tag_dist: int=1, map_threashold: float=0.01):
+def preprocess_one_map(recl: float, raw_map_path: str, model_path: str, give_map: bool=True, protein_tag_dist: int=1, map_threashold=0.15):
     """
     Preprocesses a map file by normalizing it and calculating its fitness with a model.
 
@@ -387,7 +387,7 @@ def preprocess_one_map(recl: float, raw_map_path: str, model_path: str, give_map
     else:
         logger.info('  Map_to_Model Calculation Completed:')
         logger.info(f'  Volume Overlap Fraction (VOF): {(vof*100):.4f}%, Dice Coefficient: {(dice*100):.4f}%')
-    
+
     # if give_map:
     #     with mrcfile.new(os.path.join(save_path, f'CIF_{pdb}.mrc'), overwrite=True) as mrc:
     #         mrc.set_data(protein_tag)
@@ -507,6 +507,8 @@ def atom_coord_cif(structure):
 
 
 if __name__ == '__main__':
-    matadata_path = 'Metadata/ribosome_res_1-4_001/ribosome_res_1-4_001.csv'
-    raw_dir = 'Raw'
+    matadata_path = '/home/qiboxu/Database/CryoDataBot_Data/Metadata/ribosome_res_3-4_20240924_001/ribosome_res_3-4_20240924_001-test.csv'
+    raw_dir = '/home/qiboxu/Database/CryoDataBot_Data/Raw-test'
+    # matadata_path = 'Metadata/ribosome_res_1-4_001/ribosome_res_1-4_001.csv'
+    # raw_dir = 'Raw'
     download_and_preprocessing(matadata_path, raw_dir, overwrite=False)
