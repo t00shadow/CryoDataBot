@@ -4,7 +4,7 @@ from atom_in_models import residues_protein
 from downloading_and_preprocessing import downloading_and_preprocessing
 from fetch_sample_info import search_emdb
 from generate_dataset import label_maps, generate_test_label_maps
-from redundancy_filter import refine_csv
+from redundancy_filter import filter_csv
 
 
 def main(
@@ -29,7 +29,7 @@ def main(
     csv_path = search_emdb(search_query, metadata_path, rows=10, fetch_classification=True)
 
     # refine csv file
-    csv_path = refine_csv(input_csv=csv_path, q_threshold=0.1, uni_threshold=0.5)
+    csv_path = filter_csv(input_csv=csv_path, q_threshold=0.1, uni_threshold=0.5)
 
     # download and preprocess raw data
     downloading_and_preprocessing(csv_path, raw_path, overwrite=False)

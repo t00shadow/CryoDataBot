@@ -10,7 +10,7 @@ from tqdm import tqdm
 from helper_funcs import calculate_title_padding
 
 
-def refine_csv(input_csv, q_threshold: float = 0.0, uni_threshold: float = 1.0):
+def filter_csv(input_csv, q_threshold: float = 0.0, uni_threshold: float = 1.0):
     """
     :param file_path: path to .csv file
     :param uni_threshold: percentage uniprot similarity
@@ -39,36 +39,39 @@ def refine_csv(input_csv, q_threshold: float = 0.0, uni_threshold: float = 1.0):
 
     # Q-Score filter
     logger.info(f'Going Through Q-Score Filter - Removing Entries with Q-score Less Than or Equal to {q_threshold}')
-    df = pd.read_csv(input_csv)
-    kept_df, filtered_df = q_score_filter(df, q_threshold)    
-    kept_df.to_csv(os.path.join(archive_path, "Q_Score_Kept.csv"), index=False)
-    filtered_df.to_csv(os.path.join(archive_path, "Q_Score_Removed.csv"), index=False)
-    new_file_path = os.path.join(archive_path, "Q_Score_Kept.csv")
-    logger.info(f'Files Saved at {os.path.abspath(new_file_path)}')
+    q_score_kept_path, q_score_filter_kept_num_entries, q_score_filter_removed_num_entries = q_score_filter(input_csv, archive_path, q_threshold)
+    logger.info(f'Entries Kept After Q-Score Filter: {q_score_filter_kept_num_entries} Entries')
+    logger.info(f'Entries Removed After Q-Score Filter: {q_score_filter_removed_num_entries} Entries')
+    logger.info(f'File Saved at {os.path.abspath(q_score_kept_path)}')
     logger.info('')
 
+    # Manual Check Filter
     logger.info('Going Through Manual Check Filter- Identifying Entries Without UNIPROT or ALPHAFOLD IDs')
-    manual_check_num, toFilter_num = clean_input_data(new_file_path, archive_path)
-    logger.info(f'Entries to Manually Check: {manual_check_num} Entries. Entries to Be Filtered: {toFilter_num} Entries')
-    logger.info(f'Files Saved at {os.path.abspath(os.path.join(archive_path))}')
+    xRef_present_path, manual_check_num, toFilter_num = clean_input_data(q_score_kept_path, archive_path)
+    logger.info(f'Entries to Manually Check: {manual_check_num} Entries')
+    logger.info(f'Entries to Be Further Filtered: {toFilter_num} Entries')
+    logger.info(f'File Saved at {os.path.abspath(xRef_present_path)}')
     logger.info('')
 
+    # First Filter
     logger.info('Going Through First Filter - Removing Non-Unique Entries')
-    postFirstFilter_num = first_filter(archive_path)
-    logger.info(f'Entries After First Filter: {postFirstFilter_num} Entries')
+    first_filter_kept_path, num_entries_removed_by_first_filter, num_entries_kept_by_first_filter  = first_filter(xRef_present_path, archive_path)
+    logger.info(f'Entries Kept After First Filter: {num_entries_kept_by_first_filter} Entries')
+    logger.info(f'Entries Removed After First Filter: {num_entries_removed_by_first_filter} Entries')
+    logger.info(f'File Saved at {os.path.abspath(first_filter_kept_path)}')
     logger.info('')
 
+    # Second Filter
     logger.info(f'Going Through Second Filter - Removing Entries with UNIPROT Similarity Less Than or Equal to {uni_threshold*100}%')
-    final_filter_num_entries, initial_filter_num_entries = second_filter(archive_path, uni_threshold)
-    logger.info('')
-    logger.info(f'Entries after second filter: {final_filter_num_entries} entries.')
-    logger.info(f'Filtering Completed: {final_filter_num_entries} Entries Kept; {initial_filter_num_entries} Entries Removed')
-    logger.info(f'File Saved at {os.path.abspath(os.path.join(archive_path,"Final_Filter.csv"))}')
+    final_filter_kept_path, final_filter_kept_num_entries, final_filter_removed_num_entries = second_filter(first_filter_kept_path, archive_path, uni_threshold)
+    logger.info(f'Entries Kept After Second Filter: {final_filter_kept_num_entries} Entries')
+    logger.info(f'Entries Removed After Second Filter: {final_filter_removed_num_entries} Entries')
+    logger.info(f'File Saved at {os.path.abspath(final_filter_kept_path)}')
 
     logger.info(calculate_title_padding('Filtering Completed'))
     logger.info('')
 
-    return os.path.join(dir:=os.path.dirname(archive_path), f"{os.path.split(dir)[-1]}_Final.csv")
+    return final_filter_kept_path
 
 
 def fixDataFrame(input_df_path: pd.DataFrame) -> pd.DataFrame:
@@ -93,10 +96,11 @@ def fixDataFrame(input_df_path: pd.DataFrame) -> pd.DataFrame:
     return input_df
 
 
-def clean_input_data(input_csv_path: str, output_dir: str) -> tuple:
+def clean_input_data(input_csv_path: str, output_dir: str):
     # Read CSV as DataFrame and log the number of original entries    
     csv_df = pd.read_csv(input_csv_path)
-    og_num_entries = len(csv_df)
+    manual_check_filter_path = os.path.join(output_dir, 'Manual_Check_Filter')
+    os.makedirs(manual_check_filter_path, exist_ok=True)
     
     # Drop entries with NaN or NA values in specified columns
     csv_df = csv_df.dropna(subset=['emdb_id', 'title', 'resolution', 'fitted_pdbs'])
@@ -104,19 +108,19 @@ def clean_input_data(input_csv_path: str, output_dir: str) -> tuple:
     # Identify and separate duplicates
     duplicates_df = csv_df[csv_df.duplicated(subset=['emdb_id', 'title', 'fitted_pdbs'], keep='first')]
     unique_df = csv_df.drop(duplicates_df.index)
-    
-   
+      
     # Find rows with NaN in both 'xref_UNIPROTKB' and 'xref_ALPHAFOLD' columns
     raw_data_without_xRef = unique_df[unique_df[['xref_UNIPROTKB', 'xref_ALPHAFOLD']].isna().all(axis=1)]
-    manualCheck_numEntries = len(raw_data_without_xRef)
-    raw_data_without_xRef.to_csv(os.path.join(output_dir, "NaN_xRef.csv"), index=False)
+    manualCheck_num_entries = len(raw_data_without_xRef)
+    raw_data_without_xRef.to_csv(os.path.join(manual_check_filter_path, "NaN_xRef.csv"), index=False)
     
     # Save the cleaned data to a CSV file
     raw_data_with_xREF = unique_df.dropna(subset=['xref_UNIPROTKB', 'xref_ALPHAFOLD'])
-    raw_data_with_xREF.to_csv(os.path.join(output_dir, "Data_to_be_filtered.csv"), index=False)
+    xRef_present_path = os.path.join(manual_check_filter_path, "xRef_present.csv")
+    raw_data_with_xREF.to_csv(xRef_present_path, index=False)
     toBeFiltered_num_entries = len(raw_data_with_xREF)
     
-    return (manualCheck_numEntries, toBeFiltered_num_entries)
+    return xRef_present_path, manualCheck_num_entries, toBeFiltered_num_entries
 
 
 def process_similar(uniprotkb_1: str, uniprotkb_2: str, threshold: float) -> bool:
@@ -223,9 +227,9 @@ def count_IDs(df: pd.DataFrame) -> bool:
         return False
     
 
-def second_filter (output_dir:str, threshold: float = 0.50):   
+def second_filter(input_csv_path:str, output_dir:str, threshold: float = 0.50):   
     #Get CSV as DataFrame
-    first_filter_df = fixDataFrame(os.path.join(output_dir,"First_Filter.csv"))
+    first_filter_df = fixDataFrame(input_csv_path)
     mask = []
     for i, row in first_filter_df.iterrows():
         mask.append(count_IDs(row))
@@ -269,23 +273,24 @@ def second_filter (output_dir:str, threshold: float = 0.50):
             
     final_df = first_filter_df[kept_mask]
     filtered_data = first_filter_df[~kept_mask]
-    filtered_data.to_csv(os.path.join(output_dir,"Similar_Removed.csv"), index = False)
-    final_df.to_csv(os.path.join(dir:=os.path.dirname(output_dir), f"{os.path.split(dir)[-1]}_Final.csv"), index = False)
-    final_filter_num_entries = len(final_df)
-    initial_filter_num_entries = len(first_filter_df)
+    second_filter_path = os.path.join(output_dir, 'Second_Filter')
+    os.makedirs(second_filter_path, exist_ok=True)
+    filtered_data.to_csv(os.path.join(second_filter_path, "Second_Filter_Removed.csv"), index = False)
+    final_filter_kept_path = os.path.join(dir:=os.path.dirname(output_dir), f"{os.path.split(dir)[-1]}_Final.csv")
+    final_df.to_csv(final_filter_kept_path, index = False)
+    final_filter_kept_num_entries = len(final_df)
+    final_filter_removed_num_entries = len(filtered_data)
     
     
-    return (final_filter_num_entries, initial_filter_num_entries)
+    return final_filter_kept_path, final_filter_kept_num_entries, final_filter_removed_num_entries
 
 
-def first_filter(output_dir:str):
+def first_filter(input_csv_path: str, output_dir:str):
     
     #Get CSV as DataFrame
-    raw_data_with_xREF = fixDataFrame(os.path.join(output_dir,"Data_to_be_filtered.csv"))
+    raw_data_with_xREF = fixDataFrame(input_csv_path)
     firstFilter_Path = os.path.join(output_dir,"First_Filter")
-    
-    if not os.path.exists(firstFilter_Path):
-        os.makedirs(firstFilter_Path)
+    os.makedirs(firstFilter_Path, exist_ok=True)
 
 
     #Besides removing the weird stuff (Duplicates in ID or Title), we also want to remove the rows that have the same xref_UNIPROTKB
@@ -294,8 +299,8 @@ def first_filter(output_dir:str):
     non_unique_df = raw_data_with_xREF[non_unique_mask] #Gives you a dataframe that has all the duplicates    
     unique_df = raw_data_with_xREF.drop(non_unique_df.index) #Drops the rows that are not unique based on previous dataframe
     
-    uniquexRef_num_entries = len(unique_df)
-    nonUnique_xRef_num_entries = len(non_unique_df)
+    #uniquexRef_num_entries = len(unique_df)
+    #nonUnique_xRef_num_entries = len(non_unique_df)
 
     #nonNan_xRefUniprot = non_unique_df[~non_unique_df['xref_UNIPROTKB'].isna()]
     nonNan_xRefUniprot = unique_df[~unique_df['xref_UNIPROTKB'].isna()]
@@ -305,39 +310,13 @@ def first_filter(output_dir:str):
     #Save Exact Matches with xref_UNIPROTKB
     #Sort by groups of xref_UNIPROTKB
     grouped_proteins = nonNan_xRefUniprot.groupby("xref_UNIPROTKB")
-    ##### ======= DEBUGGING =======
-    # seems like empty dataframe is not handled well in >> grouped_proteins = nonNan_xRefUniprot.groupby("xref_UNIPROTKB") <<
-    # uncomment the print statements below for nonNan_xRefUniprot and nonNan_xRefAlphaFold and you'll see theyre both empty
-    # This query has 3 entries, only 2 have BOTH xrefuniprot and xrefalphafold
-    #
-    # EDIT: ohhh its cuz look at line 272 and 273. theyre using non_unique_df. non_unique_df is not a superset of unique_df (it's just repeated rows im guesing)
-    # so non_unique_df can be empty, and if it is empty, then nonNan_xRefUniprot and nonNan_xRefAlphaFold will also be empty
-    # and then line 277 is trying to perform .groupby on an empty dataframe
-    # need to go thru code later to see how it works. whys it using non_unique_df in lines 272 and 273 instead of unique_df (am i reading the code wrong?)
-
-    # # quick df refresher
-    # d = {'col1': [1, 2], 'col2': [3, 4]}
-    # df = pd.DataFrame(data=d)
-    # print(df)
-
-    #print(raw_data_with_xREF)
-    #print(firstFilter_Path)
-    #print(non_unique_mask)
-    #print(non_unique_df)
-    #print(unique_df)
-    #print(uniquexRef_num_entries)
-    #print(nonUnique_xRef_num_entries)
-    #print(nonNan_xRefUniprot)         # Empty DataFrame, just prints Columns (not empty) and then Index (empty array)
-    #print(nonNan_xRefAlphaFold)       # Empty DataFrame, just prints Columns (not empty) and then Index (empty array)
-    #print(grouped_proteins)           # <pandas.core.groupby.generic.DataFrameGroupBy object at 0x0000024382C12140>
-    #print(type(grouped_proteins))
 
     grouped_proteins_df = pd.concat([nonNan_xRefAlphaFold])
-    print(grouped_proteins_df)
+    #print(grouped_proteins_df)
     ##### ======= DEBUGGING =======
     grouped_proteins_df = pd.concat([grouped_proteins.get_group(g) for g in grouped_proteins.groups], keys=grouped_proteins.groups.keys())
-    print("after concat")
-    print(grouped_proteins_df)
+    #print("after concat")
+    #print(grouped_proteins_df)
     grouped_proteins_df.reset_index(level=0, inplace=True)
     grouped_proteins_df.rename(columns={'level_0': 'group'}, inplace=True)
     grouped_proteins_df = grouped_proteins_df.sort_values(by=['group'])
@@ -374,54 +353,68 @@ def first_filter(output_dir:str):
     result = result.drop(duplicates_df.index)
     
     #Save the data
-    result.to_csv(os.path.join(output_dir,"First_Filter.csv"), index = False)
+    first_filter_kept_path = os.path.join(firstFilter_Path,"First_Filter_Kept.csv")
+    result.to_csv(first_filter_kept_path, index = False)
 
-    # #Save this stuff
+    #Save this stuff
+    num_entries_kept_by_first_filter = len(result)
+    num_entries_removed_by_first_filter = len(raw_data_with_xREF) - num_entries_kept_by_first_filter
     
-    df=result
-    postSoftPassNum_entries = len(result)
-    
-    return(uniquexRef_num_entries, postSoftPassNum_entries)
+    return first_filter_kept_path, num_entries_removed_by_first_filter, num_entries_kept_by_first_filter 
 
 
-# def process_similar(uniprotkb_1, uniprotkb_2, threshold) -> bool:
-#     # change df to lists
-#     list1 = str(uniprotkb_1).split(',')
-#     list2 = str(uniprotkb_2).split(',')
-
-#     # Count elements in both lists
-#     counter1 = Counter(list1)
-#     counter2 = Counter(list2)
-
-#     # Find common elements and their counts
-#     common_elements = counter1 & counter2
-#     longer_list_length = max(len(list1), len(list2))
-#     percentage = sum(common_elements.values())/longer_list_length*100
-
-#     if percentage < threshold:
-#         return True
-#     else:
-#         return False
-
-
-def q_score_filter(df, threshold):
+def q_score_filter(input_csv:str, archive_path:str, threshold:float):
     # Sort the DataFrame by 'q_score'
+    df = pd.read_csv(input_csv)
     df_sorted = df.sort_values(by='Q-score')
 
     # Split the DataFrame into 'filtered' and 'kept'
-    filtered = df_sorted[df_sorted['Q-score'] < threshold].reset_index(drop=True)
-    kept = df_sorted[df_sorted['Q-score'] >= threshold].reset_index(drop=True)
+    removed_df = df_sorted[df_sorted['Q-score'] < threshold].reset_index(drop=True)
+    kept_df = df_sorted[df_sorted['Q-score'] >= threshold].reset_index(drop=True)
 
-    return kept, filtered 
+    q_score_filter_path = os.path.join(archive_path, 'Q_Score_Filter')
+    os.makedirs(q_score_filter_path,exist_ok=True)
+    q_score_kept_path = os.path.join(q_score_filter_path, "Q_Score_Kept.csv")    
+    kept_df.to_csv(q_score_kept_path, index=False)
+    removed_df.to_csv(os.path.join(q_score_filter_path, "Q_Score_Removed.csv"), index=False)
 
+    q_score_filter_removed_num_entries = len(removed_df)
+    q_score_filter_kept_num_entries = len(kept_df)
+
+    return q_score_kept_path, q_score_filter_kept_num_entries, q_score_filter_removed_num_entries 
+
+
+def map_model_filter(df:pd.DataFrame, vof_threshold:float=0.25, dice_threshold:float=0.4):
+    """
+    Filter the DataFrame to remove entries with vof < vof_threshold and 
+    dice_coefficient < dice_threshold.
+
+    Parameters:
+    df (pd.DataFrame): The input DataFrame containing the data.
+    vof_threshold (float): The threshold for the vof values.
+    dice_threshold (float): The threshold for the dice_coefficient values.
+
+    Returns:
+    tuple: A tuple containing two DataFrames:
+        - kept_df: DataFrame with entries that meet the conditions.
+        - removed_df: DataFrame with entries that were removed.
+    """
+    # Create a mask for the conditions
+    mask = (df['vof'] >= vof_threshold) | (df['dice_coefficient'] >= dice_threshold)
+    
+    # Filter the DataFrame
+    kept_df = df[mask]
+    removed_df = df[~mask]
+
+    return kept_df, removed_df
 
 
 if __name__ == '__main__':
     #INPUT_CSV = "/home/qiboxu/MyProject/CryoDataBot/EVALUATION/ribosome_res_4-9/ribosome_res_4-9.csv"  # user input for inout csv file
     # INPUT_CSV = r"C:\Users\micha\OneDrive\Desktop\QIBO\DATA_CLEANUP_942024\download_file_09_review.csv"
     # INPUT_CSV = "CSV/ribosome_res_1-4.csv"
-    INPUT_CSV = "/home/qiboxu/Database/CryoDataBot_Data/Metadata/ribosome_res_3-4_20240924_001/ribosome_res_3-4_20240924_001.csv"
+    INPUT_CSV = "CSV/ribosome_res_1-4.csv"
     THRE_UNI_SIMILARITY = 0.7  # user input for check UniportID similarity
     THRE_Q_SCORE = 0.39  # user input for check Q-score values
 
-    refine_csv(input_csv=INPUT_CSV, q_threshold=THRE_Q_SCORE, uni_threshold=THRE_UNI_SIMILARITY)
+    filter_csv(input_csv=INPUT_CSV, q_threshold=THRE_Q_SCORE, uni_threshold=THRE_UNI_SIMILARITY)

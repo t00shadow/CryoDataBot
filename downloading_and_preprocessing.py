@@ -15,6 +15,7 @@ from tqdm import tqdm
 from tqdm.contrib.logging import logging_redirect_tqdm
 
 from helper_funcs import calculate_title_padding, csv_col_reader, read_csv_info
+from redundancy_filter import map_model_filter
 
 
 # main function
@@ -213,6 +214,16 @@ def preprocess_maps(csv_info, path_info, metadata_path, give_map: bool=True, pro
                 logger.warning('  !!! Preprocessing Failed !!!')
                 logger.info('')
                 failed.append('EMD-'+os.path.basename(raw_map_path).split(".")[0].split('_')[1])
+            except FileNotFoundError as e:
+                logger.warning(f'  Error Preprocessing Map: {e}')
+                logger.warning('  !!! Preprocessing Failed !!!')
+                logger.info('')
+                failed.append('EMD-'+os.path.basename(raw_map_path).split(".")[0].split('_')[1])
+            except Exception as e:
+                logger.warning(f'  Error Preprocessing Map: {e}')
+                logger.warning('  !!! Preprocessing Failed !!!')
+                logger.info('')
+                failed.append('EMD-'+os.path.basename(raw_map_path).split(".")[0].split('_')[1])
 
     # read metadata file
     metadata_df = pd.read_csv(metadata_path)
@@ -238,11 +249,17 @@ def preprocess_maps(csv_info, path_info, metadata_path, give_map: bool=True, pro
     # Remove failed entries from metadata file
     metadata_df = metadata_df[~metadata_df['emdb_id'].isin(failed)]
 
-    # save metadata file
-    metadata_df.to_csv(metadata_path, index=False)
+    # remove the entries with poor map_to_model fitness
+    kept_df, removed_df = map_model_filter(metadata_df)
+
+    # save filtered file
+    kept_df.to_csv(metadata_path, index=False)
+    poor_map_path = os.path.join(os.path.dirname(metadata_path), 'Archive', 'poor_map_model_fitness.csv')
+    removed_df.to_csv(poor_map_path, index=False)
     logger.info('')
     logger.info(f'VOF/DICE Written; Failed Entries Removed')
     logger.info(f'New Meatadata File Written at: "{os.path.abspath(metadata_path)}"')
+    logger.info(f'Check Poor Map Model Fitness File at: "{os.path.abspath(poor_map_path)}"')
 
 
 # Step3.1: preprocess the map of one entry
@@ -411,7 +428,7 @@ def preprocess_one_map(recl: float, raw_map_path: str, model_path: str, give_map
     #         mrc.set_data(map_F.astype(np.int8))
     #     logger.info(f'  Binary Map of {emdb_id} Saved as "BINARY_{emdb_id}.mrc"\n')
 
-    # logger.info('')
+    logger.info('')
 
     return vof, dice
 
