@@ -400,17 +400,18 @@ def preprocess_one_map(recl: float, raw_map_path: str, model_path: str, give_map
         logger.info('  Map_to_Model Calculation Completed:')
         logger.info(f'  Volume Overlap Fraction (VOF): {(vof*100):.4f}%, Dice Coefficient: {(dice*100):.4f}%')
 
-    if give_map:
-        save_path = os.path.dirname(raw_map_path)
-        with mrcfile.new(os.path.join(save_path, f'CIF_{pdb}.mrc'), overwrite=True) as mrc:
-            mrc.set_data(protein_tag)
-        with mrcfile.new(os.path.join(save_path, f'overlapped_part.mrc'), overwrite=True) as mrc:
-            mrc.set_data(overlap.astype(np.int8))
-        with mrcfile.new(os.path.join(save_path, f'map_F.mrc'), overwrite=True) as mrc:
-            mrc.set_data(map_F.astype(np.int8))
-        logger.info(f'  Binary Map of {emdb_id} Saved as "BINARY_{emdb_id}.mrc"\n')
+    # # test
+    # if give_map:
+    #     save_path = os.path.dirname(raw_map_path)
+    #     with mrcfile.new(os.path.join(save_path, f'CIF_{pdb}.mrc'), overwrite=True) as mrc:
+    #         mrc.set_data(protein_tag)
+    #     with mrcfile.new(os.path.join(save_path, f'overlapped_part.mrc'), overwrite=True) as mrc:
+    #         mrc.set_data(overlap.astype(np.int8))
+    #     with mrcfile.new(os.path.join(save_path, f'map_F.mrc'), overwrite=True) as mrc:
+    #         mrc.set_data(map_F.astype(np.int8))
+    #     logger.info(f'  Binary Map of {emdb_id} Saved as "BINARY_{emdb_id}.mrc"\n')
 
-    logger.info('')
+    # logger.info('')
 
     return vof, dice
 
