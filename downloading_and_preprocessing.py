@@ -176,8 +176,7 @@ def download_one_map(emdb, pdb, emdb_id, raw_map_path, model_path, overwrite=Fal
 
 
 # Step3: preprocess maps using multithreasing
-def preprocess_maps(csv_info, path_info, metadata_path, give_map: bool=True, protein_tag_dist: int=1, map_threashold: float=0.01):
-    print("LOOK HERE", csv_info, path_info, metadata_path, give_map, protein_tag_dist, map_threashold)
+def preprocess_maps(csv_info, path_info, metadata_path, give_map: bool=True, protein_tag_dist: int=1, map_threashold: float=0.15):
     """
     Preprocesses multiple map files by normalizing them and calculating their fitness with models.
 
@@ -306,7 +305,21 @@ def preprocess_one_map(recl: float, raw_map_path: str, model_path: str, give_map
     # Load the map
     try:
         logger.info('  Normalizing Map')
-        map_F = map_normalizing(raw_map_path, recl)
+        map_F, map_orientation = map_normalizing(raw_map_path, recl)
+        mapc, mapr, maps = map_orientation
+        if not (mapc == 1 and mapr == 2 and maps == 3):
+            if mapc == 1 and mapr == 3 and maps == 2:
+                map_F = map_F.swapaxes(1, 2)
+            elif mapc == 2 and mapr == 1 and maps == 3:
+                map_F = map_F.swapaxes(0, 1)
+            elif mapc == 2 and mapr == 3 and maps == 1:
+                map_F = map_F.swapaxes(1, 2)
+                map_F = map_F.swapaxes(0, 1)
+            elif mapc == 3 and mapr == 1 and maps == 2:
+                map_F = map_F.swapaxes(0, 1)
+                map_F = map_F.swapaxes(1, 2)
+            elif mapc == 3 and mapr == 2 and maps == 1:
+                map_F = map_F.swapaxes(0, 2)
         # map_F, origin_info, _ = map_normalizing(raw_map_path, recl)
 
         if give_map:
@@ -387,10 +400,16 @@ def preprocess_one_map(recl: float, raw_map_path: str, model_path: str, give_map
         logger.info('  Map_to_Model Calculation Completed:')
         logger.info(f'  Volume Overlap Fraction (VOF): {(vof*100):.4f}%, Dice Coefficient: {(dice*100):.4f}%')
 
-    # if give_map:
-    #     with mrcfile.new(os.path.join(save_path, f'CIF_{pdb}.mrc'), overwrite=True) as mrc:
-    #         mrc.set_data(protein_tag)
-    #     logger.info(f'  Binary Map of {emdb_id} Saved as "BINARY_{emdb_id}.mrc"\n')
+    if give_map:
+        save_path = os.path.dirname(raw_map_path)
+        with mrcfile.new(os.path.join(save_path, f'CIF_{pdb}.mrc'), overwrite=True) as mrc:
+            mrc.set_data(protein_tag)
+        with mrcfile.new(os.path.join(save_path, f'overlapped_part.mrc'), overwrite=True) as mrc:
+            mrc.set_data(overlap.astype(np.int8))
+        with mrcfile.new(os.path.join(save_path, f'map_F.mrc'), overwrite=True) as mrc:
+            mrc.set_data(map_F.astype(np.int8))
+        logger.info(f'  Binary Map of {emdb_id} Saved as "BINARY_{emdb_id}.mrc"\n')
+
     logger.info('')
 
     return vof, dice
@@ -425,7 +444,7 @@ def map_normalizing(raw_map_path, recl=0.0):
         # Load map data
         map_data = cp.array(mrc.data, dtype=np.float32)
         # map_origin = np.array([mrc.header.nxstart, mrc.header.nystart, mrc.header.nzstart], dtype=np.int8)
-        # map_orientation = np.array([mrc.header.mapc, mrc.header.mapr, mrc.header.maps], dtype=np.float32)
+        map_orientation = np.array([mrc.header.mapc, mrc.header.mapr, mrc.header.maps], dtype=np.float32)
 
         # Resample map to 1.0A*1.0A*1.0A grid size
         zoom_factors = [mrc.voxel_size.z, mrc.voxel_size.y, mrc.voxel_size.x]
@@ -455,7 +474,7 @@ def map_normalizing(raw_map_path, recl=0.0):
         map_data /= data_99_9
         map_data = np.clip(map_data, 0., 1.)
 
-    return map_data
+    return map_data, map_orientation
     # return map_data, map_origin, map_orientation
 
 
@@ -506,6 +525,12 @@ def atom_coord_cif(structure):
 
 
 if __name__ == '__main__':
-    matadata_path = 'Metadata/ribosome_res_1-4_001/ribosome_res_1-4_001.csv'
-    raw_dir = 'Raw'
+    
+    INPUT_CSV = "/home/qiboxu/Database/CryoDataBot_Data/Metadata/ribosome_res_3-4_20240924_001/ribosome_res_3-4_20240924_001.csv"
+
+
+    # matadata_path = 'Metadata/ribosome_res_1-4_001/ribosome_res_1-4_001.csv'
+    # raw_dir = 'Raw'
+    matadata_path = '/home/qiboxu/Database/CryoDataBot_Data/Metadata/ribosome_res_3-4_20240924_001/ribosome_res_3-4_20240924_001.csv'
+    raw_dir = '/home/qiboxu/Database/CryoDataBot_Data/Raw'
     downloading_and_preprocessing(matadata_path, raw_dir, overwrite=False)

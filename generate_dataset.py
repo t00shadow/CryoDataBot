@@ -193,7 +193,7 @@ def check_mrc_coordinates_order(mrc_path):
     with mrcfile.open(mrc_path, permissive=True) as mrc:
         map_size = [int(mrc.header.nz), int(mrc.header.ny), int(mrc.header.nx)]
         map_data = np.array(mrc.data)
-        maps, mapr, mapc = mrc.header.maps, mrc.header.mapr, mrc.header.mapc
+        mapc, mapr, maps = mrc.header.mapc, mrc.header.mapr, mrc.header.maps
         if not (mapc == 1 and mapr == 2 and maps == 3):
             #print('Swap the mrc coordinates to "z, y, x"')
             if mapc == 1 and mapr == 3 and maps == 2:
