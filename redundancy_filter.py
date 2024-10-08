@@ -48,7 +48,7 @@ def filter_csv(input_csv, q_threshold: float = 0.0, uni_threshold: float = 1.0):
     # Manual Check Filter
     logger.info('Going Through Manual Check Filter- Identifying Entries Without UNIPROT or ALPHAFOLD IDs')
     xRef_present_path, manual_check_num, toFilter_num = clean_input_data(q_score_kept_path, archive_path)
-    logger.info(f'Entries to Manually Check: {manual_check_num} Entries')
+    logger.info(f'Entries to Be Manually Checked: {manual_check_num} Entries')
     logger.info(f'Entries to Be Further Filtered: {toFilter_num} Entries')
     logger.info(f'File Saved at {os.path.abspath(xRef_present_path)}')
     logger.info('')
@@ -74,12 +74,12 @@ def filter_csv(input_csv, q_threshold: float = 0.0, uni_threshold: float = 1.0):
     return final_filter_kept_path
 
 
-def fixDataFrame(input_df_path: pd.DataFrame) -> pd.DataFrame:
+def fixDataFrame(input_df_path: str) -> pd.DataFrame:
     """
     Reads a CSV file from the given path and type casts all fields. Additionally empty fields are replaced with np.nan.
 
     Args:
-        input_df_path (pd.DataFrame): The path to the input CSV file.
+        input_df_path (str): The path to the input CSV file.
 
     Returns:
         pd.DataFrame: The fixed DataFrame.
@@ -363,13 +363,13 @@ def first_filter(input_csv_path: str, output_dir:str):
     return first_filter_kept_path, num_entries_removed_by_first_filter, num_entries_kept_by_first_filter 
 
 
-def q_score_filter(input_csv:str, archive_path:str, threshold:float):
+def q_score_filter(input_csv_path:str, archive_path:str, threshold:float):
     # Sort the DataFrame by 'q_score'
-    df = pd.read_csv(input_csv)
+    df = fixDataFrame(input_csv_path)
     df_sorted = df.sort_values(by='Q-score')
 
-    # Split the DataFrame into 'filtered' and 'kept'
-    removed_df = df_sorted[df_sorted['Q-score'] < threshold].reset_index(drop=True)
+    # Split the DataFrame into 'removed' and 'kept'
+    removed_df = df_sorted[(df_sorted['Q-score'] < threshold) | (df_sorted['Q-score'].isna())].reset_index(drop=True)
     kept_df = df_sorted[df_sorted['Q-score'] >= threshold].reset_index(drop=True)
 
     q_score_filter_path = os.path.join(archive_path, 'Q_Score_Filter')

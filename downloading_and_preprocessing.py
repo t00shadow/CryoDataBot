@@ -256,10 +256,10 @@ def preprocess_maps(csv_info, path_info, metadata_path, give_map: bool=True, pro
     kept_df.to_csv(metadata_path, index=False)
     poor_map_path = os.path.join(os.path.dirname(metadata_path), 'Archive', 'poor_map_model_fitness.csv')
     removed_df.to_csv(poor_map_path, index=False)
-    logger.info('')
-    logger.info(f'VOF/DICE Written; Failed Entries Removed')
+    logger.info(f'VOF/DICE Written & Failed Entries Removed')
     logger.info(f'New Meatadata File Written at: "{os.path.abspath(metadata_path)}"')
-    logger.info(f'Check Poor Map Model Fitness File at: "{os.path.abspath(poor_map_path)}"')
+    logger.info(f'Poor Map Model Fitness File Written at: "{os.path.abspath(poor_map_path)}"')
+    logger.info(f'Total Number of Poor Maps: {len(removed_df)}')
 
 
 # Step3.1: preprocess the map of one entry
