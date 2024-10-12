@@ -854,12 +854,14 @@ if __name__ == "__main__":
                    {'secondary_type': '', 'residue_type': 'U', 'atom_type': '', 'element_type': '', 'metal_type': '', 'label': 2},\
                    {'secondary_type': '', 'residue_type': 'C', 'atom_type': '', 'element_type': '', 'metal_type': '', 'label': 3},\
                    {'secondary_type': '', 'residue_type': 'G', 'atom_type': '', 'element_type': '', 'metal_type': '', 'label': 4}]]'''
-    label_group = [[{'secondary_type': '', 'residue_type': ','.join(residues_protein), 'atom_type': 'CA', 'element_type': '', 'metal_type': '', 'label': 1},\
-                    {'secondary_type': '', 'residue_type': ','.join(residues_protein), 'atom_type': 'N', 'element_type': '', 'metal_type': '', 'label': 2},\
-                    {'secondary_type': '', 'residue_type': ','.join(residues_protein), 'atom_type': 'O', 'element_type': '', 'metal_type': '', 'label': 3}]]
-    group_names = ['foo']
-    metadata_path = r'CryoDataBot/Metadata/download_file_002/download_file_002_Final.csv'
-    raw_path = r'CryoDataBot/Raw'
+    # label_group = [[{'secondary_type': '', 'residue_type': ','.join(residues_protein), 'atom_type': 'CA', 'element_type': '', 'metal_type': '', 'label': 1},\
+    #                 {'secondary_type': '', 'residue_type': ','.join(residues_protein), 'atom_type': 'N', 'element_type': '', 'metal_type': '', 'label': 2},\
+    #                 {'secondary_type': '', 'residue_type': ','.join(residues_protein), 'atom_type': 'O', 'element_type': '', 'metal_type': '', 'label': 3}]]
+    # group_names = ['foo']
+    # metadata_path = r'CryoDataBot/Metadata/download_file_002/download_file_002_Final.csv'
+    # raw_path = r'CryoDataBot/Raw'
 
-    generate_test_label_maps(label_group,group_names,metadata_path,raw_path)
+    # generate_test_label_maps(label_group,group_names,metadata_path,raw_path)
 
+    matadata_path = '/home/qiboxu/Database/CryoDataBot_Data/Metadata/ribosome_res_3-4_20240924_001/twodatasets/ribosome_res_3-4_20240924_001_Final-preprocess-dice-keep-161trainentries.csv'
+    raw_dir = '/home/qiboxu/Database/CryoDataBot_Data/Raw'
