@@ -35,7 +35,9 @@ residues_protein = [
     'ALA', 'ARG', 'ASN', 'ASP', 'CYS', 'GLU', 'GLN', 'GLY', 'HIS', 'ILE',
     'LEU', 'LYS', 'MET', 'PHE', 'PRO', 'SER', 'THR', 'TRP', 'TYR', 'VAL'
 ]
-residues_rna = ['A', 'G', 'C', 'U']
+residues_RNA = ['A', 'G', 'C', 'U']
+residues_DNA = ['DA', 'DG', 'DC', 'DT']
+residues_nucleotides = residues_RNA + residues_DNA
 
 # Tagged atom groups
 atoms_sugar_ring = ["C4'", "O4'", "C3'", "C2'", "C1'"]
