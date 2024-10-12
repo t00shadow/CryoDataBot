@@ -5,6 +5,6 @@ cryodatabot.egg-info/
 # /EVALUATION
 
 /CSV
-*.csv
-*.log
-*.xml
+# *.csv
+# *.log
+# *.xml
