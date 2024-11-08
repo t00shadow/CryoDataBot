@@ -691,7 +691,7 @@ def label_maps(label_group,
         sample_num_shared = manager.Value('i', 0)
         lock = manager.Lock()
         futures = []
-        with ProcessPoolExecutor() as executor:
+        with ProcessPoolExecutor(max_workers=4) as executor:
             futures = [executor.submit(data_to_npy, map_paths[idx], model_paths[idx], label_group,
                     temp_sample_path, group_names, sample_num_shared, lock) for idx in range(len(emdb_ids))]
             
