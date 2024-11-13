@@ -166,10 +166,10 @@ def data_to_npy(normalized_map_path: str,
     data.append(map_data)
     labels.append('map_sample')
 
-    num_labels = split_to_npy(data, temp_sample_path, start_coords, 
+    num_labels, sample_num = split_to_npy(data, temp_sample_path, start_coords, 
                               n_samples, npy_size, labels, emdb_id)
 
-    return num_labels
+    return num_labels, sample_num
 
 
 
