@@ -711,7 +711,7 @@ def label_maps(label_group,
 
     futures = []
     try:
-        with ProcessPoolExecutor() as executor:
+        with ProcessPoolExecutor(max_workers=5) as executor:
             futures = [executor.submit(data_to_npy, normalized_map_paths[idx], model_paths[idx], label_group,
                     temp_sample_path, group_names, emdb_ids[idx]) for idx in range(len(emdb_ids))]
             
@@ -719,13 +719,17 @@ def label_maps(label_group,
             with logging_redirect_tqdm([logger]):
                 i = 0
                 total_num_npy = 0
-                for future in tqdm(as_completed(futures), total=len(futures), desc='Labeling Maps'):
-                    logger.info(f'Start Generating Label Files from EMDB-{emdb_ids[i]}')
-                    num_labels, sample_num = future.result()
-                    num_of_label_in_each_group_for_all_models = [num_of_label_in_each_group_for_all_models[idx]+num_labels[idx]\
-                                                            for idx in range(len(label_group))]
-                    total_num_npy += sample_num
-                    i += 1
+                for future in tqdm(as_completed(futures, timeout=60*10), total=len(futures), desc='Labeling Maps'):
+                    try:
+                        num_labels, sample_num = future.result()
+                    except Exception as e:
+                        logger.warning(f'Generating Label Files Failed for EMDB-{emdb_ids[i]}: {e}')
+                    else:
+                        logger.info(f'Finished Generating Label Files from EMDB-{emdb_ids[i]}')
+                        num_of_label_in_each_group_for_all_models = [num_of_label_in_each_group_for_all_models[idx]+num_labels[idx]\
+                                                                for idx in range(len(label_group))]
+                        total_num_npy += sample_num
+                        i += 1
     except BrokenProcessPool as e:
         logger.error(f'Error Generating Label Files: {e}')
         logger.error('!!! Please Check the Input Map/Model Paths and Try Again !!!')
