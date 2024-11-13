@@ -719,9 +719,9 @@ def label_maps(label_group,
             with logging_redirect_tqdm([logger]):
                 i = 0
                 total_num_npy = 0
-                for future in tqdm(as_completed(futures, timeout=60*10), total=len(futures), desc='Labeling Maps'):
+                for future in tqdm(as_completed(futures), total=len(futures), desc='Labeling Maps'):
                     try:
-                        num_labels, sample_num = future.result()
+                        num_labels, sample_num = future.result(timeout=60*10)
                     except Exception as e:
                         logger.warning(f'Generating Label Files Failed for EMDB-{emdb_ids[i]}: {e}')
                     else:
