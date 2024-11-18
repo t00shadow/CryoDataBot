@@ -85,7 +85,7 @@ def data_to_npy(normalized_map_path: str,
     for member_idx, member in enumerate(label_group):
         # initialize datastruct for every member
         member_data = np.zeros(map_size, np.int8)  
-        dis_array = np.array([])
+        dis_array = None
         label_coords = None
 
         for label in member:
@@ -166,10 +166,10 @@ def data_to_npy(normalized_map_path: str,
     data.append(map_data)
     labels.append('map_sample')
 
-    num_labels = split_to_npy(data, temp_sample_path, start_coords, 
+    num_labels, sample_num = split_to_npy(data, temp_sample_path, start_coords, 
                               n_samples, npy_size, labels, emdb_id)
 
-    return num_labels
+    return num_labels, sample_num
 
 
 
@@ -324,7 +324,7 @@ def split_to_npy(data,
 def label_npy(member_data,
             label_coords,
             label_id,
-            dis_array=np.array([]),
+            dis_array=None,
             atom_grid_radius=1.5):
     """
     Labels a 3D numpy array with specified coordinates and label ID.
@@ -345,7 +345,7 @@ def label_npy(member_data,
     6. Updates the distance array with the calculated distances.
     7. Returns the labeled member_data array and the updated distance array.
     """
-    if dis_array.size == 0:
+    if dis_array is None:
         dis_array = np.full(member_data.shape, atom_grid_radius ** 2)
 
     index_grid = int(atom_grid_radius) + 1
@@ -368,12 +368,15 @@ def label_npy(member_data,
         for around in arounds:
             around_coord = floor_coord + around
             dist = np.sum((around_coord - coord) ** 2)
-            if dist <= dis_array[around_coord[0], around_coord[1],
-            around_coord[2]]:
-                member_data[around_coord[0], around_coord[1],
-                around_coord[2]] = label_id
-                dis_array[around_coord[0], around_coord[1],
-                around_coord[2]] = dist
+            try:
+                if dist <= dis_array[around_coord[0], around_coord[1],
+                around_coord[2]]:
+                    member_data[around_coord[0], around_coord[1],
+                    around_coord[2]] = label_id
+                    dis_array[around_coord[0], around_coord[1],
+                    around_coord[2]] = dist
+            except IndexError:
+                pass
 
     return member_data, dis_array
 
@@ -711,7 +714,7 @@ def label_maps(label_group,
 
     futures = []
     try:
-        with ProcessPoolExecutor(max_workers=1) as executor:
+        with ProcessPoolExecutor(max_workers=5) as executor:
             futures = [executor.submit(data_to_npy, normalized_map_paths[idx], model_paths[idx], label_group,
                     temp_sample_path, group_names, emdb_ids[idx]) for idx in range(len(emdb_ids))]
             
@@ -720,12 +723,16 @@ def label_maps(label_group,
                 i = 0
                 total_num_npy = 0
                 for future in tqdm(as_completed(futures), total=len(futures), desc='Labeling Maps'):
-                    logger.info(f'Start Generating Label Files from EMDB-{emdb_ids[i]}')
-                    num_labels, sample_num = future.result()
-                    num_of_label_in_each_group_for_all_models = [num_of_label_in_each_group_for_all_models[idx]+num_labels[idx]\
-                                                            for idx in range(len(label_group))]
-                    total_num_npy += sample_num
-                    i += 1
+                    try:
+                        num_labels, sample_num = future.result(timeout=60*10)
+                    except Exception as e:
+                        logger.warning(f'Generating Label Files Failed for EMDB-{emdb_ids[i]}: {e}')
+                    else:
+                        logger.info(f'Finished Generating Label Files from EMDB-{emdb_ids[i]}')
+                        num_of_label_in_each_group_for_all_models = [num_of_label_in_each_group_for_all_models[idx]+num_labels[idx]\
+                                                                for idx in range(len(label_group))]
+                        total_num_npy += sample_num
+                        i += 1
     except BrokenProcessPool as e:
         logger.error(f'Error Generating Label Files: {e}')
         logger.error('!!! Please Check the Input Map/Model Paths and Try Again !!!')
@@ -798,7 +805,7 @@ def generate_test_label_maps(label_groups,
     #with logging_redirect_tqdm():
     with ProcessPoolExecutor(max_workers=1) as executor:
         futures = [executor.submit(data_to_npy, normalized_map_paths[idx], model_paths[idx], label_groups,
-                'temp_sample_path', group_names, generate_test=True) for idx in range(len(emdb_ids))]
+                'temp_sample_path', group_names, emdb_ids[idx], generate_test=True) for idx in range(len(emdb_ids))]
         
         for _ in tqdm(as_completed(futures), total=len(futures), desc='Labeling Maps'):
             pass
