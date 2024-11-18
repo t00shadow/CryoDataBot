@@ -812,7 +812,6 @@ def generate_test_label_maps(label_groups,
 
 if __name__ == "__main__":
 
-
     '''
     # For Running Dataset Generation
     metadata_path = 'path_to_metadata_file'
@@ -907,4 +906,3 @@ if __name__ == "__main__":
     sample_path = os.path.join(os.path.dirname(raw_path), "Training")
     ratio_t_t_v = (0.8, 0, 0.2)
     label_maps(label_group, matadata_path, raw_path, group_names, temp_sample_path, sample_path, ratio_t_t_v)
-
