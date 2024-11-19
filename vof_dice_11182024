@@ -1,0 +1,130 @@
+import os
+import gc
+import cupy as cp
+import numpy as np
+from cupyx.scipy.ndimage import zoom
+from cupyx.scipy.ndimage import binary_dilation
+import mrcfile
+import gemmi
+from tqdm import tqdm
+import numpy as np  # For handling CPU data during minor operations
+
+def map_normalizing(map_path):
+    with mrcfile.mmap(map_path, mode='r+') as mrc:
+        # Load map data on GPU
+        map_order = [mrc.header.mapc - 1, mrc.header.mapr - 1, mrc.header.maps-1]
+        map_data = cp.transpose(cp.array(mrc.data, dtype=cp.float32), map_order)
+
+        # Resample map to 1.0Å grid size using GPU
+        zoom_factors = [mrc.voxel_size.x, mrc.voxel_size.y, mrc.voxel_size.z]
+        map_data = zoom(map_data, zoom_factors)
+
+        # Normalize map values to the range (0.0, 1.0)
+        data_99_9 = cp.percentile(map_data, 99.9)
+        if data_99_9 == 0.0:
+            raise ValueError('99.9th percentile of map data is zero')
+        map_data /= data_99_9
+        map_data = cp.clip(map_data, 0.0, 1.0)
+
+        if mrc.header.nzstart != 0 or mrc.header.nystart != 0 or mrc.header.nxstart != 0:
+            raise ValueError('The start of axis is not zero!')
+
+    return map_data
+
+
+def map_model_helper(map_path: str, cif_path: str, GIVE_MAP: bool = False, PROTEIN_TAG_DIST: float = 2, MAP_THRESHOLD: float = 0.01): 
+    
+    def map_from_cif(cif_path: str, MAP_BOUNDARY, PROTEIN_TAG_DIST):
+        def atom_coord_cif(structure):
+            """
+            Extracts atomic coordinates (z, y, x) from a PDB/CIF structure file.
+            
+            Args:
+                structure (Structure): Parsed structure file.
+
+            Returns:
+                cp.ndarray: Array of atomic coordinates on GPU.
+            """
+            coords = []
+            for model in tqdm(structure):
+                for chain in model:
+                    for residue in chain:
+                        for atom in residue:
+                            coords.append((int(round(atom.pos.z)), int(round(atom.pos.y)), int(round(atom.pos.x))))
+
+            
+            return cp.array(coords)
+        protein_coords = atom_coord_cif(gemmi.read_structure(cif_path))    
+        origin_info = cp.array([0,0,0])
+        
+        # Create binary map for protein coordinates
+        MAP_BOUNDARY1 = ((int(MAP_BOUNDARY[0])),int((MAP_BOUNDARY[1])),int(MAP_BOUNDARY[2]))
+        protein_tag = cp.zeros(shape=tuple(MAP_BOUNDARY1))
+        protein_coords = np.round(protein_coords).astype(int)
+        protein_tag[protein_coords[:, 0], protein_coords[:, 1], protein_coords[:, 2]] = 1
+
+        # Binary dilation using GPU
+        structure = cp.ones((PROTEIN_TAG_DIST * 2 + 1,) * 3, dtype=cp.int8)
+        protein_tag = binary_dilation(protein_tag, structure=structure).astype(cp.int8)
+
+        return protein_tag
+
+
+    PROTEIN_ID = os.path.basename(cif_path).split(".")[0]
+    MAP_ID = os.path.basename(map_path).split(".")[0]
+    save_path = os.path.dirname(map_path)
+
+    # Load the map using GPU normalization
+    map_F = map_normalizing(map_path)
+    MAP_BOUNDARY = cp.array(cp.shape(map_F))
+    protein_tag = map_from_cif(cif_path, MAP_BOUNDARY, PROTEIN_TAG_DIST)
+    gc.collect()
+
+    # Optionally save intermediate maps
+    if GIVE_MAP:
+        with mrcfile.new((os.path.join(save_path, f'NORMALIZED_{MAP_ID}.mrc')), overwrite=True) as mrc:
+            mrc.set_data(cp.asnumpy(map_F))  # Convert back to CPU
+
+    # Apply map threshold
+    map_F = cp.where(map_F > MAP_THRESHOLD, 1, 0)
+
+    # Calculate overlap and metrics
+    overlap = cp.logical_and(protein_tag, map_F)
+    overlap_count = cp.sum(overlap)
+
+    total_voxels_union = cp.sum(cp.logical_or(protein_tag, map_F))
+    vof = overlap_count / total_voxels_union
+
+    dice = 2 * overlap_count / (cp.sum(protein_tag) + cp.sum(map_F))
+    
+    
+    if GIVE_MAP:
+        with mrcfile.new((os.path.join(save_path, f'CIF2_{PROTEIN_ID}.mrc')), overwrite=True) as mrc:
+            mrc.set_data(cp.asnumpy(protein_tag))  # Convert back to CPU
+    
+    return vof, dice
+
+gc.collect()
+folder_path = r'C:\Users\Mikersoft\Desktop\Test_VOF_DICE\14158'
+
+map_id = [file for file in os.listdir(folder_path) if file.endswith('.map')]
+
+cif = [file for file in os.listdir(folder_path) if file.endswith('.cif')]
+map_p = os.path.join(folder_path,map_id[0])
+cif = os.path.join(folder_path,cif[0])
+
+vof, dice = map_model_helper(map_p, cif, False)
+print(f'{map_id}: VOF = {vof} ; Dice = {dice}')
+
+gc.collect()
+
+folder_path = r'C:\Users\Mikersoft\Desktop\Test_VOF_DICE\18558'
+map_id = [file for file in os.listdir(folder_path) if file.endswith('.map')]
+
+cif = [file for file in os.listdir(folder_path) if file.endswith('.cif')]
+map_p = os.path.join(folder_path,map_id[0])
+cif = os.path.join(folder_path,cif[0])
+
+vof, dice = map_model_helper(map_p, cif, False)
+print(f'{map_id}: VOF = {vof} ; Dice = {dice}')
+gc.collect()
