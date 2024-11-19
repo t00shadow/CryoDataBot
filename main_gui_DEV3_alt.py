@@ -126,9 +126,9 @@ class MainWindow(qtw.QMainWindow):    # Make sure the root widget/class is the r
         self.ui.qScoreInfo_btn_6.clicked.connect(lambda: self.show_tooltip_on_click("Create labels for your dataset. Add groups to separate your labels. Select a cube size. Choose how to divide your dataset between testing, training, and validation"))
 
 
-        self.ui.clearQScore_btn.clicked.connect(lambda: self.ui.qScoreDoubleSpinBox.setValue(0))
+        self.ui.clearQScore_btn.clicked.connect(lambda: self.ui.qScoreDoubleSpinBox.setValue(0))  # make these global vars above?, since may be used in 2 dif places
         self.ui.clearMMF_btn.clicked.connect(lambda: self.ui.mapModelFitnessSpinBox.setValue(0))
-        self.ui.clearSim_btn.clicked.connect(lambda: self.ui.similaritySpinBox.setValue(0))
+        self.ui.clearSim_btn.clicked.connect(lambda: self.ui.similaritySpinBox.setValue(100))
         # page 4
         self.ui.pushButton_p4_2.clicked.connect(self.gen_dataset)
 
