@@ -662,7 +662,7 @@ def label_maps(label_group,
     - group_names: Names of the groups.
     - temp_sample_path: Path for temporary samples (default is './temp_sample').
     - sample_path: Path for final samples (default is './Training').
-    - ratio_t_t_v: Tuple representing the ratio for splitting the dataset into training, testing, and validation sets (default is (0.8, 0.1, 0.1)).
+    - ratio_t_t_v: Tuple representing the ratio for splitting the dataset into training, validation, and testing,  sets (default is (0.8, 0.1, 0.1)).
 
     Functionality:
     1. Configures a logger to log the process of dataset generation.
@@ -803,7 +803,7 @@ def generate_test_label_maps(label_groups,
 
     print('Start Generating Test Label Files from Maps and Models')
     #with logging_redirect_tqdm():
-    with ProcessPoolExecutor() as executor:
+    with ProcessPoolExecutor(max_workers=1) as executor:
         futures = [executor.submit(data_to_npy, normalized_map_paths[idx], model_paths[idx], label_groups,
                 'temp_sample_path', group_names, emdb_ids[idx], generate_test=True) for idx in range(len(emdb_ids))]
         
@@ -812,11 +812,55 @@ def generate_test_label_maps(label_groups,
 
 
 if __name__ == "__main__":
-    # For Running Dataset Generation
-    metadata_path = 'CryoDataBot_Data/Metadata/download_file_003/download_file_003_Final.csv'
-    group_names = ['secondary_strctures', 'residue_types', 'key_atoms']
+    # # For Running Dataset Generation
+    # metadata_path = 'CryoDataBot_Data/Metadata/download_file_003/download_file_003_Final.csv'
+    # group_names = ['secondary_strctures', 'residue_types', 'key_atoms']
+    # from atom_in_models import atoms_sugar_ring, residues_RNA
+    # label_groups = [
+    #                [{'secondary_type': 'Helix', 'residue_type': '', 'atom_type': '', 'element_type': '', 'metal_type': '', 'label': 1},
+    #                 {'secondary_type': 'Sheet', 'residue_type': '', 'atom_type': '', 'element_type': '', 'metal_type': '', 'label': 2},
+    #                 {'secondary_type': 'Loop', 'residue_type': '', 'atom_type': '', 'element_type': '', 'metal_type': '', 'label': 3},
+    #                 {'secondary_type': '', 'residue_type': ','.join(residues_RNA), 'atom_type': '', 'element_type': '', 'metal_type': '', 'label': 4}],
+                   
+    #                [{'secondary_type': '', 'residue_type': residues_protein[0], 'atom_type': '', 'element_type': '', 'metal_type': '', 'label': 1},
+    #                 {'secondary_type': '', 'residue_type': residues_protein[1], 'atom_type': '', 'element_type': '', 'metal_type': '', 'label': 2},
+    #                 {'secondary_type': '', 'residue_type': residues_protein[2], 'atom_type': '', 'element_type': '', 'metal_type': '', 'label': 3},
+    #                 {'secondary_type': '', 'residue_type': residues_protein[3], 'atom_type': '', 'element_type': '', 'metal_type': '', 'label': 4},
+    #                 {'secondary_type': '', 'residue_type': residues_protein[4], 'atom_type': '', 'element_type': '', 'metal_type': '', 'label': 5},
+    #                 {'secondary_type': '', 'residue_type': residues_protein[5], 'atom_type': '', 'element_type': '', 'metal_type': '', 'label': 6},
+    #                 {'secondary_type': '', 'residue_type': residues_protein[6], 'atom_type': '', 'element_type': '', 'metal_type': '', 'label': 7},
+    #                 {'secondary_type': '', 'residue_type': residues_protein[7], 'atom_type': '', 'element_type': '', 'metal_type': '', 'label': 8},
+    #                 {'secondary_type': '', 'residue_type': residues_protein[8], 'atom_type': '', 'element_type': '', 'metal_type': '', 'label': 9},
+    #                 {'secondary_type': '', 'residue_type': residues_protein[9], 'atom_type': '', 'element_type': '', 'metal_type': '', 'label': 10},
+    #                 {'secondary_type': '', 'residue_type': residues_protein[10], 'atom_type': '', 'element_type': '', 'metal_type': '', 'label': 11},
+    #                 {'secondary_type': '', 'residue_type': residues_protein[11], 'atom_type': '', 'element_type': '', 'metal_type': '', 'label': 12},
+    #                 {'secondary_type': '', 'residue_type': residues_protein[12], 'atom_type': '', 'element_type': '', 'metal_type': '', 'label': 13},
+    #                 {'secondary_type': '', 'residue_type': residues_protein[13], 'atom_type': '', 'element_type': '', 'metal_type': '', 'label': 14},
+    #                 {'secondary_type': '', 'residue_type': residues_protein[14], 'atom_type': '', 'element_type': '', 'metal_type': '', 'label': 15},
+    #                 {'secondary_type': '', 'residue_type': residues_protein[15], 'atom_type': '', 'element_type': '', 'metal_type': '', 'label': 16},
+    #                 {'secondary_type': '', 'residue_type': residues_protein[16], 'atom_type': '', 'element_type': '', 'metal_type': '', 'label': 17},
+    #                 {'secondary_type': '', 'residue_type': residues_protein[17], 'atom_type': '', 'element_type': '', 'metal_type': '', 'label': 18},
+    #                 {'secondary_type': '', 'residue_type': residues_protein[18], 'atom_type': '', 'element_type': '', 'metal_type': '', 'label': 19},
+    #                 {'secondary_type': '', 'residue_type': residues_protein[19], 'atom_type': '', 'element_type': '', 'metal_type': '', 'label': 20},
+    #                 {'secondary_type': '', 'residue_type': residues_RNA[0], 'atom_type': '', 'element_type': '', 'metal_type': '', 'label': 21},
+    #                 {'secondary_type': '', 'residue_type': residues_RNA[1], 'atom_type': '', 'element_type': '', 'metal_type': '', 'label': 22},
+    #                 {'secondary_type': '', 'residue_type': residues_RNA[2], 'atom_type': '', 'element_type': '', 'metal_type': '', 'label': 23},
+    #                 {'secondary_type': '', 'residue_type': residues_RNA[3], 'atom_type': '', 'element_type': '', 'metal_type': '', 'label': 24}],
+
+    #                [{'secondary_type': '', 'residue_type': '', 'atom_type': 'CA', 'element_type': '', 'metal_type': '', 'label': 1},
+    #                 {'secondary_type': '', 'residue_type': '', 'atom_type': '', 'element_type': 'P', 'metal_type': '', 'label': 2},
+    #                 {'secondary_type': '', 'residue_type': '', 'atom_type': ','.join(atoms_sugar_ring), 'element_type': '', 'metal_type': '', 'label': 3},],
+    #               ]
+    # raw_path = 'CryoDataBot_Data/Raw'
+    # temp_path = 'CryoDataBot_Data/Temp'
+    # sample_path = 'CryoDataBot_Data/Training'
+    # label_maps(label_groups,metadata_path,raw_path,group_names, 
+    #             temp_sample_path=temp_path, sample_path=sample_path)
+
+
     from atom_in_models import atoms_sugar_ring, residues_RNA
-    label_groups = [
+    group_names = ['secondary_strctures', 'residue_types', 'key_atoms']
+    label_group = [
                    [{'secondary_type': 'Helix', 'residue_type': '', 'atom_type': '', 'element_type': '', 'metal_type': '', 'label': 1},
                     {'secondary_type': 'Sheet', 'residue_type': '', 'atom_type': '', 'element_type': '', 'metal_type': '', 'label': 2},
                     {'secondary_type': 'Loop', 'residue_type': '', 'atom_type': '', 'element_type': '', 'metal_type': '', 'label': 3},
@@ -848,13 +892,12 @@ if __name__ == "__main__":
                     {'secondary_type': '', 'residue_type': residues_RNA[3], 'atom_type': '', 'element_type': '', 'metal_type': '', 'label': 24}],
 
                    [{'secondary_type': '', 'residue_type': '', 'atom_type': 'CA', 'element_type': '', 'metal_type': '', 'label': 1},
-                    {'secondary_type': '', 'residue_type': '', 'atom_type': '', 'element_type': 'P', 'metal_type': '', 'label': 2},
+                    {'secondary_type': '', 'residue_type': '', 'atom_type': 'P', 'element_type': '', 'metal_type': '', 'label': 2},
                     {'secondary_type': '', 'residue_type': '', 'atom_type': ','.join(atoms_sugar_ring), 'element_type': '', 'metal_type': '', 'label': 3},],
                   ]
-    raw_path = 'CryoDataBot_Data/Raw'
-    temp_path = 'CryoDataBot_Data/Temp'
-    sample_path = 'CryoDataBot_Data/Training'
-    label_maps(label_groups,metadata_path,raw_path,group_names, 
-                temp_sample_path=temp_path, sample_path=sample_path)
-
-
+    matadata_path = '/home/qiboxu/Database/CryoDataBot_Data/Metadata/ribosome_res_3-4_20240924_001/twodatasets/ribosome_res_3-4_20240924_001_Final-preprocess-dice-keep-159trainentries.csv'
+    raw_path = '/home/qiboxu/Database/CryoDataBot_Data/Raw'
+    temp_sample_path = os.path.join(os.path.dirname(raw_path), "temp_sample")
+    sample_path = os.path.join(os.path.dirname(raw_path), "Training")
+    ratio_t_t_v = (0.8, 0.2, 0)
+    label_maps(label_group, matadata_path, raw_path, group_names, temp_sample_path, sample_path, ratio_t_t_v)
