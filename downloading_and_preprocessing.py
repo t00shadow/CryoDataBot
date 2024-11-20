@@ -354,7 +354,8 @@ def preprocess_one_map(recl: float, raw_map_path: str, model_path: str, give_map
         map_F = cp.where(map_F > 0.15, 1, 0)
         protein_tag = cp.array(protein_tag)
         vof, dice = planes_map(map_F, protein_tag)
-
+        
+        map_path = f"{model_path.split('.cif')[0]}_simulated.mrc"
         map_output(raw_map_path, cp.asnumpy(protein_tag), map_path, is_model=True)
             
     except Exception as e:
@@ -521,7 +522,6 @@ def map_output(input_map, map_data, output_map, is_model=False):
             map_data = map_data.astype(np.float32)
 
         mrc.set_data(map_data)
-        mrc.update_header_stats()
         mrc.header.mz = map_data.shape[0]
         mrc.header.mapc, mrc.header.mapr, mrc.header.maps = 1, 2, 3
         mrc.header.ispg = 1  #401
@@ -568,8 +568,8 @@ def map_from_cif(cif_path: str, MAP_BOUNDARY, PROTEIN_TAG_DIST):
 
 if __name__ == '__main__':
     
-    INPUT_CSV = r"C:\Users\Mikersoft\Desktop\Zhou_Lab\CryoDataBot\tobefiltered\ribosome_res_3-4_20240924_001_original_1.csv"
+    INPUT_CSV = r"C:\Users\Mikersoft\Desktop\Zhou_Lab\CryoDataBot\tobefiltered\ribosome_res_3-4_20240924_001_original_3.csv"
 
-    matadata_path = r'C:\Users\Mikersoft\Desktop\Zhou_Lab\CryoDataBot\tobefiltered\ribosome_res_3-4_20240924_001_original_1.csv'
+    matadata_path = r'C:\Users\Mikersoft\Desktop\Zhou_Lab\CryoDataBot\tobefiltered\ribosome_res_3-4_20240924_001_original_3.csv'
     raw_dir = r'C:\Users\Mikersoft\Desktop\Test_VOF_DICE'
     downloading_and_preprocessing(matadata_path, raw_dir, overwrite=False)
