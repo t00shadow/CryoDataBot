@@ -90,12 +90,12 @@ def search_emdb(
             logger.error(f"Error Fetching Data: Status Code - {r.status_code}")
             logger.error('Error may Occur due to Network Problems, Please Try Again Later')
             logger.error(calculate_title_padding('Failed Fetching Sample Info'))
-            return None
+            raise requests.HTTPError(f"Error Fetching Data: Status Code - {r.status_code}")
     except requests.exceptions.RequestException as e:
         logger.error(f"Error Fetching Data: {e}")
         logger.error('Error may Occur due to Network Problems, Please Try Again Later')
         logger.error(calculate_title_padding('Failed Fetching Sample Info'))
-        return None
+        raise requests.HTTPError(f"Error Fetching Data: {e}")
     
     # save EMDB data
     with open(file_path, 'w') as out:

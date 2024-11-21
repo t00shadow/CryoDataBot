@@ -10,7 +10,7 @@ import gemmi
 import mrcfile
 import numpy as np
 import pandas as pd
-from cupyx.scipy.ndimage import binary_dilation, zoom, binary_closing
+from cupyx.scipy.ndimage import binary_dilation, zoom
 from tqdm import tqdm
 from tqdm.contrib.logging import logging_redirect_tqdm
 
@@ -91,17 +91,18 @@ def fetch_map_model(csv_info, path_info, overwrite=False):
     4. Uses tqdm to display a progress bar for the download tasks.
     """
     logger = logging.getLogger('Downloading_and_Preprocessing_Logger')
-    emdbs, pdbs, _, emdb_ids, _ = csv_info
+    emdb_ids, pdbs, _, _ = csv_info
     raw_map_paths, model_paths, _ = path_info
     with ThreadPoolExecutor() as executor:
-        futures = [executor.submit(download_one_map, emdb, pdb, emdb_id, raw_map_path, model_path, overwrite)\
-                   for emdb, pdb, emdb_id, raw_map_path, model_path in zip(emdbs, pdbs, emdb_ids, raw_map_paths, model_paths)]
+        futures = [executor.submit(download_one_map, emdb_id, pdb, raw_map_path, model_path, overwrite)\
+                   for emdb_id, pdb, raw_map_path, model_path in zip(emdb_ids, pdbs, raw_map_paths, model_paths)]
         with logging_redirect_tqdm([logger]):
-            for _ in tqdm(as_completed(futures), total=len(emdbs), desc="Downloading map/pdb files"):
+            for _ in tqdm(as_completed(futures), total=len(emdb_ids), desc="Downloading map/pdb files"):
                 pass
 
+
 # Step2.1: download the map and model of one entry
-def download_one_map(emdb, pdb, emdb_id, raw_map_path, model_path, overwrite=False):
+def download_one_map(emdb_id, pdb, raw_map_path, model_path, overwrite=False):
     """
     Downloads and extracts a map file from the Electron Microscopy Data Bank (EMDB) 
     and a model file from the Protein Data Bank (PDB).
@@ -146,7 +147,7 @@ def download_one_map(emdb, pdb, emdb_id, raw_map_path, model_path, overwrite=Fal
     else:
         os.makedirs(path)
 
-    emdb_fetch_link = f"https://ftp.ebi.ac.uk/pub/databases/emdb/structures/{emdb}/map/emd_{emdb_id}.map.gz"
+    emdb_fetch_link = f"https://ftp.ebi.ac.uk/pub/databases/emdb/structures/EMD-{emdb_id}/map/emd_{emdb_id}.map.gz"
     pdb_fetch_link = f"http://files.rcsb.org/download/{pdb}.cif"
 
     raw_map_path = f"{raw_map_path}.gz"
@@ -170,8 +171,6 @@ def download_one_map(emdb, pdb, emdb_id, raw_map_path, model_path, overwrite=Fal
             logger.warning(f"Error Downloading PDB-{pdb} Model File: {e}")
         else:
             logger.info(f"Downloaded: {pdb}.cif")
-
-    return
 
 
 # Step3: preprocess maps using multithreasing
@@ -197,7 +196,7 @@ def preprocess_maps(csv_info, path_info, metadata_path, give_map: bool=True, pro
     """
     logger = logging.getLogger('Downloading_and_Preprocessing_Logger')
 
-    _, _, _, _, recls = csv_info
+    _, _, _, recls = csv_info
     raw_map_paths, model_paths, _ = path_info
 
     results = []
@@ -258,6 +257,7 @@ def preprocess_maps(csv_info, path_info, metadata_path, give_map: bool=True, pro
     logger.info(f'New Meatadata File Written at: "{os.path.abspath(metadata_path)}"')
     logger.info(f'Poor Map Model Fitness File Written at: "{os.path.abspath(poor_map_path)}"')
     logger.info(f'Total Number of Poor Maps: {len(removed_df)}')
+
 
 # Step3.1: preprocess the map of one entry
 def preprocess_one_map(recl: float, raw_map_path: str, model_path: str, give_map: bool=True, protein_tag_dist: int=2, map_threshold=0.01):
@@ -444,6 +444,7 @@ def planes_map(map_F, protein_tag):
 
     return all_top_gof, all_top_dc
 
+
 # Step3.1.1: normalize one map - make the grid size 1A and make the density range [0,1]
 def map_normalizing(raw_map_path, recl=0.0):
     """
@@ -563,7 +564,6 @@ def map_from_cif(cif_path: str, MAP_BOUNDARY, PROTEIN_TAG_DIST):
         protein_tag = binary_dilation(protein_tag, structure=structure).astype(cp.int8)
 
         return protein_tag
-
 
 
 if __name__ == '__main__':
