@@ -109,23 +109,23 @@ def clean_input_data(input_csv_path: str, output_dir: str):
     # Identify and separate duplicates
     duplicates_df = csv_df[csv_df.duplicated(subset=['emdb_id', 'title', 'fitted_pdbs'], keep='first')]
     # print(duplicates_df)
-    print(f'duplicates_df len:{len(duplicates_df)}')
+    # print(f'duplicates_df len:{len(duplicates_df)}')
 
     unique_df = csv_df.drop(duplicates_df.index)
-    print(f'unique_df len:{len(unique_df)}')
+    # print(f'unique_df len:{len(unique_df)}')
 
     # Find rows with NaN in both 'xref_UNIPROTKB' and 'xref_ALPHAFOLD' columns
     raw_data_without_xRef = unique_df[unique_df[['xref_UNIPROTKB', 'xref_ALPHAFOLD']].isna().all(axis=1)]
     manualCheck_num_entries = len(raw_data_without_xRef)
     raw_data_without_xRef.to_csv(os.path.join(manual_check_filter_path, "NaN_xRef.csv"), index=False)
-    print(f'raw_data_without_xRef len:{len(raw_data_without_xRef)}')
+    # print(f'raw_data_without_xRef len:{len(raw_data_without_xRef)}')
 
 
     # Save the cleaned data to a CSV file
     # raw_data_with_xREF = unique_df.dropna(subset=['xref_UNIPROTKB', 'xref_ALPHAFOLD'])
     raw_data_with_xREF = unique_df.dropna(how='all', subset=['xref_UNIPROTKB', 'xref_ALPHAFOLD'])
 
-    print(f'raw_data_with_xREF len:{len(raw_data_with_xREF)}')
+    # print(f'raw_data_with_xREF len:{len(raw_data_with_xREF)}')
 
     xRef_present_path = os.path.join(manual_check_filter_path, "xRef_present.csv")
     raw_data_with_xREF.to_csv(xRef_present_path, index=False)
