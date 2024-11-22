@@ -115,7 +115,9 @@ def clean_input_data(input_csv_path: str, output_dir: str):
     raw_data_without_xRef.to_csv(os.path.join(manual_check_filter_path, "NaN_xRef.csv"), index=False)
     
     # Save the cleaned data to a CSV file
-    raw_data_with_xREF = unique_df.dropna(subset=['xref_UNIPROTKB', 'xref_ALPHAFOLD'])
+    # raw_data_with_xREF = unique_df.dropna(subset=['xref_UNIPROTKB', 'xref_ALPHAFOLD'])
+    raw_data_with_xREF = unique_df.dropna(how='all', subset=['xref_UNIPROTKB', 'xref_ALPHAFOLD']) # make sure unique_df=raw_data_without_xRef+raw_data_with_xREF
+
     xRef_present_path = os.path.join(manual_check_filter_path, "xRef_present.csv")
     raw_data_with_xREF.to_csv(xRef_present_path, index=False)
     toBeFiltered_num_entries = len(raw_data_with_xREF)
