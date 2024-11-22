@@ -302,10 +302,10 @@ def first_filter(input_csv_path: str, output_dir:str):
     #uniquexRef_num_entries = len(unique_df)
     #nonUnique_xRef_num_entries = len(non_unique_df)
 
-    #nonNan_xRefUniprot = non_unique_df[~non_unique_df['xref_UNIPROTKB'].isna()]
-    nonNan_xRefUniprot = unique_df[~unique_df['xref_UNIPROTKB'].isna()]
-    #nonNan_xRefAlphaFold = non_unique_df[~non_unique_df['xref_ALPHAFOLD'].isna()]
-    nonNan_xRefAlphaFold = unique_df[~unique_df['xref_ALPHAFOLD'].isna()]
+    nonNan_xRefUniprot = non_unique_df[~non_unique_df['xref_UNIPROTKB'].isna()]
+    # nonNan_xRefUniprot = unique_df[~unique_df['xref_UNIPROTKB'].isna()]
+    nonNan_xRefAlphaFold = non_unique_df[~non_unique_df['xref_ALPHAFOLD'].isna()]
+    # nonNan_xRefAlphaFold = unique_df[~unique_df['xref_ALPHAFOLD'].isna()]
 
     #Save Exact Matches with xref_UNIPROTKB
     #Sort by groups of xref_UNIPROTKB

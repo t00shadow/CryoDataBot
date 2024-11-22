@@ -322,10 +322,10 @@ def search_qscore(file_path):
 
 
 if __name__ == '__main__':
-    path = search_emdb(query="ribosome AND resolution:[1 TO 4}",
-                file_name='ribosome_res_1-4',
+    save_path = '/home/qiboxu/Database/CryoDataBot_Data/Metadata'
+    path = search_emdb(query="ribosome AND resolution:[3 TO 4}",
+                save_path=save_path, 
+                file_name='ribosome_res_3-4_20241122',
                 fetch_qscore=True,
-                fetch_classification=True
-                , rows=20
-                )
+                fetch_classification=False,)
     #print(path)
