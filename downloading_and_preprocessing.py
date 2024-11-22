@@ -72,7 +72,6 @@ def downloading_and_preprocessing(metadata_path, raw_dir: str = 'Raw', overwrite
     logger.info(calculate_title_padding('Preprocessing Completed'))
     logger.info('')
 
-
 # Step2: download maps and models using multithreasing
 def fetch_map_model(csv_info, path_info, overwrite=False):
     """
@@ -92,18 +91,18 @@ def fetch_map_model(csv_info, path_info, overwrite=False):
     4. Uses tqdm to display a progress bar for the download tasks.
     """
     logger = logging.getLogger('Downloading_and_Preprocessing_Logger')
-    emdbs, pdbs, _, emdb_ids, _ = csv_info
+    emdb_ids, pdbs, _, _ = csv_info
     raw_map_paths, model_paths, _ = path_info
     with ThreadPoolExecutor() as executor:
-        futures = [executor.submit(download_one_map, emdb, pdb, emdb_id, raw_map_path, model_path, overwrite)\
-                   for emdb, pdb, emdb_id, raw_map_path, model_path in zip(emdbs, pdbs, emdb_ids, raw_map_paths, model_paths)]
+        futures = [executor.submit(download_one_map, emdb_id, pdb, raw_map_path, model_path, overwrite)\
+                   for emdb_id, pdb, raw_map_path, model_path in zip(emdb_ids, pdbs, raw_map_paths, model_paths)]
         with logging_redirect_tqdm([logger]):
-            for _ in tqdm(as_completed(futures), total=len(emdbs), desc="Downloading map/pdb files"):
+            for _ in tqdm(as_completed(futures), total=len(emdb_ids), desc="Downloading map/pdb files"):
                 pass
 
 
 # Step2.1: download the map and model of one entry
-def download_one_map(emdb, pdb, emdb_id, raw_map_path, model_path, overwrite=False):
+def download_one_map(emdb_id, pdb, raw_map_path, model_path, overwrite=False):
     """
     Downloads and extracts a map file from the Electron Microscopy Data Bank (EMDB) 
     and a model file from the Protein Data Bank (PDB).
@@ -148,7 +147,7 @@ def download_one_map(emdb, pdb, emdb_id, raw_map_path, model_path, overwrite=Fal
     else:
         os.makedirs(path)
 
-    emdb_fetch_link = f"https://ftp.ebi.ac.uk/pub/databases/emdb/structures/{emdb}/map/emd_{emdb_id}.map.gz"
+    emdb_fetch_link = f"https://ftp.ebi.ac.uk/pub/databases/emdb/structures/EMD-{emdb_id}/map/emd_{emdb_id}.map.gz"
     pdb_fetch_link = f"http://files.rcsb.org/download/{pdb}.cif"
 
     raw_map_path = f"{raw_map_path}.gz"
@@ -172,8 +171,6 @@ def download_one_map(emdb, pdb, emdb_id, raw_map_path, model_path, overwrite=Fal
             logger.warning(f"Error Downloading PDB-{pdb} Model File: {e}")
         else:
             logger.info(f"Downloaded: {pdb}.cif")
-
-    return
 
 
 # Step3: preprocess maps using multithreasing
@@ -199,7 +196,7 @@ def preprocess_maps(csv_info, path_info, metadata_path, give_map: bool=True, pro
     """
     logger = logging.getLogger('Downloading_and_Preprocessing_Logger')
 
-    _, _, _, _, recls = csv_info
+    _, _, _, recls = csv_info
     raw_map_paths, model_paths, _ = path_info
 
     results = []
@@ -263,7 +260,7 @@ def preprocess_maps(csv_info, path_info, metadata_path, give_map: bool=True, pro
 
 
 # Step3.1: preprocess the map of one entry
-def preprocess_one_map(recl: float, raw_map_path: str, model_path: str, give_map: bool=True, protein_tag_dist: int=1, map_threashold=0.15):
+def preprocess_one_map(recl: float, raw_map_path: str, model_path: str, give_map: bool=True, protein_tag_dist: int=2, map_threshold=0.01):
     """
     Preprocesses a map file by normalizing it and calculating its fitness with a model.
 
@@ -322,26 +319,11 @@ def preprocess_one_map(recl: float, raw_map_path: str, model_path: str, give_map
     # Load the map
     try:
         logger.info('  Normalizing Map')
-        map_F, map_orientation = map_normalizing(raw_map_path, recl)
-        mapc, mapr, maps = map_orientation
-        if not (mapc == 1 and mapr == 2 and maps == 3):
-            if mapc == 1 and mapr == 3 and maps == 2:
-                map_F = map_F.swapaxes(1, 2)
-            elif mapc == 2 and mapr == 1 and maps == 3:
-                map_F = map_F.swapaxes(0, 1)
-            elif mapc == 2 and mapr == 3 and maps == 1:
-                map_F = map_F.swapaxes(1, 2)
-                map_F = map_F.swapaxes(0, 1)
-            elif mapc == 3 and mapr == 1 and maps == 2:
-                map_F = map_F.swapaxes(0, 1)
-                map_F = map_F.swapaxes(1, 2)
-            elif mapc == 3 and mapr == 2 and maps == 1:
-                map_F = map_F.swapaxes(0, 2)
-        # map_F, origin_info, _ = map_normalizing(raw_map_path, recl)
-
+        map_F = map_normalizing(raw_map_path, recl)
+        
         if give_map:
             map_path = f"{raw_map_path.split('.map')[0]}_normalized.mrc"
-            map_output(raw_map_path, map_F, map_path, is_model=False)
+            map_output(raw_map_path, cp.asnumpy(map_F), map_path, is_model=False)
             logger.info(f'  Normalized Map Saved as "{map_path}"')
     except FileNotFoundError as e:
         logger.warning(f'  Error Loading Map: {e}')
@@ -355,59 +337,27 @@ def preprocess_one_map(recl: float, raw_map_path: str, model_path: str, give_map
         return (0, 0)
     else:
         logger.info('  Successfully Normalized Map')
-    map_boundary = np.shape(map_F)
+        map_boundary = np.shape(map_F)
 
-    #logger.info(f'  Calculating Map to Model Fitness with Theoretical Atomic Radii as "{protein_tag_dist}" and Normalized Map Density Cutoff as "{map_threashold}"')
-    # Load the CIF file
     try:
-        protein = gemmi.read_structure(model_path)
+        protein_tag = map_from_cif(model_path, map_boundary, protein_tag_dist)
     except Exception as e:
         logger.warning(f'  Error Reading CIF File: {e}')
         logger.warning('  !!! Preprocessing Failed !!!')
         logger.info('')
-        return (0, 0)
-
-    protein_coords = np.array(atom_coord_cif(protein)).reshape(-1, 3)
-
-    # # Adjust atom coordinates if origin is not (0,0,0)
-    # protein_coords -= origin_info
-    #logger.info(f'  Number of Atoms in CIF: {len(protein_coords)}')
-
-    # Check if any atom coordinates are out of bounds
-    try:
-        if np.any(np.any(protein_coords > map_boundary, axis=1)):
-            raise ValueError('Out of bounds - atom coordinates exceed map boundaries')
-    except ValueError as e:
-        logger.warning(f'  Bound Error: {e}')
-        logger.warning('  !!! Preprocessing Failed !!!')
-        logger.info('')
-        return (0, 0)
+        return (0, 0)   
 
     try:
-        # Create a binary map for the protein coordinates
-        protein_tag = cp.zeros(map_boundary, dtype=np.int8)
-
-        # Round the coordinates to integers
-        protein_coords = np.round(protein_coords).astype(int)
-        protein_tag[protein_coords[:, 0], protein_coords[:, 1], protein_coords[:, 2]] = 1
-
-        # Perform binary dilation to create spheres around atoms
-        structure = cp.ones((protein_tag_dist*2+1,) * 3, dtype=np.int8)
-        protein_tag = cp.asnumpy(binary_dilation(protein_tag, structure=structure).astype(np.int8))
+        
 
         # Apply the map threshold
-        map_F = np.where(map_F > map_threashold, 1, 0)
-
-        # Calculate overlap between the protein and the map
-        overlap = np.logical_and(protein_tag, map_F)
-        overlap_count = np.sum(overlap)
-
-        # Calculate the volume overlap fraction (VOF)
-        total_voxels_union = np.sum(np.logical_or(protein_tag, map_F))
-        vof = overlap_count / total_voxels_union
-
-        # Calculate Dice coefficient
-        dice = 2 * overlap_count / (np.sum(protein_tag) + np.sum(map_F))
+        map_F = cp.where(map_F > 0.15, 1, 0)
+        protein_tag = cp.array(protein_tag)
+        vof, dice = planes_map(map_F, protein_tag)
+        
+        map_path = f"{model_path.split('.cif')[0]}_simulated.mrc"
+        map_output(raw_map_path, cp.asnumpy(protein_tag), map_path, is_model=True)
+            
     except Exception as e:
             logger.warning(f'  Error Calculating Map to Model Fitness: {e}')
             logger.warning('  !!! Preprocessing Failed !!!')
@@ -431,6 +381,68 @@ def preprocess_one_map(recl: float, raw_map_path: str, model_path: str, give_map
     logger.info('')
 
     return vof, dice
+
+
+def planes_map(map_F, protein_tag):
+
+    def helper_diag_gof(map_diag, cifmap_diag,all_top_gof,all_top_dc):
+        map_diag = cp.where(map_diag>=1,1,0)
+        cifmap_diag = cp.where(cifmap_diag>=1,1,0)
+        overlap_count = cp.sum(cp.logical_and(map_diag, cifmap_diag))
+        overlap = cp.where((cp.logical_and(map_diag, cifmap_diag)>0),1,0)
+        union = cp.where((cp.logical_or(map_diag, cifmap_diag)>0),1,0)
+        top_gof = cp.sum(overlap)/cp.sum(union)
+        top_dc = overlap_count/(cp.sum(map_diag) + cp.sum(cifmap_diag))
+        all_top_gof.append(float(top_gof))
+        all_top_dc.append(float(top_dc))
+        return
+
+
+    all_top_gof = []
+    all_top_dc = []
+    for i in range(3):
+        map_fx = cp.sum(map_F,axis=i)
+        cifmap_fx = cp.sum(protein_tag,axis=i)
+        helper_diag_gof(map_fx, cifmap_fx, all_top_gof, all_top_dc)
+       
+
+    for i in range(3):
+        map_diag = cp.zeros((map_F.shape[0],map_F.shape[1]))
+        cifmap_diag = cp.zeros((protein_tag.shape[0],protein_tag.shape[1]))
+        if i==0:
+            for j in range(map_F.shape[1]):
+                map_diag += map_F[:,j,:]
+
+            for j in range(map_F.shape[1]):
+                cifmap_diag += protein_tag[:,j,:]
+
+            helper_diag_gof(map_diag,cifmap_diag, all_top_gof, all_top_dc)
+                  
+        elif i==1:
+            for j in range(map_F.shape[1]):
+                map_diag += map_F[:,:,j]
+
+            for j in range(map_F.shape[1]):
+                cifmap_diag += protein_tag[:,:,j]
+
+            helper_diag_gof(map_diag,cifmap_diag, all_top_gof, all_top_dc)
+            
+            
+        elif i==2:
+            for j in range(map_F.shape[1]):
+                map_diag += map_F[j,:,:]
+
+            for j in range(map_F.shape[1]):
+                cifmap_diag += protein_tag[j,:,:]
+
+            helper_diag_gof(map_diag,cifmap_diag, all_top_gof, all_top_dc)
+              
+    
+    all_top_gof = cp.array(all_top_gof)
+    all_top_gof = (cp.array(all_top_gof[all_top_gof != all_top_gof.max()])).mean()
+    all_top_dc = cp.mean(cp.array(all_top_dc))
+
+    return all_top_gof, all_top_dc
 
 
 # Step3.1.1: normalize one map - make the grid size 1A and make the density range [0,1]
@@ -458,15 +470,15 @@ def map_normalizing(raw_map_path, recl=0.0):
     """
     if recl == '':
         recl = 0.0
-    with mrcfile.mmap(raw_map_path) as mrc:
+    with mrcfile.mmap(raw_map_path, 'r+') as mrc:
         # Load map data
         map_data = cp.array(mrc.data, dtype=np.float32)
-        # map_origin = np.array([mrc.header.nxstart, mrc.header.nystart, mrc.header.nzstart], dtype=np.int8)
+        map_origin = np.array([mrc.header.nxstart, mrc.header.nystart, mrc.header.nzstart], dtype=np.int8)
         map_orientation = np.array([mrc.header.mapc, mrc.header.mapr, mrc.header.maps], dtype=np.float32)
 
         # Resample map to 1.0A*1.0A*1.0A grid size
         zoom_factors = [mrc.voxel_size.z, mrc.voxel_size.y, mrc.voxel_size.x]
-        map_data = cp.asnumpy(zoom(map_data, zoom_factors))
+        map_data = zoom(map_data, zoom_factors)
 
         # remove noisy values that are too small
         count_good = np.sum(map_data > max(0, recl))
@@ -492,9 +504,11 @@ def map_normalizing(raw_map_path, recl=0.0):
         map_data /= data_99_9
         map_data = np.clip(map_data, 0., 1.)
 
-    return map_data, map_orientation
-    # return map_data, map_origin, map_orientation
+        map_orientation = np.array([mrc.header.mapc-1, mrc.header.mapr-1, mrc.header.maps-1], dtype=np.int32)
+        map_data = cp.transpose(map_data, map_orientation)
 
+    return map_data
+    
 
 # Step3.1.2: generate .mrc file
 def map_output(input_map, map_data, output_map, is_model=False):
@@ -502,7 +516,7 @@ def map_output(input_map, map_data, output_map, is_model=False):
         os.remove(output_map)
 
     shutil.copyfile(input_map, output_map)
-    with mrcfile.open(output_map, mode='r+') as mrc:
+    with mrcfile.mmap(output_map, mode='r+') as mrc:
         if is_model:
             map_data = map_data.astype(np.int8)
         else:
@@ -510,45 +524,52 @@ def map_output(input_map, map_data, output_map, is_model=False):
 
         mrc.set_data(map_data)
         mrc.header.mz = map_data.shape[0]
+        mrc.header.mapc, mrc.header.mapr, mrc.header.maps = 1, 2, 3
         mrc.header.ispg = 1  #401
         #mrc.print_header()
 
 
-def atom_coord_cif(structure):
-    """
-    Extracts and rounds the atomic coordinates from a given structure.
+def map_from_cif(cif_path: str, MAP_BOUNDARY, PROTEIN_TAG_DIST):
+        def atom_coord_cif(structure):
+            """
+            Extracts atomic coordinates (z, y, x) from a PDB/CIF structure file.
+            
+            Args:
+                structure (Structure): Parsed structure file.
 
-    Parameters:
-    structure (Bio.PDB.Structure.Structure): The structure containing models, chains, residues, and atoms.
+            Returns:
+                cp.ndarray: Array of atomic coordinates on GPU.
+            """
+            coords = []
+            for model in structure:
+                for chain in model:
+                    for residue in chain:
+                        for atom in residue:
+                            coords.append((int(round(atom.pos.z)), int(round(atom.pos.y)), int(round(atom.pos.x))))
 
-    Returns:
-    list: A list of tuples containing the rounded atomic coordinates (z, y, x).
+            
+            return cp.array(coords)
+            
+        protein_coords = atom_coord_cif(gemmi.read_structure(cif_path))    
+        origin_info = cp.array([0,0,0])
+        
+        # Create binary map for protein coordinates
+        MAP_BOUNDARY1 = ((int(MAP_BOUNDARY[0])),int((MAP_BOUNDARY[1])),int(MAP_BOUNDARY[2]))
+        protein_tag = cp.zeros(shape=tuple(MAP_BOUNDARY1))
+        protein_coords = np.round(protein_coords).astype(int)
+        protein_tag[protein_coords[:, 0], protein_coords[:, 1], protein_coords[:, 2]] = 1
 
-    Steps:
-    1. Initializes an empty list to store coordinates.
-    2. Iterates through each model in the structure.
-    3. Iterates through each chain in the model.
-    4. Iterates through each residue in the chain.
-    5. Iterates through each atom in the residue.
-    6. Rounds the atomic coordinates (z, y, x) and appends them to the list.
-    7. Returns the list of rounded atomic coordinates.
-    """
-    coords = []
-    for model in structure:
-        for chain in model:
-            for residue in chain:
-                for atom in residue:
-                    coords.append((int(round(atom.pos.z)), int(round(atom.pos.y)), int(round(atom.pos.x))))
-    return coords
+        # Binary dilation using GPU
+        structure = cp.ones((PROTEIN_TAG_DIST * 2 + 1,) * 3, dtype=cp.int8)
+        protein_tag = binary_dilation(protein_tag, structure=structure).astype(cp.int8)
+
+        return protein_tag
 
 
 if __name__ == '__main__':
     
-    INPUT_CSV = "/home/qiboxu/Database/CryoDataBot_Data/Metadata/ribosome_res_3-4_20240924_001/ribosome_res_3-4_20240924_001.csv"
+    INPUT_CSV = r"C:\Users\Mikersoft\Desktop\Zhou_Lab\CryoDataBot\tobefiltered\ribosome_res_3-4_20240924_001_original_3.csv"
 
-
-    # matadata_path = 'Metadata/ribosome_res_1-4_001/ribosome_res_1-4_001.csv'
-    # raw_dir = 'Raw'
-    matadata_path = '/home/qiboxu/Database/CryoDataBot_Data/Metadata/ribosome_res_3-4_20240924_001/ribosome_res_3-4_20240924_001.csv'
-    raw_dir = '/home/qiboxu/Database/CryoDataBot_Data/Raw'
+    matadata_path = r'C:\Users\Mikersoft\Desktop\Zhou_Lab\CryoDataBot\tobefiltered\ribosome_res_3-4_20240924_001_original_3.csv'
+    raw_dir = r'C:\Users\Mikersoft\Desktop\Test_VOF_DICE'
     downloading_and_preprocessing(matadata_path, raw_dir, overwrite=False)
