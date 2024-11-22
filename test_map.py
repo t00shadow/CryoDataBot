@@ -1,10 +1,16 @@
 from downloading_and_preprocessing import map_normalizing, map_output
 from generate_dataset_lockfree import data_to_npy
+import os
 
 normalize = False
-raw_map_path = "Testing_Files/EMD_10769/emd_10769.map"
+raw_path = '/home/qiboxu/Database/CryoDataBot_Data/Raw/EMD-23501_re_3.1'
+
+# raw_map_path = os.path.join(raw_path, 'emd_23501_normalized.mrc')
+raw_map_path = os.path.join(raw_path, 'emd_23501.map')
+# raw_map_path = "Testing_Files/EMD_10769/emd_10769.map"
 #raw_map_path = "Testing_Files/EMD_23501/emd_23501.map"
-model_paths = "Testing_Files/EMD_10769/6ybd.cif"
+# model_paths = "Testing_Files/EMD_10769/6ybd.cif"
+model_paths = os.path.join(raw_path, '7ls2.cif')
 #model_paths = "Testing_Files/EMD_23501/7ls2.cif"
 recl = 0.015
 #recl = 4.0
@@ -31,7 +37,8 @@ if normalize:
     map_output(raw_map_path, map_F, map_path, is_model=False)
     print(f'Normalized Map Saved as "{map_path}"')
 
-map_path = f"{raw_map_path.split('.map')[0]}_normalized.mrc"
+# map_path = f"{raw_map_path.split('.map')[0]}_normalized.mrc"
+map_path = raw_map_path
 group_names = ['secondary_strctures', 'residue_types', 'key_atoms']
 from atom_in_models import atoms_sugar_ring, residues_RNA, residues_protein
 label_groups = [

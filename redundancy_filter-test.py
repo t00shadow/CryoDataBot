@@ -37,17 +37,17 @@ def filter_csv(input_csv, q_threshold: float = 0.0, uni_threshold: float = 1.0):
     archive_path = os.path.join(save_path, "Archive")
     os.makedirs(archive_path, exist_ok=True)
 
-    # Q-Score filter
-    logger.info(f'Going Through Q-Score Filter - Removing Entries with Q-score Less Than or Equal to {q_threshold}')
-    q_score_kept_path, q_score_filter_kept_num_entries, q_score_filter_removed_num_entries = q_score_filter(input_csv, archive_path, q_threshold)
-    logger.info(f'Entries Kept After Q-Score Filter: {q_score_filter_kept_num_entries} Entries')
-    logger.info(f'Entries Removed After Q-Score Filter: {q_score_filter_removed_num_entries} Entries')
-    logger.info(f'File Saved at {os.path.abspath(q_score_kept_path)}')
-    logger.info('')
+    # # Q-Score filter
+    # logger.info(f'Going Through Q-Score Filter - Removing Entries with Q-score Less Than or Equal to {q_threshold}')
+    # q_score_kept_path, q_score_filter_kept_num_entries, q_score_filter_removed_num_entries = q_score_filter(input_csv, archive_path, q_threshold)
+    # logger.info(f'Entries Kept After Q-Score Filter: {q_score_filter_kept_num_entries} Entries')
+    # logger.info(f'Entries Removed After Q-Score Filter: {q_score_filter_removed_num_entries} Entries')
+    # logger.info(f'File Saved at {os.path.abspath(q_score_kept_path)}')
+    # logger.info('')
 
     # Manual Check Filter
     logger.info('Going Through Manual Check Filter- Identifying Entries Without UNIPROT or ALPHAFOLD IDs')
-    xRef_present_path, manual_check_num, toFilter_num = clean_input_data(q_score_kept_path, archive_path)
+    xRef_present_path, manual_check_num, toFilter_num = clean_input_data(input_csv, archive_path)
     logger.info(f'Entries to Be Manually Checked: {manual_check_num} Entries')
     logger.info(f'Entries to Be Further Filtered: {toFilter_num} Entries')
     logger.info(f'File Saved at {os.path.abspath(xRef_present_path)}')
@@ -71,7 +71,7 @@ def filter_csv(input_csv, q_threshold: float = 0.0, uni_threshold: float = 1.0):
     logger.info(calculate_title_padding('Filtering Completed'))
     logger.info('')
 
-    return final_filter_kept_path
+    return first_filter_kept_path
 
 
 def fixDataFrame(input_df_path: str) -> pd.DataFrame:
@@ -296,7 +296,7 @@ def first_filter(input_csv_path: str, output_dir:str):
     #Besides removing the weird stuff (Duplicates in ID or Title), we also want to remove the rows that have the same xref_UNIPROTKB
     #non_unique_mask = raw_data_with_xREF.sort_values('resolution', ascending=False).duplicated(subset=['xref_UNIPROTKB','xref_ALPHAFOLD'], keep=False)
     non_unique_mask = raw_data_with_xREF.duplicated(subset=['xref_UNIPROTKB', 'xref_ALPHAFOLD'], keep=False)
-    non_unique_df = raw_data_with_xREF[non_unique_mask] #Gives you a dataframe that has all the duplicates
+    non_unique_df = raw_data_with_xREF[non_unique_mask] #Gives you a dataframe that has all the duplicates    
     unique_df = raw_data_with_xREF.drop(non_unique_df.index) #Drops the rows that are not unique based on previous dataframe
     
     #uniquexRef_num_entries = len(unique_df)
@@ -326,6 +326,8 @@ def first_filter(input_csv_path: str, output_dir:str):
     grouped_proteins_df_alpha.reset_index(level=0, inplace=True)
     grouped_proteins_df_alpha.rename(columns={'level_0': 'group'}, inplace=True)
     grouped_proteins_df_alpha = grouped_proteins_df_alpha.sort_values(by=['group'])
+    
+    
     
     grouped_proteins_df.to_csv(os.path.join(firstFilter_Path,"same_xRef.csv"), index=False)
     
