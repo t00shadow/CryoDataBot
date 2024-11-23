@@ -614,7 +614,7 @@ def element_coord_cif_protein_secondary(structure,
     return [coords_helices, coords_sheets, coords_loops]
 
 
-def split_folders(temp_sample_path, sample_path, ratio_t_t_v=(.8, .1, .1)):
+def split_folders(temp_sample_path, final_sample_path, ratio_t_t_v=(.8, .1, .1)):
     """
     Splits the dataset into training, testing, and validation sets.
 
@@ -629,13 +629,13 @@ def split_folders(temp_sample_path, sample_path, ratio_t_t_v=(.8, .1, .1)):
     3. Uses the splitfolders library to split the dataset from temp_sample_path to sample_path based on the provided ratio.
     4. Deletes the temporary sample path after splitting.
     """
-    if os.path.exists(sample_path):
+    if os.path.exists(final_sample_path):
         # Delete the directory
-        shutil.rmtree(sample_path)
+        shutil.rmtree(final_sample_path)
     # Create the directory again
-    os.makedirs(sample_path)
+    os.makedirs(final_sample_path)
     splitfolders.ratio(input=temp_sample_path,
-                       output=sample_path,
+                       output=final_sample_path,
                        seed=44,
                        ratio=ratio_t_t_v,  # we set the ratio / let users do it
                        group_prefix=None,
@@ -678,6 +678,12 @@ def label_maps(label_groups,
         assert(len(label_groups)==len(group_names))
     except AssertionError:
         raise ValueError('!!! The number of label groups and group names should be the same !!!')
+
+    # create dirs
+    if not os.path.exists(temp_sample_path):
+        os.makedirs(temp_sample_path)
+    if not os.path.exists(sample_path):
+        os.makedirs(sample_path)
 
     # read csv
     csv_info, path_info = read_csv_info(metadata_path, raw_path)
