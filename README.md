@@ -29,7 +29,8 @@ python -m cryodatabot
 ## Project Structure
 
 ```bash
-├── src/                          # oops rename to cryodatabot or update the Usage section
+CryoDataBot/
+├── src/                          # rename to cryodatabot or update the Usage section
 │   ├── __init__.py
 │   ├── main.py                   # Command line entry point for the application 
 │   ├── main_gui.py               # GUI entry point for the application 
