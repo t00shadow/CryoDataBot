@@ -1,0 +1,54 @@
+This file will be deleted later.
+
+Changes made since last commit:
+-renamed cryodatabot to src
+-rename refundancy_filter.py to filter_redundancies.py so all 4 core scripts are alphabetically in the order they're used.
+-ADDED THIS LINE TO FIX IMPORTS (for files we created): sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), os.pardir)))
+
+Future/Pending Changes (will be made in the next commit):
+-add tests and examples folders to the root directory (see below)
+-need to add grayson's latest commits and repeat the following step:
+-ADD THIS LINE TO FIX IMPORTS (for files we created): sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), os.pardir)))
+-EDIT: for now, leave that commit out - need this branch to test some stuff first
+    -add gpu-less support to downloading_and_preprocessing.py (i.e. conditionally choose btwn numpy and cupy)
+    -saving user settings in the most minimal way. prob just qsettings and an ini file or json. maybe sqlite3 (fast af and bulletproof, comes with python too).
+        -might want to be able to save (and load) sessions, similar to chimerax  <- THIS will prob require a database (try sqlite3)
+
+File structure AFTER future changes:
+CryoDataBot/
+├── src/                          # 1
+│   ├── __init__.py               # 2
+│   ├── backend_core/
+│   │   ├── __init__.py  
+│   │   ├── fetch_sample_info.py
+│   │   ├── redundancy_filter.py
+│   │   ├── ...
+│   ├── backend_helpers/
+│   │   ├── __init__.py  
+│   │   ├── helper_funcs.py
+│   │   ├── ...
+│   ├── frontend_gui_assets/
+│   │   ├── __init__.py  
+│   │   ├── helper_funcs.py
+│   │   ├── ...
+│   ├── main.py                   # 3
+│   ├── main_gui.py               # 4
+├── tests/                        # 5
+│   ├── test_backend.py
+│   ├── test_gui.py
+│   ├── ...
+├── examples/                     # 6
+│   ├── example1.py
+│   ├── example2.py
+│   ├── ...
+├── README.md
+├── LICENSE
+├── setup.py
+
+
+1. This name kinda bugs me. "src" naming convention comes from compiled languages, but python is not one. But then naming it smth like "cryodatabot" is kinda redundant and you'll have 2 almost identical folder names separated only by capilization.
+2. Marks this directory as a package (needed for imports). Subdirectories need __init__.py too.
+3. Command-line interface entry point (possible alternative names: cli.py)
+4. GUI interface entry point (possible alternative names: gui.py)
+5. nothing here yet
+6. nothing here yet

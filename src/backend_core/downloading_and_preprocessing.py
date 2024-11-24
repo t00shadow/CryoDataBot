@@ -14,8 +14,10 @@ from cupyx.scipy.ndimage import binary_dilation, zoom
 from tqdm import tqdm
 from tqdm.contrib.logging import logging_redirect_tqdm
 
-from cryodatabot.backend_helpers.helper_funcs import calculate_title_padding, csv_col_reader, read_csv_info
-from redundancy_filter import map_model_filter
+import sys
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), os.pardir)))
+from backend_helpers.helper_funcs import calculate_title_padding, csv_col_reader, read_csv_info
+from backend_core.redundancy_filter import map_model_filter
 
 
 # main function

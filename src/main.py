@@ -2,13 +2,15 @@ import os
 
 import requests
 
-from cryodatabot.backend_helpers.atom_in_models import residues_protein
-from cryodatabot.backend_core.downloading_and_preprocessing import (download_one_map,
+import sys
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), os.pardir)))
+from src.backend_helpers.atom_in_models import residues_protein
+from src.backend_core.downloading_and_preprocessing import (download_one_map,
                                            downloading_and_preprocessing,
                                            map_normalizing, map_output)
-from cryodatabot.backend_core.fetch_sample_info import search_emdb
-from cryodatabot.backend_core.generate_dataset import data_to_npy, label_maps
-from cryodatabot.backend_core.redundancy_filter import filter_csv
+from src.backend_core.fetch_sample_info import search_emdb
+from src.backend_core.generate_dataset import data_to_npy, label_maps
+from src.backend_core.redundancy_filter import filter_csv
 
 
 def main(

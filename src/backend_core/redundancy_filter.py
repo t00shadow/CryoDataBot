@@ -7,7 +7,9 @@ import numpy as np
 import pandas as pd
 from tqdm import tqdm
 
-from cryodatabot.backend_helpers.helper_funcs import calculate_title_padding
+import sys
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), os.pardir)))
+from backend_helpers.helper_funcs import calculate_title_padding
 
 
 def filter_csv(input_csv, q_threshold: float = 0.0, uni_threshold: float = 1.0):

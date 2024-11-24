@@ -9,6 +9,8 @@ from tqdm import tqdm
 from tqdm.contrib.logging import logging_redirect_tqdm
 from urllib3.util.retry import Retry
 
+import sys
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), os.pardir)))
 from backend_helpers.helper_funcs import calculate_title_padding
 
 

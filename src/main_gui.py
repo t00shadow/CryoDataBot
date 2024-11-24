@@ -13,7 +13,8 @@ from PyQt5 import QtGui as qtg
 from PyQt5.QtCore import QTextCodec
 codec = QTextCodec.codecForName("UTF-8")
 
-from cryodatabot.frontend_gui_assets.guiskin_DEV import Ui_MainWindow    # need the "Ui_" prefix
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), os.pardir)))
+from src.frontend_gui_assets.guiskin_DEV import Ui_MainWindow    # need the "Ui_" prefix
 #from guiskin import Ui_MainWindow
 
 import GUI_custom_widgets.z_Tag_main_alt_allcode as TTEwidget2

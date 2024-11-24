@@ -943,7 +943,7 @@ class Ui_MainWindow(object):
         self.pushButton_p4.setText(_translate("MainWindow", "Advanced options"))
         self.pushButton_p4_2.setText(_translate("MainWindow", "Generate Dataset"))
         self.tabWidget.setTabText(self.tabWidget.indexOf(self.page4), _translate("MainWindow", "Generate Dataset"))
-import cryodatabot.frontend_gui_assets.resources_rc as resources_rc
+import src.frontend_gui_assets.resources_rc as resources_rc
 
 
 if __name__ == "__main__":
