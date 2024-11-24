@@ -1,4 +1,6 @@
-This file will be deleted later.
+This file will be deleted later. 
+
+EDIT: this file has kinda turned into a notes.txt lol.
 
 Future/Pending Changes (will be made in the next commit):
 -add tests and examples folders to the root directory (see below)
