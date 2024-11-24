@@ -1,13 +1,9 @@
 This file will be deleted later.
 
-Changes made since last commit:
--renamed cryodatabot to src
--rename refundancy_filter.py to filter_redundancies.py so all 4 core scripts are alphabetically in the order they're used.
--ADDED THIS LINE TO FIX IMPORTS (for files we created): sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), os.pardir)))
-
 Future/Pending Changes (will be made in the next commit):
 -add tests and examples folders to the root directory (see below)
 -add newest gui files from gui branch
+-consider renaming the 4 backend core scripts so they show up alphabetically in the order they're used (or append a number/letter to the front)
 
 File structure AFTER future changes:
 CryoDataBot/
