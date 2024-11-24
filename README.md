@@ -35,17 +35,20 @@ python -m cryodatabot
 │   ├── main_gui.py               # GUI entry point for the application 
 │   ├── backend_core/
 │   │   ├── __init__.py
-│   │   ├── fetch_sample_info.py
-│   │   ├── redundancy_filter.py
-│   │   ├── ...
+│   │   ├── fetch_sample_info.py                      # Step 1
+│   │   ├── redundancy_filter.py                      # Step 2
+│   │   ├── downloading_and_preprocessing.py          # Step 3
+│   │   ├── generate_dataset.py                       # Step 4
 │   ├── backend_helpers/
 │   │   ├── __init__.py
 │   │   ├── helper_funcs.py
-│   │   ├── ...
+│   │   ├── atom_in_models.py
 │   ├── frontend_gui_assets/
 │   │   ├── __init__.py
-│   │   ├── helper_funcs.py
-│   │   ├── ...
+│   │   ├── gui_skin.py
+│   │   ├── resources_rc.py
+│   │   ├── custom_widgets ...
+│   │   ├── other misc assets ...
 ├── tests/                        # doesnt exist yet
 │   ├── test_backend.py
 │   ├── test_gui.py
