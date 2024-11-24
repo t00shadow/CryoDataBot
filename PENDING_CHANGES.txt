@@ -1,0 +1,39 @@
+This file will be deleted later.
+
+Future/Pending Changes (will be made in the next commit):
+-rename refundancy_filter.py to filter_redundancies.py so all 4 core scripts are alphabetically in the order they're used.
+-add tests and examples folders to the root directory (see below)
+-ADD THIS LINE TO FIX IMPORTS (for files we created): sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), os.pardir)))
+
+File structure AFTER future changes:
+CryoDataBot/
+├── cryodatabot/
+│   ├── __init__.py               # Marks this directory as a package (needed for imports). Subdirectories need __init__.py too.
+│   ├── backend_core/
+│   │   ├── __init__.py  
+│   │   ├── fetch_sample_info.py
+│   │   ├── redundancy_filter.py
+│   │   ├── ...
+│   ├── backend_helpers/
+│   │   ├── __init__.py  
+│   │   ├── helper_funcs.py
+│   │   ├── ...
+│   ├── frontend_gui_assets/
+│   │   ├── __init__.py  
+│   │   ├── helper_funcs.py
+│   │   ├── ...
+│   ├── main.py                   # Command-line interface entry point (possible alternative names: cli.py)
+│   ├── main_gui.py               # GUI interface entry point (possible alternative names: gui.py)
+├── tests/                        # nothing here yet
+│   ├── test_backend.py
+│   ├── test_gui.py
+│   ├── ...
+├── examples/                     # nothing here yet
+│   ├── example1.py
+│   ├── example2.py
+│   ├── ...
+├── README.md
+├── LICENSE
+├── setup.py
+
+

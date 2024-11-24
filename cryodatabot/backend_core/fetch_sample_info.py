@@ -9,7 +9,7 @@ from tqdm import tqdm
 from tqdm.contrib.logging import logging_redirect_tqdm
 from urllib3.util.retry import Retry
 
-from helper_funcs import calculate_title_padding
+from backend_helpers.helper_funcs import calculate_title_padding
 
 
 def search_emdb(

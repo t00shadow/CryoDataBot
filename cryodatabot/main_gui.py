@@ -1,12 +1,6 @@
-# GUI TODO: 1) multithreading, 2) some ui/ux polish (previewing query), 2.5) finish missing functionalities (see #7), 3) organizing code better (clean up & organize these imports holy shit), 4) writings tests..., 5) progress bars (add them for all long steps, even downloading the csv), 6) splashscreen, 7) custom widgets (tagging, labeling widgets)
-# semi-important TODO: CHECK EDGE CASES (empty search queries, either disallow or properly handle)
-# NOTE: to understand the names of widgets, open the .ui file (oops forgot to copy it to this directory)
-#       ^ maybeee means should name things better...
-# TODO: rename the gui skin file to gui_skin_DEV and main gui to gui_main_DEV
-# NOTE: dont worry abt writing "perfect" code rn, just get some dirty messy functioning code out and then revise after
-# TODO: add typehints
-# TODO: SIZEPOLICIES holy shit such a pain
-# TODO: link resources correctly (check saved stack posts)
+# NOTE: THIS IS A PLACEHOLDER FILE. it will NOT work as is.
+# This file is INDEPENDENT of main.py
+
 
 import sys
 import pandas as pd
@@ -19,7 +13,7 @@ from PyQt5 import QtGui as qtg
 from PyQt5.QtCore import QTextCodec
 codec = QTextCodec.codecForName("UTF-8")
 
-from guiskin_DEV import Ui_MainWindow    # need the "Ui_" prefix
+from cryodatabot.frontend_gui_assets.guiskin_DEV import Ui_MainWindow    # need the "Ui_" prefix
 #from guiskin import Ui_MainWindow
 
 import GUI_custom_widgets.z_Tag_main_alt_allcode as TTEwidget2

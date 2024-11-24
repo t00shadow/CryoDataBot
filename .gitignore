@@ -1,10 +1,11 @@
 /test.py
-/__pycache__
+**/__pycache__/
 .venv/
+.idea/
 cryodatabot.egg-info/
 # /EVALUATION
 
-/CSV
+# /CSV
 # *.csv
 # *.log
 # *.xml

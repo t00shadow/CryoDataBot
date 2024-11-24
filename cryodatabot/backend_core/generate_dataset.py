@@ -14,8 +14,8 @@ import splitfolders
 from tqdm import tqdm
 from tqdm.contrib.logging import logging_redirect_tqdm
 
-from atom_in_models import residues_protein
-from helper_funcs import calculate_title_padding, move_log_file, read_csv_info
+from cryodatabot.backend_helpers.atom_in_models import residues_protein
+from cryodatabot.backend_helpers.helper_funcs import calculate_title_padding, move_log_file, read_csv_info
 
 
 def data_to_npy(normalized_map_path: str,
@@ -801,7 +801,7 @@ if __name__ == "__main__":
     # For Running Dataset Generation
     metadata_path = 'CryoDataBot_Data/Metadata/download_file_003/download_file_003_Final.csv'
     group_names = ['secondary_strctures', 'residue_types', 'key_atoms']
-    from atom_in_models import atoms_sugar_ring, residues_RNA
+    from cryodatabot.backend_helpers.atom_in_models import atoms_sugar_ring, residues_RNA
     label_groups = [
                    [{'secondary_type': 'Helix', 'residue_type': '', 'atom_type': '', 'element_type': '', 'metal_type': '', 'label': 1},
                     {'secondary_type': 'Sheet', 'residue_type': '', 'atom_type': '', 'element_type': '', 'metal_type': '', 'label': 2},
