@@ -4,6 +4,7 @@ import os
 import shutil
 import urllib.request
 from concurrent.futures import ThreadPoolExecutor, as_completed
+from configparser import ConfigParser
 
 import cupy as cp
 import gemmi
@@ -11,6 +12,7 @@ import mrcfile
 import numpy as np
 import pandas as pd
 from cupyx.scipy.ndimage import binary_dilation, zoom
+from sqlalchemy import over
 from tqdm import tqdm
 from tqdm.contrib.logging import logging_redirect_tqdm
 
@@ -19,7 +21,15 @@ from redundancy_filter import map_model_filter
 
 
 # main function
-def downloading_and_preprocessing(metadata_path, raw_dir: str = 'Raw', overwrite = False):
+def downloading_and_preprocessing(metadata_path, 
+                                  raw_dir: str = 'Raw', 
+                                  overwrite = False,
+                                  give_map: bool=True, 
+                                  protein_tag_dist: int=1, 
+                                  map_threshold=0.01,
+                                  vof_threashold: float=0.25, 
+                                  dice_threashold: float=0.4,
+                                  ):
     """
     Reads metadata, downloads map and model files, and preprocesses the map files.
 
@@ -68,7 +78,15 @@ def downloading_and_preprocessing(metadata_path, raw_dir: str = 'Raw', overwrite
 
     # Step3: preprocess maps using multithreasing (Resample and normalize map files)
     logger.info(calculate_title_padding('Preprocessing Maps'))
-    preprocess_maps(csv_info, path_info, metadata_path)
+    preprocess_maps(csv_info, 
+                    path_info, 
+                    metadata_path, 
+                    give_map, 
+                    protein_tag_dist, 
+                    map_threshold,
+                    vof_threashold, 
+                    dice_threashold
+                    )
     logger.info(calculate_title_padding('Preprocessing Completed'))
     logger.info('')
 
@@ -174,7 +192,15 @@ def download_one_map(emdb_id, pdb, raw_map_path, model_path, overwrite=False):
 
 
 # Step3: preprocess maps using multithreasing
-def preprocess_maps(csv_info, path_info, metadata_path, give_map: bool=True, protein_tag_dist: int=1, map_threashold: float=0.15):
+def preprocess_maps(csv_info, 
+                    path_info, 
+                    metadata_path, 
+                    give_map: bool=True, 
+                    protein_tag_dist: int=1, 
+                    map_threashold: float=0.15,
+                    vof_threashold: float=0.25, 
+                    dice_threashold: float=0.4
+                    ):
     """
     Preprocesses multiple map files by normalizing them and calculating their fitness with models.
 
@@ -247,7 +273,7 @@ def preprocess_maps(csv_info, path_info, metadata_path, give_map: bool=True, pro
     metadata_df = metadata_df[~metadata_df['emdb_id'].isin(failed)]
 
     # remove the entries with poor map_to_model fitness
-    kept_df, removed_df = map_model_filter(metadata_df)
+    kept_df, removed_df = map_model_filter(metadata_df, vof_threashold, dice_threashold)
 
     # save filtered file
     kept_df.to_csv(metadata_path, index=False)
@@ -567,9 +593,24 @@ def map_from_cif(cif_path: str, MAP_BOUNDARY, PROTEIN_TAG_DIST):
 
 
 if __name__ == '__main__':
-    
-    INPUT_CSV = r"C:\Users\Mikersoft\Desktop\Zhou_Lab\CryoDataBot\tobefiltered\ribosome_res_3-4_20240924_001_original_3.csv"
+    # from config file read default values
+    downloading_and_preprocessing_config = ConfigParser(default_section='downloading_and_preprocessing')
+    downloading_and_preprocessing_config.read('CryoDataBotConfig.ini')
+    overwrite = downloading_and_preprocessing_config.getboolean('user_settings', 'overwrite')
+    give_map = downloading_and_preprocessing_config.getboolean('user_settings', 'give_map')
+    protein_tag_dist = downloading_and_preprocessing_config.getint('user_settings', 'protein_tag_dist')
+    map_threashold = downloading_and_preprocessing_config.getfloat('user_settings', 'map_threashold')
+    vof_threashold = downloading_and_preprocessing_config.getfloat('user_settings', 'vof_threashold')
+    dice_threashold = downloading_and_preprocessing_config.getfloat('user_settings', 'dice_threashold')
 
-    matadata_path = r'C:\Users\Mikersoft\Desktop\Zhou_Lab\CryoDataBot\tobefiltered\ribosome_res_3-4_20240924_001_original_3.csv'
-    raw_dir = r'C:\Users\Mikersoft\Desktop\Test_VOF_DICE'
-    downloading_and_preprocessing(matadata_path, raw_dir, overwrite=False)
+    matadata_path = 'CryoDataBot_Data/Metadata/ribosome_res_1-4_001/ribosome_res_1-4_001_Final.csv'
+    raw_dir = 'CryoDataBot_Data/Raw'
+    downloading_and_preprocessing(matadata_path, 
+                                  raw_dir, 
+                                  overwrite,
+                                  give_map,
+                                  protein_tag_dist,
+                                  map_threashold,
+                                  vof_threashold,
+                                  dice_threashold,
+                                  )
