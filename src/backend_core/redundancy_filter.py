@@ -2,6 +2,7 @@ import logging
 import os
 from collections import Counter
 from concurrent.futures import ProcessPoolExecutor, as_completed
+from configparser import ConfigParser
 
 import numpy as np
 import pandas as pd
@@ -410,11 +411,14 @@ def map_model_filter(df:pd.DataFrame, vof_threshold:float=0.25, dice_threshold:f
 
 
 if __name__ == '__main__':
-    #INPUT_CSV = "/home/qiboxu/MyProject/CryoDataBot/EVALUATION/ribosome_res_4-9/ribosome_res_4-9.csv"  # user input for inout csv file
-    # INPUT_CSV = r"C:\Users\micha\OneDrive\Desktop\QIBO\DATA_CLEANUP_942024\download_file_09_review.csv"
-    # INPUT_CSV = "CSV/ribosome_res_1-4.csv"
-    INPUT_CSV = '/home/qiboxu/Database/CryoDataBot_Data/Metadata/ribosome_res_3-4/ribosome_res_3-4_normalization_failed_removed.csv'
-    THRE_UNI_SIMILARITY = 1  # user input for check UniportID similarity
-    THRE_Q_SCORE = 0  # user input for check Q-score values
+    # from config file read default values
+    redundancy_filter_config = ConfigParser(default_section='redundancy_filter')
+    redundancy_filter_config.read('CryoDataBotConfig.ini')
+    q_threshold = redundancy_filter_config.getfloat('user_settings', 'q_threshold')
+    uni_threshold = redundancy_filter_config.getfloat('user_settings', 'uni_threshold')
+    meatadata_path = 'CryoDataBot_Data/Metadata/ribosome_res_1-4_001/ribosome_res_1-4_001.csv'
 
-    filter_csv(input_csv=INPUT_CSV, q_threshold=THRE_Q_SCORE, uni_threshold=THRE_UNI_SIMILARITY)
+    filter_csv(input_csv=meatadata_path, 
+               q_threshold=q_threshold, 
+               uni_threshold=uni_threshold, 
+               )

@@ -1,0 +1,55 @@
+from configparser import ConfigParser
+
+config = ConfigParser()
+
+config['fetch_sample_info'] = {
+    'fl':"""emdb_id,title,structure_determination_method,resolution,resolution_method,fitted_pdbs,current_status,
+    deposition_date,map_release_date,primary_citation_author_string,primary_citation_title,xref_DOI,
+    xref_PUBMED,primary_citation_year,primary_citation_journal_name,sample_info_string,microscope_name,
+    illumination_mode,imaging_mode,electron_source,specimen_holder_name,segmentation_filename,slice_filename,
+    additional_map_filename,half_map_filename,software,assembly_molecular_weight,xref_UNIPROTKB,xref_CPX,
+    xref_EMPIAR,xref_PFAM,xref_CATH,xref_GO,xref_INTERPRO,xref_CHEBI,xref_CHEMBL,xref_DRUGBANK,xref_PDBEKB,
+    xref_ALPHAFOLD""",
+    'fetch_classification':'False',
+    'fetch_qscore':'True',
+    'rows':'9999999'
+}
+
+config['redundancy_filter'] = {
+    'q_threshold':'0.0',
+    'uni_threshold':'1.0'
+}
+
+config['downloading_and_preprocessing'] = {
+    'overwrite':'False',
+    'give_map':'True',
+    'protein_tag_dist':'1',
+    'map_threashold':'0.15',
+    'vof_threashold':'0.25', 
+    'dice_threashold':'0.4',
+}
+
+config['generate_dataset'] = {
+    'ratio_training':'.8',
+    'ratio_testing':'.1',
+    'ratio_validation':'.1',
+    'npy_size':'64',
+    'extract_stride':'32',
+    'atom_grid_radius':'1.5',
+    'n_workers':'4',
+}
+
+config['directories'] = {
+    'cryo_data_bot_data_path':'CryoDataBot_Data',
+    'metadata_path':'Metadata',
+    'raw_path':'Raw',
+    'sample_path':'Sample',
+    'temp_path':'Temp'
+}
+
+config['user_settings'] = {
+
+}
+
+with open('CryoDataBotConfig.ini', 'w') as file:
+    config.write(file)

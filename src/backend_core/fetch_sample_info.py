@@ -1,6 +1,8 @@
+from importlib import metadata
 import logging
 import os
 from concurrent.futures import ThreadPoolExecutor
+from configparser import ConfigParser
 
 import pandas as pd
 import requests
@@ -324,10 +326,18 @@ def search_qscore(file_path):
 
 
 if __name__ == '__main__':
-    save_path = '/home/qiboxu/Database/CryoDataBot_Data/Metadata'
-    path = search_emdb(query="ribosome AND resolution:[3 TO 4}",
-                save_path=save_path, 
-                file_name='ribosome_res_3-4_20241122',
-                fetch_qscore=True,
-                fetch_classification=False,)
-    #print(path)
+    # from config file read default values
+    fetch_sample_info_config = ConfigParser(default_section='fetch_sample_info')
+    fetch_sample_info_config.read('CryoDataBotConfig.ini')
+    fetch_qscore = fetch_sample_info_config.getboolean('user_settings', 'fetch_qscore')
+    fetch_classification = fetch_sample_info_config.getboolean('user_settings', 'fetch_classification')
+    rows = fetch_sample_info_config.getint('user_settings', 'rows')
+
+    path = search_emdb(query="ribosome AND resolution:[1 TO 4}",
+                       file_name='ribosome_res_1-4',
+                       save_path='CryoDataBot_Data/Metadata',
+                       fetch_qscore=fetch_qscore,
+                       fetch_classification=fetch_classification, 
+                       rows=20,
+                       )
+    print('Metadata saved to:', path)

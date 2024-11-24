@@ -6,6 +6,7 @@ import shutil
 from concurrent.futures import (BrokenExecutor, ProcessPoolExecutor,
                                 as_completed)
 from concurrent.futures.process import BrokenProcessPool
+from configparser import ConfigParser
 
 import gemmi
 import mrcfile
@@ -20,13 +21,15 @@ from backend_helpers.atom_in_models import residues_protein
 from backend_helpers.helper_funcs import calculate_title_padding, move_log_file, read_csv_info
 
 
-def data_to_npy(normalized_map_path: str,
-                model_path: str,
-                label_groups: list,
-                temp_sample_path: str,
+def data_to_npy(label_groups: list,
                 group_names: list,
+                normalized_map_path: str,
+                model_path: str,                
+                temp_sample_path: str,
                 emdb_id: str,
                 npy_size: int = 64,
+                extract_stride: int = 32,
+                atom_grid_radius: float = 1.5,
                 generate_test: bool = False
                 ):
     """
@@ -108,33 +111,33 @@ def data_to_npy(normalized_map_path: str,
                 if atom_type is None and element_type is None and metal_type is None or\
                     atom_type is not None:
                     label_coords = atom_coord_cif(structure, residue_type, atom_type)
-                    group_data, dis_array = label_npy(group_data, label_coords, tag, dis_array)
+                    group_data, dis_array = label_npy(group_data, label_coords, tag, dis_array, atom_grid_radius)
                 if element_type is not None:
                     label_coords = element_coord_cif(structure, residue_type, element_type)
-                    group_data, dis_array = label_npy(group_data, label_coords, tag, dis_array)
+                    group_data, dis_array = label_npy(group_data, label_coords, tag, dis_array, atom_grid_radius)
                 if metal_type is not None:
                     for metal in metal_type:
                         label_coords = element_coord_cif(structure, residue_type, metal)
-                        group_data, dis_array = label_npy(group_data, label_coords, tag, dis_array, gemmi.Element(metal).vdw_r)
+                        group_data, dis_array = label_npy(group_data, label_coords, tag, dis_array, gemmi.Element(metal).vdw_r, atom_grid_radius)
             else:
                 if atom_type is None and element_type is None or atom_type is not None:             
                     protein_2nd_structure_coords = atom_coord_cif_protein_secondary(
                             structure, helices, sheets, residue_type, atom_type)
                     if 'Helix' in secondary_type:
-                        group_data, dis_array = label_npy(group_data, protein_2nd_structure_coords[0], tag, dis_array)
+                        group_data, dis_array = label_npy(group_data, protein_2nd_structure_coords[0], tag, dis_array, atom_grid_radius)
                     if 'Sheet' in secondary_type:
-                        group_data, dis_array = label_npy(group_data, protein_2nd_structure_coords[1], tag, dis_array)
+                        group_data, dis_array = label_npy(group_data, protein_2nd_structure_coords[1], tag, dis_array, atom_grid_radius)
                     if 'Loop' in secondary_type:
-                        group_data, dis_array = label_npy(group_data, protein_2nd_structure_coords[2], tag, dis_array)
+                        group_data, dis_array = label_npy(group_data, protein_2nd_structure_coords[2], tag, dis_array, atom_grid_radius)
                 if element_type is not None:  
                     protein_2nd_structure_coords = element_coord_cif_protein_secondary(
                         structure, helices, sheets, residue_type, element_type)
                     if 'Helix' in secondary_type:
-                        group_data, dis_array = label_npy(group_data, protein_2nd_structure_coords[0], tag, dis_array)
+                        group_data, dis_array = label_npy(group_data, protein_2nd_structure_coords[0], tag, dis_array, atom_grid_radius)
                     if 'Sheet' in secondary_type:
-                        group_data, dis_array = label_npy(group_data, protein_2nd_structure_coords[1], tag, dis_array)
+                        group_data, dis_array = label_npy(group_data, protein_2nd_structure_coords[1], tag, dis_array, atom_grid_radius)
                     if 'Loop' in secondary_type:
-                        group_data, dis_array = label_npy(group_data, protein_2nd_structure_coords[2], tag, dis_array)
+                        group_data, dis_array = label_npy(group_data, protein_2nd_structure_coords[2], tag, dis_array, atom_grid_radius)
         data.append(group_data)
 
         if generate_test is True:
@@ -151,25 +154,12 @@ def data_to_npy(normalized_map_path: str,
                         mrc.set_data(TEST_data)
                     print( f'   Label-{label} Written')
             return None
-            
-            '''out_map = f"{normalized_map_path.split('.mrc')[0]}_EXAMPLE_{label}.mrc"
-            print("=> Writing new map")
-            shutil.copy(normalized_map_path, out_map)
-            with mrcfile.open(out_map, mode='r+') as mrc:
-                TEST_data = group_data
-                mrc.set_data(TEST_data)
-                mrc.header.mz = group_data.shape[0]
-            print("New map is writen.")
-
-                #logger.info('Successfully generated test mrc(s).')
-            #except Exception as e:
-                #logger.error(f'Generation failed. Exception: {e}.')'''
 
     data.append(map_data)
     group_names.append('map_sample')
 
     num_labels, sample_num = split_to_npy(data, temp_sample_path, start_coords, 
-                              n_samples, npy_size, group_names, emdb_id)
+                              n_samples, npy_size, group_names, emdb_id, extract_stride)
 
     return num_labels, sample_num
 
@@ -645,13 +635,18 @@ def split_folders(temp_sample_path, final_sample_path, ratio_t_t_v=(.8, .1, .1))
     shutil.rmtree(temp_sample_path)
 
 
-def label_maps(label_groups,
-               metadata_path,
-               raw_path,
-               group_names,
-               temp_sample_path = 'Temp_Sample',
-               sample_path = 'Training',
-               ratio_t_t_v = (.8, .1, .1)):
+def label_maps(label_groups: list[dict[str: str|int]],
+               group_names: list[str],
+               metadata_path: str,
+               raw_path: str='Raw',               
+               temp_sample_path:str = 'Temp_Sample',
+               sample_path: str = 'Training',
+               ratio_t_t_v: tuple[float, float, float]= (.8, .1, .1),
+               npy_size: int = 64,
+               extract_stride: int = 32,
+               atom_grid_radius: float = 1.5,
+               n_workers: int = 4,
+               ):
     """
     Generates and manages datasets for training models.
 
@@ -679,7 +674,7 @@ def label_maps(label_groups,
     try:
         assert(len(label_groups)==len(group_names))
     except AssertionError:
-        raise ValueError('!!! The number of label groups and group names should be the same !!!')
+        raise ValueError('!!! Label Groups and Group Names Should Have the Same Length !!!')
 
     # create dirs
     if not os.path.exists(temp_sample_path):
@@ -721,9 +716,9 @@ def label_maps(label_groups,
 
     futures = []
     try:
-        with ProcessPoolExecutor(max_workers=4) as executor:
-            futures = [executor.submit(data_to_npy, normalized_map_paths[idx], model_paths[idx], label_groups,
-                    temp_sample_path, group_names, emdb_ids[idx]) for idx in range(len(emdb_ids))]
+        with ProcessPoolExecutor(max_workers=n_workers) as executor:
+            futures = [executor.submit(data_to_npy, label_groups, group_names, normalized_map_paths[idx], model_paths[idx], 
+                    temp_sample_path, emdb_ids[idx], npy_size, extract_stride, atom_grid_radius) for idx in range(len(emdb_ids))]
             
             # Process the results as they complete
             with logging_redirect_tqdm([logger]):
@@ -800,10 +795,21 @@ def label_maps(label_groups,
 
 
 if __name__ == "__main__":
-    # For Running Dataset Generation
-    metadata_path = 'CryoDataBot_Data/Metadata/download_file_003/download_file_003_Final.csv'
+    # from config file read default values
+    generate_dataset_config = ConfigParser(default_section='generate_dataset')
+    generate_dataset_config.read('CryoDataBotConfig.ini')
+    ratio_t_t_v = (generate_dataset_config.getfloat('user_settings', 'ratio_training'),
+                   generate_dataset_config.getfloat('user_settings', 'ratio_testing'),
+                   generate_dataset_config.getfloat('user_settings', 'ratio_validation'),
+                   )
+    npy_size = generate_dataset_config.getint('user_settings', 'npy_size')
+    extract_stride = generate_dataset_config.getint('user_settings', 'extract_stride')
+    atom_grid_radius = generate_dataset_config.getfloat('user_settings', 'atom_grid_radius')
+    n_workers = generate_dataset_config.getint('user_settings', 'n_workers')
+
+    csv_path = 'CryoDataBot_Data/Metadata/ribosome_res_1-4_001/ribosome_res_1-4_001_Final.csv'
     group_names = ['secondary_strctures', 'residue_types', 'key_atoms']
-    from backend_helpers.atom_in_models import atoms_sugar_ring, residues_RNA
+    from atom_in_models import atoms_sugar_ring, residues_RNA
     label_groups = [
                    [{'secondary_type': 'Helix', 'residue_type': '', 'atom_type': '', 'element_type': '', 'metal_type': '', 'label': 1},
                     {'secondary_type': 'Sheet', 'residue_type': '', 'atom_type': '', 'element_type': '', 'metal_type': '', 'label': 2},
@@ -842,7 +848,18 @@ if __name__ == "__main__":
     raw_path = 'CryoDataBot_Data/Raw'
     temp_path = 'CryoDataBot_Data/Temp'
     sample_path = 'CryoDataBot_Data/Training'
-    label_maps(label_groups,metadata_path,raw_path,group_names, 
-                temp_sample_path=temp_path, sample_path=sample_path)
+
+    label_maps(label_groups=label_groups,
+               group_names=group_names,
+               metadata_path=csv_path,
+               raw_path=raw_path,
+               temp_sample_path=temp_path, 
+               sample_path=sample_path,
+               ratio_t_t_v=ratio_t_t_v,
+               npy_size=npy_size,
+               extract_stride=extract_stride,
+               atom_grid_radius=atom_grid_radius,
+               n_workers=n_workers,
+               )
 
 
