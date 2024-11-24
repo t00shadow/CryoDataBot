@@ -38,30 +38,30 @@ python -m cryodatabot
 │   │   ├── fetch_sample_info.py                      # Step 1
 │   │   ├── redundancy_filter.py                      # Step 2
 │   │   ├── downloading_and_preprocessing.py          # Step 3
-│   │   ├── generate_dataset.py                       # Step 4
+│   │   └── generate_dataset.py                       # Step 4
 │   ├── backend_helpers/
 │   │   ├── __init__.py
 │   │   ├── helper_funcs.py
-│   │   ├── atom_in_models.py
+│   │   └── atom_in_models.py
 │   ├── frontend_gui_assets/
 │   │   ├── __init__.py
 │   │   ├── gui_skin.py
 │   │   ├── resources_rc.py
 │   │   ├── custom_widgets ...
-│   │   ├── other misc assets ...
+│   │   └── other misc assets ...
 ├── tests/                        # doesnt exist yet
 │   ├── test_backend.py
 │   ├── test_gui.py
-│   ├── ...
+│   └── ...
 ├── examples/                     # doesnt exist yet
 │   ├── example1.py
 │   ├── example2.py
-│   ├── ...
+│   └── ...
 ├── README.md
 ├── LICENSE
 ├── .gitignore
 ├── setup.py
 ├── CHANGE_LOG.txt                # will get deleted or contents changed to match name
 ├── configwriter.py               # prob will make a config folder and move it there
-├── CryoDataBotConfig.ini         # prob will make a config folder and move it there
+└── CryoDataBotConfig.ini         # prob will make a config folder and move it there
 ```
