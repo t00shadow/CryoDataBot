@@ -12,7 +12,6 @@ import mrcfile
 import numpy as np
 import pandas as pd
 from cupyx.scipy.ndimage import binary_dilation, zoom
-from sqlalchemy import over
 from tqdm import tqdm
 from tqdm.contrib.logging import logging_redirect_tqdm
 
