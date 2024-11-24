@@ -7,12 +7,7 @@ Changes made since last commit:
 
 Future/Pending Changes (will be made in the next commit):
 -add tests and examples folders to the root directory (see below)
--need to add grayson's latest commits and repeat the following step:
--ADD THIS LINE TO FIX IMPORTS (for files we created): sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), os.pardir)))
--EDIT: for now, leave that commit out - need this branch to test some stuff first
-    -add gpu-less support to downloading_and_preprocessing.py (i.e. conditionally choose btwn numpy and cupy)
-    -saving user settings in the most minimal way. prob just qsettings and an ini file or json. maybe sqlite3 (fast af and bulletproof, comes with python too).
-        -might want to be able to save (and load) sessions, similar to chimerax  <- THIS will prob require a database (try sqlite3)
+-add newest gui files from gui branch
 
 File structure AFTER future changes:
 CryoDataBot/
@@ -41,6 +36,10 @@ CryoDataBot/
 │   ├── example1.py
 │   ├── example2.py
 │   ├── ...
+├── .gitignore
+├── CHANGE_LOG.txt                # 7
+├── configwriter.py               # 8
+├── CryoDataBotConfig.ini         # 9
 ├── README.md
 ├── LICENSE
 ├── setup.py
@@ -52,3 +51,6 @@ CryoDataBot/
 4. GUI interface entry point (possible alternative names: gui.py)
 5. nothing here yet
 6. nothing here yet
+7. this txt file, will be deleted later. but will prob copy the file structure onto the README
+8. can be removed (just for making the config file), but keeping for now - could be useful for generate MORE config files (i.e. saving/loading sessions)
+9. config file, keep this one
