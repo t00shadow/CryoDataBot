@@ -50,5 +50,5 @@ CryoDataBot/
 5. nothing here yet
 6. nothing here yet
 7. this txt file, will be deleted later. but will prob copy the file structure onto the README
-8. can be removed (just for making the config file), but keeping for now - could be useful for generate MORE config files (i.e. saving/loading sessions)
-9. config file, keep this one
+8. prob will make a config folder and move it there
+9. prob will make a config folder and move it there

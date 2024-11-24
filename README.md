@@ -28,10 +28,8 @@ python -m cryodatabot
 
 ## Project Structure
 
-Here is the basic suggested skeleton for your app repo that each of the starter templates conforms to:
-
 ```bash
-├── src/
+├── src/                          # oops rename to cryodatabot or update the Usage section
 │   ├── __init__.py
 │   ├── main.py                   # Command line entry point for the application 
 │   ├── main_gui.py               # GUI entry point for the application 
@@ -61,6 +59,6 @@ Here is the basic suggested skeleton for your app repo that each of the starter 
 ├── .gitignore
 ├── setup.py
 ├── CHANGE_LOG.txt                # will get deleted or contents changed to match name
-├── configwriter.py               # unorganized
-├── CryoDataBotConfig.ini         # unorganized
+├── configwriter.py               # prob will make a config folder and move it there
+├── CryoDataBotConfig.ini         # prob will make a config folder and move it there
 ```
