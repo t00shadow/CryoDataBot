@@ -842,7 +842,7 @@ if __name__ == "__main__":
                     {'secondary_type': '', 'residue_type': residues_RNA[3], 'atom_type': '', 'element_type': '', 'metal_type': '', 'label': 24}],
 
                    [{'secondary_type': '', 'residue_type': '', 'atom_type': 'CA', 'element_type': '', 'metal_type': '', 'label': 1},
-                    {'secondary_type': '', 'residue_type': '', 'atom_type': '', 'element_type': 'P', 'metal_type': '', 'label': 2},
+                    {'secondary_type': '', 'residue_type': '', 'atom_type': 'P', 'element_type': '', 'metal_type': '', 'label': 2},
                     {'secondary_type': '', 'residue_type': '', 'atom_type': ','.join(atoms_sugar_ring), 'element_type': '', 'metal_type': '', 'label': 3},],
                   ]
     raw_path = 'CryoDataBot_Data/Raw'

@@ -278,6 +278,9 @@ def second_filter(input_csv_path:str, output_dir:str, threshold: float = 0.50):
             
     final_df = first_filter_df[kept_mask]
     filtered_data = first_filter_df[~kept_mask]
+    print(len(first_filter_df), len(final_df), len(filtered_data), len(final_df)+len(filtered_data))
+
+
     second_filter_path = os.path.join(output_dir, 'Second_Filter')
     os.makedirs(second_filter_path, exist_ok=True)
     filtered_data.to_csv(os.path.join(second_filter_path, "Second_Filter_Removed.csv"), index = False)
@@ -410,15 +413,28 @@ def map_model_filter(df:pd.DataFrame, vof_threshold:float=0.25, dice_threshold:f
     return kept_df, removed_df
 
 
+# if __name__ == '__main__':
+#     # from config file read default values
+#     redundancy_filter_config = ConfigParser(default_section='redundancy_filter')
+#     redundancy_filter_config.read('CryoDataBotConfig.ini')
+#     q_threshold = redundancy_filter_config.getfloat('user_settings', 'q_threshold')
+#     uni_threshold = redundancy_filter_config.getfloat('user_settings', 'uni_threshold')
+#     meatadata_path = 'CryoDataBot_Data/Metadata/ribosome_res_1-4_001/ribosome_res_1-4_001.csv'
+
+#     filter_csv(input_csv=meatadata_path, 
+#                q_threshold=q_threshold, 
+#                uni_threshold=uni_threshold, 
+#                )
+
 if __name__ == '__main__':
     # from config file read default values
-    redundancy_filter_config = ConfigParser(default_section='redundancy_filter')
-    redundancy_filter_config.read('CryoDataBotConfig.ini')
-    q_threshold = redundancy_filter_config.getfloat('user_settings', 'q_threshold')
-    uni_threshold = redundancy_filter_config.getfloat('user_settings', 'uni_threshold')
-    matadata_path = 'CryoDataBot_Data/Metadata/ribosome_res_1-4_001/ribosome_res_1-4_001.csv'
+    # redundancy_filter_config = ConfigParser(default_section='redundancy_filter')
+    # redundancy_filter_config.read('CryoDataBotConfig.ini')
+    q_threshold = 0.4
+    uni_threshold = 0.7
+    metadata_path = '/home/qiboxu/Database/CryoDataBot_Data/Metadata/ribosome_res_3-4_2nd_dataset/ribosome_res_3-4_normalization_failed_removed.csv'
 
-    filter_csv(input_csv=matadata_path, 
+    filter_csv(input_csv=metadata_path, 
                q_threshold=q_threshold, 
                uni_threshold=uni_threshold, 
                )
