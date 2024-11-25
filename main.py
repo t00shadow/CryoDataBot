@@ -1,4 +1,5 @@
 import os
+from configparser import ConfigParser
 
 import requests
 
@@ -15,6 +16,7 @@ def main(
         search_query: str,
         label_groups: list[dict[str: str|int]],
         group_names: list[str],
+        file_name: str=None,
         cryo_data_bot_data_path: str='CryoDataBot_Data',
         metadata_path: str='Metadata',
         raw_path: str='Raw',
@@ -33,17 +35,75 @@ def main(
     os.makedirs(temp_path, exist_ok=True)
 
     # download EMDB csv file
-    csv_path = search_emdb(search_query, metadata_path, rows=20, fetch_classification=False)
+    # from config file read default values
+    fetch_sample_info_config = ConfigParser(default_section='fetch_sample_info')
+    fetch_sample_info_config.read('CryoDataBotConfig.ini')
+    fetch_qscore = fetch_sample_info_config.getboolean('user_settings', 'fetch_qscore')
+    fetch_classification = fetch_sample_info_config.getboolean('user_settings', 'fetch_classification')
+    rows = fetch_sample_info_config.getint('user_settings', 'rows')
+    csv_path = search_emdb(query=search_query,
+                           file_name=file_name,
+                           save_path=metadata_path,
+                           fetch_qscore=fetch_qscore,
+                           fetch_classification=fetch_classification, 
+                           rows=rows,
+                           )
 
     # filter csv file
-    csv_path = filter_csv(input_csv=csv_path, q_threshold=0.1, uni_threshold=0.5)
+    # from config file read default values
+    redundancy_filter_config = ConfigParser(default_section='redundancy_filter')
+    redundancy_filter_config.read('CryoDataBotConfig.ini')
+    q_threshold = redundancy_filter_config.getfloat('user_settings', 'q_threshold')
+    uni_threshold = redundancy_filter_config.getfloat('user_settings', 'uni_threshold')
+    csv_path = filter_csv(input_csv=csv_path, 
+                          q_threshold=q_threshold, 
+                          uni_threshold=uni_threshold, 
+                          )
 
     # download and preprocess raw data
-    downloading_and_preprocessing(csv_path, raw_path, overwrite=True)
+    # from config file read default values
+    downloading_and_preprocessing_config = ConfigParser(default_section='downloading_and_preprocessing')
+    downloading_and_preprocessing_config.read('CryoDataBotConfig.ini')
+    overwrite = downloading_and_preprocessing_config.getboolean('user_settings', 'overwrite')
+    give_map = downloading_and_preprocessing_config.getboolean('user_settings', 'give_map')
+    protein_tag_dist = downloading_and_preprocessing_config.getint('user_settings', 'protein_tag_dist')
+    map_threashold = downloading_and_preprocessing_config.getfloat('user_settings', 'map_threashold')
+    vof_threashold = downloading_and_preprocessing_config.getfloat('user_settings', 'vof_threashold')
+    dice_threashold = downloading_and_preprocessing_config.getfloat('user_settings', 'dice_threashold')
+    downloading_and_preprocessing(matadata_path=csv_path, 
+                                  raw_dir=raw_path, 
+                                  overwrite=overwrite,
+                                  give_map=give_map,
+                                  protein_tag_dist=protein_tag_dist,
+                                  map_threashold=map_threashold,
+                                  vof_threashold=vof_threashold,
+                                  dice_threashold=dice_threashold,
+                                  )
 
     # label maps and split dataset
-    label_maps(label_groups,csv_path,raw_path,group_names, 
-            temp_sample_path=temp_path, sample_path=sample_path)
+    # from config file read default values
+    generate_dataset_config = ConfigParser(default_section='generate_dataset')
+    generate_dataset_config.read('CryoDataBotConfig.ini')
+    ratio_t_t_v = (generate_dataset_config.getfloat('user_settings', 'ratio_training'),
+                   generate_dataset_config.getfloat('user_settings', 'ratio_testing'),
+                   generate_dataset_config.getfloat('user_settings', 'ratio_validation'),
+                   )
+    npy_size = generate_dataset_config.getint('user_settings', 'npy_size')
+    extract_stride = generate_dataset_config.getint('user_settings', 'extract_stride')
+    atom_grid_radius = generate_dataset_config.getfloat('user_settings', 'atom_grid_radius')
+    n_workers = generate_dataset_config.getint('user_settings', 'n_workers')
+    label_maps(label_groups=label_groups,
+               group_names=group_names,
+               metadata_path=csv_path,
+               raw_path=raw_path,
+               temp_sample_path=temp_path, 
+               sample_path=sample_path,
+               ratio_t_t_v=ratio_t_t_v,
+               npy_size=npy_size,
+               extract_stride=extract_stride,
+               atom_grid_radius=atom_grid_radius,
+               n_workers=n_workers,
+               )
     
     
 def generate_test_label_maps(emdb_id: str|int,
@@ -98,22 +158,7 @@ def generate_test_label_maps(emdb_id: str|int,
     
     # normalize the map
     print('Normalizing Map...')
-    map_F, map_orientation = map_normalizing(raw_map_path, recl)
-    mapc, mapr, maps = map_orientation
-    if not (mapc == 1 and mapr == 2 and maps == 3):
-        if mapc == 1 and mapr == 3 and maps == 2:
-            map_F = map_F.swapaxes(1, 2)
-        elif mapc == 2 and mapr == 1 and maps == 3:
-            map_F = map_F.swapaxes(0, 1)
-        elif mapc == 2 and mapr == 3 and maps == 1:
-            map_F = map_F.swapaxes(1, 2)
-            map_F = map_F.swapaxes(0, 1)
-        elif mapc == 3 and mapr == 1 and maps == 2:
-            map_F = map_F.swapaxes(0, 1)
-            map_F = map_F.swapaxes(1, 2)
-        elif mapc == 3 and mapr == 2 and maps == 1:
-            map_F = map_F.swapaxes(0, 2)
-
+    map_F = map_normalizing(raw_map_path, recl)
     map_output(raw_map_path, map_F, normalized_map_path, is_model=False)
     print(f'Normalized Map Saved as "{normalized_map_path}"')
 
@@ -128,5 +173,6 @@ if __name__ == '__main__':
     group_names = ['Back_Bone']
     query = "ribosome AND resolution:[1 TO 4}"
     main(query, label_groups, group_names)
+    
     # run the following to generate test map
     # generate_test_label_maps(60537,'CryoDataBot_Data/Test_Maps', label_groups, group_names)
