@@ -524,18 +524,28 @@ def map_normalizing(raw_map_path, recl=0.0):
             value_bottom = np.percentile(map_data, bottom_value_percentile)
         map_data -= max(value_bottom, 0)
 
+        # # Normalize map values to the range (0.0, 1.0)
+        # data_99_9 = np.percentile(map_data, 99.9)
+        # if data_99_9 == 0.:
+        #     raise ValueError('Empty map (99.9th percentile of map data is zero)')
+        # map_data /= data_99_9
+        # map_data = np.clip(map_data, 0., 1.)
+
         # Normalize map values to the range (0.0, 1.0)
-        data_99_9 = np.percentile(map_data, 99.9)
-        if data_99_9 == 0.:
+        positive_data = map_data
+        positive_data = positive_data[positive_data >= 0]
+        positive_data_99 = cp.percentile(positive_data, 99)
+        if positive_data_99 == 0.:
             raise ValueError('Empty map (99.9th percentile of map data is zero)')
-        map_data /= data_99_9
-        map_data = np.clip(map_data, 0., 1.)
+        map_data = map_data / positive_data_99
+        map_data = cp.clip(map_data, 0., 1.)
 
         map_orientation = np.array([mrc.header.mapc-1, mrc.header.mapr-1, mrc.header.maps-1], dtype=np.int32)
         map_data = cp.transpose(map_data, map_orientation)
 
     return map_data
-    
+
+
 
 # Step3.1.2: generate .mrc file
 def map_output(input_map, map_data, output_map, is_model=False):
@@ -543,7 +553,7 @@ def map_output(input_map, map_data, output_map, is_model=False):
         os.remove(output_map)
 
     shutil.copyfile(input_map, output_map)
-    with mrcfile.mmap(output_map, mode='r+') as mrc:
+    with mrcfile.open(output_map, mode='r+') as mrc:
         if is_model:
             map_data = map_data.astype(np.int8)
         else:

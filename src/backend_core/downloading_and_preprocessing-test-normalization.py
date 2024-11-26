@@ -70,12 +70,12 @@ def downloading_and_preprocessing(metadata_path,
     read_csv_info_with_recl = csv_col_reader('recommended_contour_level')(read_csv_info)
     csv_info, path_info = read_csv_info_with_recl(metadata_path, raw_dir)
 
-    # # # Step2: download maps and models using multithreasing
-    # logger.info(calculate_title_padding('Downloading Map & PDB Files'))
-    # logger.info(f'MetaData Path: "{os.path.abspath(metadata_path)}"')
-    # fetch_map_model(csv_info, path_info, overwrite)
-    # logger.info(calculate_title_padding('Downloading Completed'))
-    # logger.info('')
+    # # Step2: download maps and models using multithreasing
+    logger.info(calculate_title_padding('Downloading Map & PDB Files'))
+    logger.info(f'MetaData Path: "{os.path.abspath(metadata_path)}"')
+    fetch_map_model(csv_info, path_info, overwrite)
+    logger.info(calculate_title_padding('Downloading Completed'))
+    logger.info('')
 
     # Step3: preprocess maps using multithreasing (Resample and normalize map files)
     logger.info(calculate_title_padding('Preprocessing Maps'))
@@ -224,11 +224,7 @@ def preprocess_maps(csv_info,
     logger = logging.getLogger('Downloading_and_Preprocessing_Logger')
 
     _, _, _, recls = csv_info
-    raw_map_paths, model_paths, normalized_map_paths = path_info
-
-    ## calculate with nomalized maps - down ##
-    raw_map_paths = normalized_map_paths
-    ## calculate with nomalized maps - up   ##
+    raw_map_paths, model_paths, _ = path_info
 
     results = []
     failed: list[str] = []
@@ -270,7 +266,7 @@ def preprocess_maps(csv_info,
     print(f'Please Check Failed Entries at:\n"{os.path.abspath(failed_df_path)}"')
     logger.info('')
 
-    # save VOF/Dice
+    # save VOF/Dice            
     result_df = pd.DataFrame(results, columns=['emdb_id', 'vof', 'dice_coefficient'])
     metadata_df = metadata_df.merge(result_df, on='emdb_id', how='left')
 
@@ -350,18 +346,8 @@ def preprocess_one_map(recl: float, raw_map_path: str, model_path: str, give_map
     # Load the map
     try:
         logger.info('  Normalizing Map')
-        # map_F = map_normalizing(raw_map_path, recl)
-
-#   Generate vof from normalized maps DOWN  ##
-        with mrcfile.mmap(raw_map_path, 'r+') as mrc:
-        # Load map data
-            map_F = cp.array(mrc.data, dtype=np.float32)
-            map_orientation = np.array([mrc.header.mapc, mrc.header.mapr, mrc.header.maps], dtype=np.float32)
-            map_orientation = np.array([mrc.header.mapc-1, mrc.header.mapr-1, mrc.header.maps-1], dtype=np.int32)
-            map_F = cp.transpose(map_F, map_orientation)
-#   Generate vof from normalized maps UP    ##
-
-
+        map_F = map_normalizing(raw_map_path, recl)
+        
         if give_map:
             map_path = f"{raw_map_path.split('.map')[0]}_normalized.mrc"
             map_output(raw_map_path, cp.asnumpy(map_F), map_path, is_model=False)
@@ -396,8 +382,8 @@ def preprocess_one_map(recl: float, raw_map_path: str, model_path: str, give_map
         protein_tag = cp.array(protein_tag)
         vof, dice = planes_map(map_F, protein_tag)
         
-        # map_path = f"{model_path.split('.cif')[0]}_simulated.mrc"
-        # map_output(raw_map_path, cp.asnumpy(protein_tag), map_path, is_model=True)
+        map_path = f"{model_path.split('.cif')[0]}_simulated.mrc"
+        map_output(raw_map_path, cp.asnumpy(protein_tag), map_path, is_model=True)
             
     except Exception as e:
             logger.warning(f'  Error Calculating Map to Model Fitness: {e}')
@@ -612,14 +598,14 @@ if __name__ == '__main__':
     # downloading_and_preprocessing_config = ConfigParser(default_section='downloading_and_preprocessing')
     # downloading_and_preprocessing_config.read('CryoDataBotConfig.ini')
     overwrite = False # downloading_and_preprocessing_config.getboolean('user_settings', 'overwrite')
-    give_map = False # downloading_and_preprocessing_config.getboolean('user_settings', 'give_map')
+    give_map = True # downloading_and_preprocessing_config.getboolean('user_settings', 'give_map')
     protein_tag_dist = 1 # downloading_and_preprocessing_config.getint('user_settings', 'protein_tag_dist')
     map_threashold = 0.15 # downloading_and_preprocessing_config.getfloat('user_settings', 'map_threashold')
     vof_threashold = 1 # downloading_and_preprocessing_config.getfloat('user_settings', 'vof_threashold')
     dice_threashold = 1 # downloading_and_preprocessing_config.getfloat('user_settings', 'dice_threashold')
 
     # matadata_path = 'CryoDataBot_Data/Metadata/ribosome_res_1-4_001/ribosome_res_1-4_001_Final.csv'
-    matadata_path = '/home/qiboxu/Database/CryoDataBot_Data/Metadata/ribosome_res_3-4_1st_dataset/ribosome_res_3-4_normalization_failed_removed.csv'
+    matadata_path = '/home/qiboxu/Database/CryoDataBot_Data/Metadata/ribosome_res_3-4_1st_dataset/more-test.csv'
 
     raw_dir = '/home/qiboxu/Database/CryoDataBot_Data/Raw'
     downloading_and_preprocessing(matadata_path, 
