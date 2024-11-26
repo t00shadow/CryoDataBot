@@ -15,7 +15,7 @@ def main()->None:
 
     if args.mode == 'functions' or args.mode == 'f':
         run_funcs(args.file, args.run)
-    elif args.mode == 'default' or args.mode == 'd':
+    elif args.mode == 'change' or args.mode == 'c':
         change_default(args.name, args.val)
     elif args.mode == 'show' or args.mode =='s':
         show_default(args.name)

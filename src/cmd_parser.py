@@ -37,8 +37,8 @@ def parse_cmd()->ArgumentParser:
                         )
     
     # add subparser for changing defaults
-    add_parser = subparsers.add_parser('defaults', 
-                                        aliases=['d'])
+    add_parser = subparsers.add_parser('change', 
+                                        aliases=['c'])
     add_parser.add_argument('-n', '--name',
                             choices=default_keys, 
                             type=str,
@@ -57,11 +57,3 @@ def parse_cmd()->ArgumentParser:
                             required=True)
     
     return parser
-
-
-if __name__ == '__main__':
-    print(parse_cmd().parse_args(['d', '-n', 'q_threshold', '-v', '0.1']))
-    print(parse_cmd().parse_args(['functions', '-f', 'input.json', '-r', 'pipeline']))
-    # print(parse_cmd().parse_args(['-h']))
-    print(parse_cmd().parse_args(['d', '-h']))
-    print(parse_cmd().parse_args(['f', '-h']))
