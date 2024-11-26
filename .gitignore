@@ -2,3 +2,5 @@
 /src/backend_core/__pycache__
 /src/backend_core/backend_helpers/__pycache__
 /CryoDataBot_Data/
+/cryodatabot_env
+/cryodatabot.egg-info

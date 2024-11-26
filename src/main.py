@@ -3,8 +3,8 @@ import os
 from collections import namedtuple
 from configparser import ConfigParser
 
-from backend_core import *
-from cmd_parser import parse_cmd
+from .backend_core import *
+from .cmd_parser import parse_cmd
 
 config_path = os.path.join('src','backend_core','backend_helpers','CryoDataBotConfig.ini')
 

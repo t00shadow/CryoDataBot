@@ -1,0 +1,41 @@
+[build-system]
+requires = ["setuptools"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "cryodatabot"
+authors = [{name = "Someone", email = "somemail@outlook.com"}]
+description = 'A Python package for dataset generation in cryo-EM' 
+dynamic = ["version"]
+dependencies = [
+    "requests",
+    "numpy",
+    "pandas",
+    "gemmi",
+    "mrcfile",
+    "tqdm",
+    "cupy",
+    "split-folders",
+]
+requires-python = ">=3.10"
+license = {file = "LICENSE"}
+readme = "README.md"
+classifiers=[
+        "Programming Language :: Python :: 3.10",
+        "Programming Language :: Python :: 3.11",
+        "License :: OSI Approved :: MIT License",
+        "Operating System :: POSIX :: Linux",
+        "Operating System :: Microsoft :: Windows",
+]
+
+[tool.setuptools.packages]
+find = {}
+
+[project.scripts]
+cryodatabot = "src.__main__:main"
+
+[project.urls]
+Homepage = "https://github.com/t00shadow/CryoDataBot"
+
+[tool.setuptools.dynamic]
+version = {attr = "src.__version__"}
