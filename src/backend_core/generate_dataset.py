@@ -670,11 +670,20 @@ def label_maps(label_groups: list[dict[str: str|int]],
     7. Calculates the weight of each label group and saves it to a file.
     8. Logs the completion of the dataset generation process and moves the log file to the final sample path.
     """
+    # set n_worker to None if 0
+    if n_workers == 0:
+        n_workers = None
+
     try:
         assert(len(label_groups)==len(group_names))
     except AssertionError:
         raise ValueError('!!! Label Groups and Group Names Should Have the Same Length !!!')
 
+    try:
+        assert(ratio_t_t_v[0]+ratio_t_t_v[1]+ratio_t_t_v[2] == 1)
+    except AssertionError:
+        raise ValueError('!!! Ratio Should Add Up to 1 !!!')
+    
     # create dirs
     if not os.path.exists(temp_sample_path):
         os.makedirs(temp_sample_path)

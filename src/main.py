@@ -1,13 +1,13 @@
+import json
 import os
 from collections import namedtuple
 from configparser import ConfigParser
-import json
 
 from backend_core import *
 from cmd_parser import parse_cmd
 
-
 config_path = os.path.join('src','backend_core','backend_helpers','CryoDataBotConfig.ini')
+
 
 def main()->None:
     parser = parse_cmd()
@@ -16,12 +16,16 @@ def main()->None:
     if args.mode == 'functions' or args.mode == 'f':
         run_funcs(args.file, args.run)
     elif args.mode == 'default' or args.mode == 'd':
-        pass
+        change_default(args.name, args.val)
+    elif args.mode == 'show' or args.mode =='s':
+        show_default(args.name)
+    else:
+        print('Error: Invalid Command Line Argument')
 
 
 def run_funcs(file_path: str,
               run_what: str,
-              ):
+              )->None:
     # required arguments for each function
     pipeline_req = ['query', 'file_name']
     fetch_req = ['query', 'file_name']
@@ -183,6 +187,71 @@ def create_path()->namedtuple:
     path_info.test_path = test_path
 
     return path_info
+
+
+def change_default(name: str,
+                   value: str,
+                   )->None:
+    change_config = ConfigParser()
+    change_config.read(config_path)
+    directories = change_config.options('directories')
+
+    str_vals = ['fl',] + directories
+    int_vals = ['rows', 
+                'protein_tag_dist', 
+                'npy_size', 
+                'extract_stride', 
+                'n_workers',
+                ]
+    float_vals = ['q_threshold', 
+                  'uni_threshold', 
+                  'ratio_training', 
+                  'ratio_testing', 
+                  'ratio_validation', 
+                  'vof_threashold', 
+                  'dice_threashold', 
+                  'map_threashold',
+                  'atom_grid_radius',]
+    bool_vals = ['fetch_qscore', 
+                 'fetch_classification', 
+                 'overwrite', 
+                 'give_map']
+
+    if name in str_vals:
+        pass
+    elif name in int_vals:
+        try:
+            int(value)
+        except ValueError:
+            print(f'Error: Invalid Integer Value {name}: {value}')
+            exit(1)
+    elif name in float_vals:
+        try:
+            float(value)
+        except ValueError:
+            print(f'Error: Invalid Float Value {name}: {value}')
+            exit(1)
+    elif name in bool_vals:
+        if value == 'True' or value == 'False':
+            pass
+        else:
+            print(f'Error: Invalid Boolean Value {name}: {value}')
+            exit(1)
+    else:
+        print(f'Error: Invalid Argument Name {name}')
+        exit(1)
+
+    change_config.set('user_settings', name, value)
+    with open(config_path, 'w') as f:
+        change_config.write(f)
+
+    print(f'Changed Defualt Value of {name} to {value}')
+
+
+def show_default(name: str)->None:
+    show_config = ConfigParser(default_section='user_settings')
+    show_config.read(config_path)
+    print(f'Value of {name} Is: {show_config.get("user_settings", name)}')
 
 
 if __name__ == '__main__':
