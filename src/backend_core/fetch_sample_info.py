@@ -1,8 +1,6 @@
 import logging
 import os
 from concurrent.futures import ThreadPoolExecutor
-from configparser import ConfigParser
-from importlib import metadata
 
 import pandas as pd
 import requests

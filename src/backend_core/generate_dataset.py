@@ -6,7 +6,6 @@ import shutil
 from concurrent.futures import (BrokenExecutor, ProcessPoolExecutor,
                                 as_completed)
 from concurrent.futures.process import BrokenProcessPool
-from configparser import ConfigParser
 
 import gemmi
 import mrcfile

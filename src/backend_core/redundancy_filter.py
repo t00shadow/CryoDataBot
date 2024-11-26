@@ -2,7 +2,6 @@ import logging
 import os
 from collections import Counter
 from concurrent.futures import ProcessPoolExecutor, as_completed
-from configparser import ConfigParser
 
 import numpy as np
 import pandas as pd
