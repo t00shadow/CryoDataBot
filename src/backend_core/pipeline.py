@@ -8,7 +8,7 @@ from .generate_dataset import label_maps
 from .redundancy_filter import filter_csv
 
 
-def run_pipline(
+def run_pipeline(
         search_query: str,
         label_groups: list[dict[str: str|int]],
         group_names: list[str],

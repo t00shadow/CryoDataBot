@@ -1,3 +1,5 @@
+import os
+import sys
 from configparser import ConfigParser
 
 # this file is used for writing the default configuration file for CryoDataBot
@@ -46,12 +48,13 @@ config['directories'] = {
     'metadata_path':'Metadata',
     'raw_path':'Raw',
     'sample_path':'Sample',
-    'temp_path':'Temp'
+    'temp_path':'Temp',
+    'test_path':'Test',
 }
 
 config['user_settings'] = {
 
 }
 
-with open('CryoDataBotConfig.ini', 'w') as file:
+with open(os.path.join(sys.path[0], 'CryoDataBotConfig.ini'), 'w') as file:
     config.write(file)

@@ -1,7 +1,10 @@
 import os
+from configparser import ConfigParser
+
 import requests
 
-from .download_preprocess_maps import download_one_map, map_normalizing, map_output
+from .download_preprocess_maps import (download_one_map, map_normalizing,
+                                       map_output)
 from .generate_dataset import data_to_npy
 
 
@@ -62,4 +65,20 @@ def generate_test_label_maps(emdb_id: str|int,
     print(f'Normalized Map Saved as "{normalized_map_path}"')
 
     # Generate test label map
-    data_to_npy(normalized_map_path, model_path, label_groups, None, group_names, emdb_id, generate_test=True)
+    generate_dataset_config = ConfigParser(default_section='generate_dataset')
+    generate_dataset_config.read(os.path.join('backend_helpers','CryoDataBotConfig.ini'))
+    npy_size = generate_dataset_config.getint('user_settings', 'npy_size')
+    extract_stride = generate_dataset_config.getint('user_settings', 'extract_stride')
+    atom_grid_radius = generate_dataset_config.getfloat('user_settings', 'atom_grid_radius')
+
+    data_to_npy(normalized_map_path, 
+                model_path, 
+                label_groups, 
+                None, 
+                group_names, 
+                emdb_id, 
+                generate_test=True,
+                npy_size=npy_size,
+                extract_stride=extract_stride,
+                atom_grid_radius=atom_grid_radius)
+    

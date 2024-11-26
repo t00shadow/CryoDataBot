@@ -7,6 +7,8 @@ from backend_core import *
 from cmd_parser import parse_cmd
 
 
+config_path = os.path.join('src','backend_core','backend_helpers','CryoDataBotConfig.ini')
+
 def main()->None:
     parser = parse_cmd()
     args = parser.parse_args()
@@ -35,6 +37,7 @@ def run_funcs(file_path: str,
     raw_path = path_info.raw_path
     sample_path = path_info.sample_path
     temp_path = path_info.temp_path
+    test_path = path_info.test_path
 
     if run_what == 'pipeline':
         params = extract_params(file_path,
@@ -50,8 +53,8 @@ def run_funcs(file_path: str,
         params = extract_params(file_path,
                                 setting,
                                 *fetch_req)
-        fetch_sample_info_config = ConfigParser(default_section='directories')
-        fetch_sample_info_config.read(os.path.join('backend_helpers','CryoDataBotConfig.ini'))
+        fetch_sample_info_config = ConfigParser(default_section='fetch_sample_info')
+        fetch_sample_info_config.read(config_path)
         fetch_qscore = fetch_sample_info_config.getboolean('user_settings', 'fetch_qscore')
         fetch_classification = fetch_sample_info_config.getboolean('user_settings', 'fetch_classification')
         rows = fetch_sample_info_config.getint('user_settings', 'rows')
@@ -67,7 +70,7 @@ def run_funcs(file_path: str,
                                 setting, 
                                 *filter_req)
         redundancy_filter_config = ConfigParser(default_section='redundancy_filter')
-        redundancy_filter_config.read(os.path.join('backend_helpers','CryoDataBotConfig.ini'))
+        redundancy_filter_config.read(config_path)
         q_threshold = redundancy_filter_config.getfloat('user_settings', 'q_threshold')
         uni_threshold = redundancy_filter_config.getfloat('user_settings', 'uni_threshold')
         filter_csv(input_csv=params['csv_path'], 
@@ -79,7 +82,7 @@ def run_funcs(file_path: str,
                                 setting, 
                                 *preprocess_req)
         downloading_and_preprocessing_config = ConfigParser(default_section='downloading_and_preprocessing')
-        downloading_and_preprocessing_config.read(os.path.join('backend_helpers','CryoDataBotConfig.ini'))
+        downloading_and_preprocessing_config.read(config_path)
         overwrite = downloading_and_preprocessing_config.getboolean('user_settings', 'overwrite')
         give_map = downloading_and_preprocessing_config.getboolean('user_settings', 'give_map')
         protein_tag_dist = downloading_and_preprocessing_config.getint('user_settings', 'protein_tag_dist')
@@ -100,7 +103,7 @@ def run_funcs(file_path: str,
                                 setting, 
                                 *label_req)
         generate_dataset_config = ConfigParser(default_section='generate_dataset')
-        generate_dataset_config.read(os.path.join('backend_helpers','CryoDataBotConfig.ini'))
+        generate_dataset_config.read(config_path)
         ratio_t_t_v = (generate_dataset_config.getfloat('user_settings', 'ratio_training'),
                     generate_dataset_config.getfloat('user_settings', 'ratio_testing'),
                     generate_dataset_config.getfloat('user_settings', 'ratio_validation'),
@@ -125,6 +128,11 @@ def run_funcs(file_path: str,
         params = extract_params(file_path,
                                 setting, 
                                 *test_req)
+        generate_test_label_maps(emdb_id=params['emdb_id'],
+                                 label_groups=params['label_groups'],
+                                 group_names=params['group_names'],
+                                 test_path=test_path,
+                                 )
 
 
 def extract_params(file_path: str,
@@ -132,27 +140,27 @@ def extract_params(file_path: str,
                    *args,
                    )->dict:
     params = {}
-    with open(file_path, 'r') as f:
-        input = json.loads(f)
-        for arg in args:
-            try:
-                params[arg] = input[setting][arg]
-            except KeyError:
-                print(f'Error: Required Argument {arg} Not Found in "{file_path}"')
+    with open(file_path, 'r') as j:
+        contents = json.loads(j.read())
+    for arg in args:
+        try:
+            params[arg] = contents[setting][arg]
+        except KeyError:
+            print(f'Error: Required Argument {arg} Not Found in "{file_path}"')
 
     return params
-
 
 
 def create_path()->namedtuple:
     # read path info from config file
     dir_config = ConfigParser(default_section='directories')
-    dir_config.read(os.path.join('backend_helpers','CryoDataBotConfig.ini'))
-    cryo_data_bot_data_path = dir_config.get('directories', 'cryo_data_bot_data_path')
-    metadata_path = dir_config.get('directories','metadata_path')
-    raw_path = dir_config.get('directories', 'raw_path')
-    sample_path = dir_config.get('directories','sample_path')
-    temp_path = dir_config.get('directories', 'temp_path')
+    dir_config.read(config_path)
+    cryo_data_bot_data_path = dir_config.get('user_settings', 'cryo_data_bot_data_path')
+    metadata_path = dir_config.get('user_settings','metadata_path')
+    raw_path = dir_config.get('user_settings', 'raw_path')
+    sample_path = dir_config.get('user_settings','sample_path')
+    temp_path = dir_config.get('user_settings', 'temp_path')
+    test_path = dir_config.get('user_settings', 'test_path')
     
     # create directories if not exist
     os.makedirs(cryo_data_bot_data_path, exist_ok=True)
@@ -164,13 +172,18 @@ def create_path()->namedtuple:
     os.makedirs(sample_path, exist_ok=True)
     temp_path = os.path.join(cryo_data_bot_data_path, temp_path)
     os.makedirs(temp_path, exist_ok=True)
+    test_path = os.path.join(cryo_data_bot_data_path, test_path)
+    os.makedirs(test_path, exist_ok=True)
 
-    path_info = namedtuple('path_info', ['metadata_path', 'raw_path','sample_path', 'temp_path'])
+    path_info = namedtuple('path_info', ['metadata_path', 'raw_path','sample_path', 'temp_path', 'test_path'])
     path_info.metadata_path = metadata_path
     path_info.raw_path = raw_path
     path_info.sample_path = sample_path
     path_info.temp_path = temp_path
+    path_info.test_path = test_path
 
     return path_info
 
 
+if __name__ == '__main__':
+    main()
