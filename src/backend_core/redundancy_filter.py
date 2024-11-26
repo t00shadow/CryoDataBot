@@ -8,9 +8,7 @@ import numpy as np
 import pandas as pd
 from tqdm import tqdm
 
-import sys
-sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), os.pardir)))
-from backend_helpers.helper_funcs import calculate_title_padding
+from .backend_helpers.helper_funcs import calculate_title_padding
 
 
 def filter_csv(input_csv, q_threshold: float = 0.0, uni_threshold: float = 1.0):
@@ -409,16 +407,3 @@ def map_model_filter(df:pd.DataFrame, vof_threshold:float=0.25, dice_threshold:f
 
     return kept_df, removed_df
 
-
-if __name__ == '__main__':
-    # from config file read default values
-    redundancy_filter_config = ConfigParser(default_section='redundancy_filter')
-    redundancy_filter_config.read('CryoDataBotConfig.ini')
-    q_threshold = redundancy_filter_config.getfloat('user_settings', 'q_threshold')
-    uni_threshold = redundancy_filter_config.getfloat('user_settings', 'uni_threshold')
-    meatadata_path = 'CryoDataBot_Data/Metadata/ribosome_res_1-4_001/ribosome_res_1-4_001.csv'
-
-    filter_csv(input_csv=meatadata_path, 
-               q_threshold=q_threshold, 
-               uni_threshold=uni_threshold, 
-               )

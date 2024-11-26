@@ -1,5 +1,7 @@
 from configparser import ConfigParser
 
+# this file is used for writing the default configuration file for CryoDataBot
+
 config = ConfigParser()
 
 config['fetch_sample_info'] = {

@@ -1,8 +1,8 @@
-from importlib import metadata
 import logging
 import os
 from concurrent.futures import ThreadPoolExecutor
 from configparser import ConfigParser
+from importlib import metadata
 
 import pandas as pd
 import requests
@@ -11,9 +11,7 @@ from tqdm import tqdm
 from tqdm.contrib.logging import logging_redirect_tqdm
 from urllib3.util.retry import Retry
 
-import sys
-sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), os.pardir)))
-from backend_helpers.helper_funcs import calculate_title_padding
+from .backend_helpers.helper_funcs import calculate_title_padding
 
 
 def search_emdb(
@@ -323,21 +321,3 @@ def search_qscore(file_path):
         length = len(c_error)
         for idx in range(0, length, num:=10):
             logger.info(f'  {", ".join(c_error[idx:idx + num])}')
-
-
-if __name__ == '__main__':
-    # from config file read default values
-    fetch_sample_info_config = ConfigParser(default_section='fetch_sample_info')
-    fetch_sample_info_config.read('CryoDataBotConfig.ini')
-    fetch_qscore = fetch_sample_info_config.getboolean('user_settings', 'fetch_qscore')
-    fetch_classification = fetch_sample_info_config.getboolean('user_settings', 'fetch_classification')
-    rows = fetch_sample_info_config.getint('user_settings', 'rows')
-
-    path = search_emdb(query="ribosome AND resolution:[1 TO 4}",
-                       file_name='ribosome_res_1-4',
-                       save_path='CryoDataBot_Data/Metadata',
-                       fetch_qscore=fetch_qscore,
-                       fetch_classification=fetch_classification, 
-                       rows=20,
-                       )
-    print('Metadata saved to:', path)

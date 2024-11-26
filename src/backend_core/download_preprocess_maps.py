@@ -4,7 +4,6 @@ import os
 import shutil
 import urllib.request
 from concurrent.futures import ThreadPoolExecutor, as_completed
-from configparser import ConfigParser
 
 import cupy as cp
 import gemmi
@@ -15,10 +14,9 @@ from cupyx.scipy.ndimage import binary_dilation, zoom
 from tqdm import tqdm
 from tqdm.contrib.logging import logging_redirect_tqdm
 
-import sys
-sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), os.pardir)))
-from backend_helpers.helper_funcs import calculate_title_padding, csv_col_reader, read_csv_info
-from backend_core.redundancy_filter import map_model_filter
+from .backend_helpers.helper_funcs import (calculate_title_padding,
+                                           csv_col_reader, read_csv_info)
+from .redundancy_filter import map_model_filter
 
 
 # main function
@@ -592,26 +590,3 @@ def map_from_cif(cif_path: str, MAP_BOUNDARY, PROTEIN_TAG_DIST):
 
         return protein_tag
 
-
-if __name__ == '__main__':
-    # from config file read default values
-    downloading_and_preprocessing_config = ConfigParser(default_section='downloading_and_preprocessing')
-    downloading_and_preprocessing_config.read('CryoDataBotConfig.ini')
-    overwrite = downloading_and_preprocessing_config.getboolean('user_settings', 'overwrite')
-    give_map = downloading_and_preprocessing_config.getboolean('user_settings', 'give_map')
-    protein_tag_dist = downloading_and_preprocessing_config.getint('user_settings', 'protein_tag_dist')
-    map_threashold = downloading_and_preprocessing_config.getfloat('user_settings', 'map_threashold')
-    vof_threashold = downloading_and_preprocessing_config.getfloat('user_settings', 'vof_threashold')
-    dice_threashold = downloading_and_preprocessing_config.getfloat('user_settings', 'dice_threashold')
-
-    matadata_path = 'CryoDataBot_Data/Metadata/ribosome_res_1-4_001/ribosome_res_1-4_001_Final.csv'
-    raw_dir = 'CryoDataBot_Data/Raw'
-    downloading_and_preprocessing(matadata_path, 
-                                  raw_dir, 
-                                  overwrite,
-                                  give_map,
-                                  protein_tag_dist,
-                                  map_threashold,
-                                  vof_threashold,
-                                  dice_threashold,
-                                  )

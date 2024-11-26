@@ -1,11 +1,3 @@
-/test.py
-**/__pycache__/
-.venv/
-.idea/
-cryodatabot.egg-info/
-# /EVALUATION
-
-# /CSV
-# *.csv
-# *.log
-# *.xml
+/src/__pycache__
+/src/backend_core/__pycache__
+/src/backend_core/backend_helpers/__pycache__

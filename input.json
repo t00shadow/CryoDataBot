@@ -1,0 +1,544 @@
+{
+    "pipeline_inputs": {
+        "query": "ribosome AND resolution:[1 TO 4}",
+        "file_name": "ribosome_res_1-4"
+    },
+    "fetch_inputs": {
+        "query": "ribosome AND resolution:[1 TO 4}",
+        "file_name": "ribosome_res_1-4"
+    },
+    "filter_inputs": {
+        "csv_path": "CryoDataBot_Data/Metadata/ribosome_res_1-4_001/ribosome_res_1-4_001.csv"
+    },
+    "preprocess_inputs": {
+        "csv_path": "CryoDataBot_Data/Metadata/ribosome_res_1-4_001/ribosome_res_1-4_001_Final.csv"
+    },
+    "label_inputs": {
+        "csv_path": "CryoDataBot_Data/Metadata/ribosome_res_1-4_001/ribosome_res_1-4_001_Final.csv",
+        "label_groups": [
+            [
+                {
+                    "secondary_type": "Helix",
+                    "residue_type": "",
+                    "atom_type": "",
+                    "element_type": "",
+                    "metal_type": "",
+                    "label": 1
+                },
+                {
+                    "secondary_type": "Sheet",
+                    "residue_type": "",
+                    "atom_type": "",
+                    "element_type": "",
+                    "metal_type": "",
+                    "label": 2
+                },
+                {
+                    "secondary_type": "Loop",
+                    "residue_type": "",
+                    "atom_type": "",
+                    "element_type": "",
+                    "metal_type": "",
+                    "label": 3
+                },
+                {
+                    "secondary_type": "",
+                    "residue_type": "A,G,C,U",
+                    "atom_type": "",
+                    "element_type": "",
+                    "metal_type": "",
+                    "label": 4
+                }
+            ],
+            [
+                {
+                    "secondary_type": "",
+                    "residue_type": "ALA",
+                    "atom_type": "",
+                    "element_type": "",
+                    "metal_type": "",
+                    "label": 1
+                },
+                {
+                    "secondary_type": "",
+                    "residue_type": "ARG",
+                    "atom_type": "",
+                    "element_type": "",
+                    "metal_type": "",
+                    "label": 2
+                },
+                {
+                    "secondary_type": "",
+                    "residue_type": "ASN",
+                    "atom_type": "",
+                    "element_type": "",
+                    "metal_type": "",
+                    "label": 3
+                },
+                {
+                    "secondary_type": "",
+                    "residue_type": "ASP",
+                    "atom_type": "",
+                    "element_type": "",
+                    "metal_type": "",
+                    "label": 4
+                },
+                {
+                    "secondary_type": "",
+                    "residue_type": "CYS",
+                    "atom_type": "",
+                    "element_type": "",
+                    "metal_type": "",
+                    "label": 5
+                },
+                {
+                    "secondary_type": "",
+                    "residue_type": "GLU",
+                    "atom_type": "",
+                    "element_type": "",
+                    "metal_type": "",
+                    "label": 6
+                },
+                {
+                    "secondary_type": "",
+                    "residue_type": "GLN",
+                    "atom_type": "",
+                    "element_type": "",
+                    "metal_type": "",
+                    "label": 7
+                },
+                {
+                    "secondary_type": "",
+                    "residue_type": "GLY",
+                    "atom_type": "",
+                    "element_type": "",
+                    "metal_type": "",
+                    "label": 8
+                },
+                {
+                    "secondary_type": "",
+                    "residue_type": "HIS",
+                    "atom_type": "",
+                    "element_type": "",
+                    "metal_type": "",
+                    "label": 9
+                },
+                {
+                    "secondary_type": "",
+                    "residue_type": "ILE",
+                    "atom_type": "",
+                    "element_type": "",
+                    "metal_type": "",
+                    "label": 10
+                },
+                {
+                    "secondary_type": "",
+                    "residue_type": "LEU",
+                    "atom_type": "",
+                    "element_type": "",
+                    "metal_type": "",
+                    "label": 11
+                },
+                {
+                    "secondary_type": "",
+                    "residue_type": "LYS",
+                    "atom_type": "",
+                    "element_type": "",
+                    "metal_type": "",
+                    "label": 12
+                },
+                {
+                    "secondary_type": "",
+                    "residue_type": "MET",
+                    "atom_type": "",
+                    "element_type": "",
+                    "metal_type": "",
+                    "label": 13
+                },
+                {
+                    "secondary_type": "",
+                    "residue_type": "PHE",
+                    "atom_type": "",
+                    "element_type": "",
+                    "metal_type": "",
+                    "label": 14
+                },
+                {
+                    "secondary_type": "",
+                    "residue_type": "PRO",
+                    "atom_type": "",
+                    "element_type": "",
+                    "metal_type": "",
+                    "label": 15
+                },
+                {
+                    "secondary_type": "",
+                    "residue_type": "SER",
+                    "atom_type": "",
+                    "element_type": "",
+                    "metal_type": "",
+                    "label": 16
+                },
+                {
+                    "secondary_type": "",
+                    "residue_type": "THR",
+                    "atom_type": "",
+                    "element_type": "",
+                    "metal_type": "",
+                    "label": 17
+                },
+                {
+                    "secondary_type": "",
+                    "residue_type": "TRP",
+                    "atom_type": "",
+                    "element_type": "",
+                    "metal_type": "",
+                    "label": 18
+                },
+                {
+                    "secondary_type": "",
+                    "residue_type": "TYR",
+                    "atom_type": "",
+                    "element_type": "",
+                    "metal_type": "",
+                    "label": 19
+                },
+                {
+                    "secondary_type": "",
+                    "residue_type": "VAL",
+                    "atom_type": "",
+                    "element_type": "",
+                    "metal_type": "",
+                    "label": 20
+                },
+                {
+                    "secondary_type": "",
+                    "residue_type": "A",
+                    "atom_type": "",
+                    "element_type": "",
+                    "metal_type": "",
+                    "label": 21
+                },
+                {
+                    "secondary_type": "",
+                    "residue_type": "G",
+                    "atom_type": "",
+                    "element_type": "",
+                    "metal_type": "",
+                    "label": 22
+                },
+                {
+                    "secondary_type": "",
+                    "residue_type": "C",
+                    "atom_type": "",
+                    "element_type": "",
+                    "metal_type": "",
+                    "label": 23
+                },
+                {
+                    "secondary_type": "",
+                    "residue_type": "U",
+                    "atom_type": "",
+                    "element_type": "",
+                    "metal_type": "",
+                    "label": 24
+                }
+            ],
+            [
+                {
+                    "secondary_type": "",
+                    "residue_type": "",
+                    "atom_type": "CA",
+                    "element_type": "",
+                    "metal_type": "",
+                    "label": 1
+                },
+                {
+                    "secondary_type": "",
+                    "residue_type": "",
+                    "atom_type": "",
+                    "element_type": "P",
+                    "metal_type": "",
+                    "label": 2
+                },
+                {
+                    "secondary_type": "",
+                    "residue_type": "",
+                    "atom_type": "C4',O4',C3',C2',C1'",
+                    "element_type": "",
+                    "metal_type": "",
+                    "label": 3
+                }
+            ]
+        ],
+        "group_names": [
+            "secondary_strctures",
+            "residue_types",
+            "key_atoms"
+        ]
+    },
+    "test_inputs": {
+        "emdb_id": "12345",
+        "label_groups": [
+            [
+                {
+                    "secondary_type": "Helix",
+                    "residue_type": "",
+                    "atom_type": "",
+                    "element_type": "",
+                    "metal_type": "",
+                    "label": 1
+                },
+                {
+                    "secondary_type": "Sheet",
+                    "residue_type": "",
+                    "atom_type": "",
+                    "element_type": "",
+                    "metal_type": "",
+                    "label": 2
+                },
+                {
+                    "secondary_type": "Loop",
+                    "residue_type": "",
+                    "atom_type": "",
+                    "element_type": "",
+                    "metal_type": "",
+                    "label": 3
+                },
+                {
+                    "secondary_type": "",
+                    "residue_type": "A,G,C,U",
+                    "atom_type": "",
+                    "element_type": "",
+                    "metal_type": "",
+                    "label": 4
+                }
+            ],
+            [
+                {
+                    "secondary_type": "",
+                    "residue_type": "ALA",
+                    "atom_type": "",
+                    "element_type": "",
+                    "metal_type": "",
+                    "label": 1
+                },
+                {
+                    "secondary_type": "",
+                    "residue_type": "ARG",
+                    "atom_type": "",
+                    "element_type": "",
+                    "metal_type": "",
+                    "label": 2
+                },
+                {
+                    "secondary_type": "",
+                    "residue_type": "ASN",
+                    "atom_type": "",
+                    "element_type": "",
+                    "metal_type": "",
+                    "label": 3
+                },
+                {
+                    "secondary_type": "",
+                    "residue_type": "ASP",
+                    "atom_type": "",
+                    "element_type": "",
+                    "metal_type": "",
+                    "label": 4
+                },
+                {
+                    "secondary_type": "",
+                    "residue_type": "CYS",
+                    "atom_type": "",
+                    "element_type": "",
+                    "metal_type": "",
+                    "label": 5
+                },
+                {
+                    "secondary_type": "",
+                    "residue_type": "GLU",
+                    "atom_type": "",
+                    "element_type": "",
+                    "metal_type": "",
+                    "label": 6
+                },
+                {
+                    "secondary_type": "",
+                    "residue_type": "GLN",
+                    "atom_type": "",
+                    "element_type": "",
+                    "metal_type": "",
+                    "label": 7
+                },
+                {
+                    "secondary_type": "",
+                    "residue_type": "GLY",
+                    "atom_type": "",
+                    "element_type": "",
+                    "metal_type": "",
+                    "label": 8
+                },
+                {
+                    "secondary_type": "",
+                    "residue_type": "HIS",
+                    "atom_type": "",
+                    "element_type": "",
+                    "metal_type": "",
+                    "label": 9
+                },
+                {
+                    "secondary_type": "",
+                    "residue_type": "ILE",
+                    "atom_type": "",
+                    "element_type": "",
+                    "metal_type": "",
+                    "label": 10
+                },
+                {
+                    "secondary_type": "",
+                    "residue_type": "LEU",
+                    "atom_type": "",
+                    "element_type": "",
+                    "metal_type": "",
+                    "label": 11
+                },
+                {
+                    "secondary_type": "",
+                    "residue_type": "LYS",
+                    "atom_type": "",
+                    "element_type": "",
+                    "metal_type": "",
+                    "label": 12
+                },
+                {
+                    "secondary_type": "",
+                    "residue_type": "MET",
+                    "atom_type": "",
+                    "element_type": "",
+                    "metal_type": "",
+                    "label": 13
+                },
+                {
+                    "secondary_type": "",
+                    "residue_type": "PHE",
+                    "atom_type": "",
+                    "element_type": "",
+                    "metal_type": "",
+                    "label": 14
+                },
+                {
+                    "secondary_type": "",
+                    "residue_type": "PRO",
+                    "atom_type": "",
+                    "element_type": "",
+                    "metal_type": "",
+                    "label": 15
+                },
+                {
+                    "secondary_type": "",
+                    "residue_type": "SER",
+                    "atom_type": "",
+                    "element_type": "",
+                    "metal_type": "",
+                    "label": 16
+                },
+                {
+                    "secondary_type": "",
+                    "residue_type": "THR",
+                    "atom_type": "",
+                    "element_type": "",
+                    "metal_type": "",
+                    "label": 17
+                },
+                {
+                    "secondary_type": "",
+                    "residue_type": "TRP",
+                    "atom_type": "",
+                    "element_type": "",
+                    "metal_type": "",
+                    "label": 18
+                },
+                {
+                    "secondary_type": "",
+                    "residue_type": "TYR",
+                    "atom_type": "",
+                    "element_type": "",
+                    "metal_type": "",
+                    "label": 19
+                },
+                {
+                    "secondary_type": "",
+                    "residue_type": "VAL",
+                    "atom_type": "",
+                    "element_type": "",
+                    "metal_type": "",
+                    "label": 20
+                },
+                {
+                    "secondary_type": "",
+                    "residue_type": "A",
+                    "atom_type": "",
+                    "element_type": "",
+                    "metal_type": "",
+                    "label": 21
+                },
+                {
+                    "secondary_type": "",
+                    "residue_type": "G",
+                    "atom_type": "",
+                    "element_type": "",
+                    "metal_type": "",
+                    "label": 22
+                },
+                {
+                    "secondary_type": "",
+                    "residue_type": "C",
+                    "atom_type": "",
+                    "element_type": "",
+                    "metal_type": "",
+                    "label": 23
+                },
+                {
+                    "secondary_type": "",
+                    "residue_type": "U",
+                    "atom_type": "",
+                    "element_type": "",
+                    "metal_type": "",
+                    "label": 24
+                }
+            ],
+            [
+                {
+                    "secondary_type": "",
+                    "residue_type": "",
+                    "atom_type": "CA",
+                    "element_type": "",
+                    "metal_type": "",
+                    "label": 1
+                },
+                {
+                    "secondary_type": "",
+                    "residue_type": "",
+                    "atom_type": "",
+                    "element_type": "P",
+                    "metal_type": "",
+                    "label": 2
+                },
+                {
+                    "secondary_type": "",
+                    "residue_type": "",
+                    "atom_type": "C4',O4',C3',C2',C1'",
+                    "element_type": "",
+                    "metal_type": "",
+                    "label": 3
+                }
+            ]
+        ],
+        "group_names": [
+            "secondary_strctures",
+            "residue_types",
+            "key_atoms"
+        ]
+    }
+}

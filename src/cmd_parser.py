@@ -1,0 +1,54 @@
+from argparse import ArgumentParser
+from configparser import ConfigParser
+
+
+def parse_cmd()->ArgumentParser:
+    # find all default vals
+    config = ConfigParser()
+    config.read('src/backend_core/backend_helpers/CryoDataBotConfig.ini')
+    sections = config.sections()
+    sections.remove('user_settings')
+    default_keys = [key for section in sections for key in config.options(section)]
+
+    parser = ArgumentParser(
+        prog='CryoDataBot',
+    )
+
+    subparsers = parser.add_subparsers(title='Functionalities',
+                                       help='subcommand help',
+                                       required=True,
+                                       dest='mode'
+                                       )
+    
+    # add subparser for functions
+    func_parser = subparsers.add_parser('functions', 
+                                        aliases=['f'],)
+    func_parser.add_argument('-f', '--file', required=True)
+    func_parser.add_argument('-r', '--run', 
+                        choices=['pipeline',
+                                 'fetch',
+                                 'filter',
+                                 'preprocess',
+                                 'label',
+                                 'test'],
+                        required=True,
+                        )
+    
+    # add subparser for changing defaults
+    add_parser = subparsers.add_parser('defaults', 
+                                        aliases=['d'])
+    add_parser.add_argument('-n', '--name',
+                            choices=default_keys, 
+                            type=str,
+                            required=True)
+    add_parser.add_argument('-v', '--val', 
+                            required=True)
+    return parser
+
+
+if __name__ == '__main__':
+    print(parse_cmd().parse_args(['d', '-n', 'q_threshold', '-v', '0.1']))
+    print(parse_cmd().parse_args(['functions', '-f', 'input.json', '-r', 'pipeline']))
+    # print(parse_cmd().parse_args(['-h']))
+    print(parse_cmd().parse_args(['d', '-h']))
+    print(parse_cmd().parse_args(['f', '-h']))
