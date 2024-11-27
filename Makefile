@@ -8,6 +8,7 @@ clear:
 	rm -rf build dist *.egg-info
 
 uninstall:
+	make clear
 	pip uninstall -y cryodatabot
 
 install_dev:
