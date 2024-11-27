@@ -619,7 +619,7 @@ if __name__ == '__main__':
     dice_threashold = 1 # downloading_and_preprocessing_config.getfloat('user_settings', 'dice_threashold')
 
     # matadata_path = 'CryoDataBot_Data/Metadata/ribosome_res_1-4_001/ribosome_res_1-4_001_Final.csv'
-    matadata_path = '/home/qiboxu/Database/CryoDataBot_Data/Metadata/ribosome_res_3-4_1st_dataset/ribosome_res_3-4_normalization_failed_removed.csv'
+    matadata_path = '/home/qiboxu/Database/CryoDataBot_Data/Metadata/ribosome_res_3-4_1st_dataset/more-test.csv'
 
     raw_dir = '/home/qiboxu/Database/CryoDataBot_Data/Raw'
     downloading_and_preprocessing(matadata_path, 
