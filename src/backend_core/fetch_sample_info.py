@@ -41,6 +41,12 @@ def search_emdb(
     Returns:
     str: The path to the final CSV file containing the fetched data.
     """
+    if file_name is None or file_name == '':
+        file_name = None
+    if fl == '':
+        print("Error: Please Provide a Valid Set of Fields to Fetch from the EMDB.")
+        exit(1)
+
     # get logger
     logger = logging.getLogger('Fetch_Sample_Info_Logger')
     logger.setLevel(logging.DEBUG)

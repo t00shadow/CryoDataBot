@@ -21,6 +21,7 @@ def main()->None:
         show_default(args.name)
     else:
         print('Error: Invalid Command Line Argument')
+        exit(1)
 
 
 def run_funcs(file_path: str,
@@ -137,6 +138,9 @@ def run_funcs(file_path: str,
                                  group_names=params['group_names'],
                                  test_path=test_path,
                                  )
+    else:
+        print('Error: Invalid Function Name')
+        exit(1)
 
 
 def extract_params(file_path: str,
@@ -145,12 +149,13 @@ def extract_params(file_path: str,
                    )->dict:
     params = {}
     with open(file_path, 'r') as j:
-        contents = json.loads(j.read())
+        contents = json.loads(j.read(), parse_int=True)
     for arg in args:
         try:
             params[arg] = contents[setting][arg]
         except KeyError:
             print(f'Error: Required Argument {arg} Not Found in "{file_path}"')
+            exit(1)
 
     return params
 
