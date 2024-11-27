@@ -22,8 +22,8 @@ def parse_cmd()->ArgumentParser:
 
     subparser_des = """
 f, function - select a function to run
-c, change - change a default variable value
-s, show - show the current value of a default variable
+c, change   - change a default variable value
+s, show     - show the current value of a variable
 """
 
     subparsers = parser.add_subparsers(title='Functionalities',
@@ -31,7 +31,7 @@ s, show - show the current value of a default variable
                                        help='-h, --help - show more help',
                                        required=True,
                                        dest='mode',
-                                       metavar='mode'
+                                       metavar='mode',
                                        )
     
     # add subparser for functions
