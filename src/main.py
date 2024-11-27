@@ -1,7 +1,7 @@
 import json
 import os
 from collections import namedtuple
-from configparser import ConfigParser
+from configparser import ConfigParser, NoOptionError
 
 from .backend_core import *
 from .cmd_parser import parse_cmd
@@ -249,9 +249,23 @@ def change_default(name: str,
 
 
 def show_default(name: str)->None:
-    show_config = ConfigParser(default_section='user_settings')
+    show_config = ConfigParser()
     show_config.read(config_path)
-    print(f'Value of {name} Is: {show_config.get("user_settings", name)}')
+    val = None
+    try:
+        val = show_config.get("user_settings", name)
+    except NoOptionError:
+        sections = show_config.sections()
+        sections.remove('user_settings')
+        for section in sections:
+            if show_config.has_option(section, name):
+                val = show_config.get(section, name)
+                break
+    if val is None: 
+        print(f'Error: Invalid Argument Name {name}')
+        exit(1)
+    else:
+        print(f'Value of {name} Is: {val}')
 
 
 if __name__ == '__main__':

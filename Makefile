@@ -1,4 +1,4 @@
-.PHONY: install clear uninstall
+.PHONY: install clear uninstall install_dev
 
 install:
 	pip install .
@@ -8,4 +8,7 @@ clear:
 	rm -rf build dist *.egg-info
 
 uninstall:
-	pip uninstall cryodatabot
+	pip uninstall -y cryodatabot
+
+install_dev:
+	pip install -e .
