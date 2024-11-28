@@ -797,7 +797,7 @@ if __name__ == "__main__":
     # For Running Dataset Generation
     # metadata_path = 'CryoDataBot_Data/Metadata/download_file_003/download_file_003_Final.csv'
     CryoDataBot_Data_path = '/home/qiboxu/Database/CryoDataBot_Data/'
-    metadata_path = os.path.join(CryoDataBot_Data_path, 'Metadata', 'ribosome_res_3-4_1st_dataset', 'ribosome_res_3-4_1st_dataset769.csv')
+    metadata_path = os.path.join(CryoDataBot_Data_path, 'Metadata', 'ribosome_res_3-4_1st_dataset', 'more-test.csv')
     # group_names = ['secondary_strctures', 'residue_types', 'key_atoms']
     group_names = ['secondary_strctures']
 
