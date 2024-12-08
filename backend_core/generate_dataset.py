@@ -794,7 +794,7 @@ def label_maps(label_groups: list[dict[str: str|int]],
     logger.info(calculate_title_padding('Dataset generation completed'))
 
 
-if __name__ == "__main__":
+def main():
     # from config file read default values
     generate_dataset_config = ConfigParser(default_section='generate_dataset')
     generate_dataset_config.read('CryoDataBotConfig.ini')
@@ -809,7 +809,7 @@ if __name__ == "__main__":
 
     csv_path = 'CryoDataBot_Data/Metadata/ribosome_res_1-4_001/ribosome_res_1-4_001_Final.csv'
     group_names = ['secondary_strctures', 'residue_types', 'key_atoms']
-    from atom_in_models import atoms_sugar_ring, residues_RNA
+    from backend_helpers.atom_in_models import atoms_sugar_ring, residues_RNA
     label_groups = [
                    [{'secondary_type': 'Helix', 'residue_type': '', 'atom_type': '', 'element_type': '', 'metal_type': '', 'label': 1},
                     {'secondary_type': 'Sheet', 'residue_type': '', 'atom_type': '', 'element_type': '', 'metal_type': '', 'label': 2},
@@ -863,3 +863,5 @@ if __name__ == "__main__":
                )
 
 
+if __name__ == "__main__":
+    main()

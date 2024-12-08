@@ -117,6 +117,7 @@ class MainWindow(qtw.QMainWindow):    # Make sure the root widget/class is the r
         # self.lockBtn.clicked.connect(lambda: self.lockBtn.setIcon(qtg.QIcon(r"GUI_custom_widgets/svgs/lock-open-svgrepo-com.svg")))
         self.lockBtn.clicked.connect(self.lock_main_dir_selection)
         self.ui.B1_csvFilepath.layout().insertWidget(0, self.lockBtn)
+        self.ui.pushButton_p3_4.clicked.connect(self.redund_filter)
         # page 3
         self.ui.pushButton_p3.clicked.connect(lambda: self.browse_folder(page="step2"))
         self.ui.resetDefaultVal_btn.clicked.connect(lambda: self.ui.lineEdit_p3.setText(self.default_metadata_filepath))
@@ -502,13 +503,15 @@ class MainWindow(qtw.QMainWindow):    # Make sure the root widget/class is the r
             main_new_myversion.main(save_path, save_path)
 
     # STEP 2: redundancy_filter (this is abstracted away for the user)
-    def redund_filter():
-        pass
+    def redund_filter(self):
+        # replaced everything here with a dumbed down version for testing purposes:
+        redundancy_filter.main()
 
+    # Move this to the very bottom
     def summary(self):
         pass
 
-
+    # STEP 3: downloading & preprocessing
 
     # STEP 4: generate dataset
 
@@ -582,7 +585,7 @@ class MainWindow(qtw.QMainWindow):    # Make sure the root widget/class is the r
     # label here refers to a label item in the labels tree not a QLabel
     def add_label_custom(self):
         """Add a label (subitem, editable) to the selected group or the parent group of the selected label."""
-        selected_item = self.ui.treeWidget_p4.currentItem()
+        selected_item = self.ui.treeWidget_p4.currentItem()    # to make this code reusable (and possible to move into a separate file, get the parent or the current widget, however that;s related to perhaps have to pass in self.smth else. alternatively leave it here but break up fxns into mutiple fxns with helpers where possible)
 
         # Check if a group or label is selected
         if selected_item is None:

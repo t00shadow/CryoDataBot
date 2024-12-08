@@ -603,7 +603,7 @@ def map_from_cif(cif_path: str, MAP_BOUNDARY, PROTEIN_TAG_DIST):
         return protein_tag
 
 
-if __name__ == '__main__':
+def main():
     # from config file read default values
     downloading_and_preprocessing_config = ConfigParser(default_section='downloading_and_preprocessing')
     downloading_and_preprocessing_config.read('CryoDataBotConfig.ini')
@@ -625,3 +625,7 @@ if __name__ == '__main__':
                                   vof_threashold,
                                   dice_threashold,
                                   )
+
+
+if __name__ == '__main__':
+    main()

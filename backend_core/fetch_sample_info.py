@@ -325,8 +325,8 @@ def search_qscore(file_path):
             logger.info(f'  {", ".join(c_error[idx:idx + num])}')
 
 
-if __name__ == '__main__':
-    # from config file read default values
+def main():
+        # from config file read default values
     fetch_sample_info_config = ConfigParser(default_section='fetch_sample_info')
     fetch_sample_info_config.read('CryoDataBotConfig.ini')
     fetch_qscore = fetch_sample_info_config.getboolean('user_settings', 'fetch_qscore')
@@ -341,3 +341,7 @@ if __name__ == '__main__':
                        rows=20,
                        )
     print('Metadata saved to:', path)
+
+
+if __name__ == '__main__':
+    main()
