@@ -15,7 +15,7 @@ class PopupDialog(EasyCloseDialog):
 
         # Basic layout and button in the popup
         layout = QVBoxLayout(self)
-        text_blurb = QLabel("Are you sure you want to delete this label? Deletion is permanent.\n\nTip:\nHold down shift when clicking \"x\" to bypass this confirmation")
+        text_blurb = QLabel("Are you sure you want to delete this label? This can't be undone.\n\nTip:\You can hold down shift when clicking \"x\" to bypass this confirmation")
         layout.addWidget(text_blurb)
 
         layout2 = QHBoxLayout()
