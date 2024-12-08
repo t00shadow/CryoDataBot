@@ -35,8 +35,11 @@ from my_logger import Handler
 
 # import main_new_myversion
 
-from z_fetch_sample_info import search_emdb
-from z_refine_sample_info_DEBUGGING import refine_csv
+# from z_fetch_sample_info import search_emdb
+# from z_refine_sample_info_DEBUGGING import refine_csv
+
+from backend_core import fetch_sample_info, redundancy_filter, downloading_and_preprocessing, generate_dataset
+
 
 
 
@@ -98,6 +101,8 @@ class MainWindow(qtw.QMainWindow):    # Make sure the root widget/class is the r
 
 
         ## buttons
+        # page 0
+        self.ui.main_save_path_btn.clicked.connect(lambda: self.browse_folder(page="home"))
         # page 1
         # self.ui.pushButton_p1.clicked.connect(lambda: self.browse_folder(page="quick"))
         # self.ui.pushButton_p1_2.clicked.connect(lambda: self.ui.statusbar.showMessage("query (preview): " + self.parseQuery(page="quick")))    # intentionally didnt add time limit for this message so users can take their time to read it
@@ -405,6 +410,25 @@ class MainWindow(qtw.QMainWindow):    # Make sure the root widget/class is the r
             self.ui.pushButton_p2.setDisabled(False)
             self.main_dir_selection_locked = False
 
+        # this code looks kinda gross
+    def browse_folder(self, page="quick"):
+        filepath = qtw.QFileDialog.getExistingDirectory(self, 'Select Folder')
+        print("selected path:", filepath)
+        self.ui.statusbar.showMessage(f"selected folder: {filepath}", 2000)    # if use textChanged instead of textEdited signal in lineEdit_22 to statusbar connection, can remove this line, since textChanged is emitted the text is change by users OR programmatically (textEdited is only emited when text is changed by users)
+        if page == "home":
+            self.main_dir_path = os.path.join(filepath, "CryoDataBot")
+            self.ui.main_save_path_lineedit.setText(self.main_dir_path.replace("\\", "/"))
+        elif page == "quick":
+            self.ui.lineEdit_p1.setText(filepath)
+        elif page == "step1" and not self.main_dir_selection_locked:
+            self.main_dir_path = os.path.join(filepath, "CryoDataBot")
+            self.ui.lineEdit_p2.setText(self.main_dir_path.replace("\\", "/"))    # doesnt modify self.main_dir_path btw
+            # self.make_main_dir(main_dir_path)
+            self.lock_main_dir_selection()
+        elif page == "step2":
+            self.ui.lineEdit_p3.setText(filepath)
+
+
 
     # junk fxn for testing signals and slots, can delete/comment out later
     def run_naive(self):
@@ -413,6 +437,9 @@ class MainWindow(qtw.QMainWindow):    # Make sure the root widget/class is the r
 
     # def updateStatusBar(self, string):
     #     self.ui.statusBar.showMessage(string)
+
+
+    # STEP 1: fetch_sample_info
 
     # this fxn needs to be updated
     def fetch_sample_info(self) -> None:
@@ -423,6 +450,8 @@ class MainWindow(qtw.QMainWindow):    # Make sure the root widget/class is the r
         ----------
         None
         """
+        # mm kinda debatable if this should be here, cuz you could skip this step
+        # so nah this shouldnt be here, instead the first button that gets clicked should trigger this (how to do that elegantly without shoving if statements everywhere)
         self.make_main_dir(self.main_dir_path)
 
         query = self.userInputQuery.text()    # change this to the custom widget like in gen_dataset_quick()
@@ -431,8 +460,8 @@ class MainWindow(qtw.QMainWindow):    # Make sure the root widget/class is the r
         # print(processed_query)
         save_path = self.ui.lineEdit_p2.text()
         #TODO: put a try block here or some if statements to catch if btn is clicked with no parameters set
-        output_path = search_emdb(processed_query, save_path)
-        print(f"yooo this is the return value of search_emdb: {output_path}")     # needs to return path of folder where shit is saved
+        output_path = fetch_sample_info.search_emdb(processed_query, save_path)
+        print(f"path of metadata file: {output_path}")     # needs to return path of folder where shit is saved
         self.ui.lineEdit_p3.setText("placeholder generated path")
 
     def gen_dataset(self):
@@ -440,7 +469,19 @@ class MainWindow(qtw.QMainWindow):    # Make sure the root widget/class is the r
         # for each group, generate a labeled dataset
         pass
 
+    # Helper function for gen_dataset_quick
+    def parseQuery(self, page="quick"):
+        if page == "quick":
+            # return " AND ".join(self.querywidget.keywords)    # dont need to this cuz can directly access, basically global. instead just pass a string or int to distinguish which to use. tho maybe have 2 separate fxn is better cuz dont have to run an if statement each time u press the button
+            return self.ui.lineEdit.text()
+        elif page == "step1":
+            # return " AND ".join(self.querywidget2.keywords)
+            return self.userInputQuery.text()
+        else:
+            return ""     # spit out an error, this is only for the developer, not a runtime thing
+
     # ignore this for now
+    # EDOT: do NOT do it like this, new approach just manually set shit, but still call all 4 fxns
     def gen_dataset_quick(self):
         # print(self.querywidget.junk_val)
         # print(self.querywidget.junk_arr)
@@ -460,37 +501,16 @@ class MainWindow(qtw.QMainWindow):    # Make sure the root widget/class is the r
         else:
             main_new_myversion.main(save_path, save_path)
 
-    def parseQuery(self, page="quick"):
-        if page == "quick":
-            # return " AND ".join(self.querywidget.keywords)    # dont need to this cuz can directly access, basically global. instead just pass a string or int to distinguish which to use. tho maybe have 2 separate fxn is better cuz dont have to run an if statement each time u press the button
-            return self.ui.lineEdit.text()
-        elif page == "step1":
-            # return " AND ".join(self.querywidget2.keywords)
-            return self.userInputQuery.text()
-        else:
-            return ""     # spit out an error, this is only for the developer, not a runtime thing
-
-    # this code looks kinda gross
-    def browse_folder(self, page="quick"):
-        filepath = qtw.QFileDialog.getExistingDirectory(self, 'Select Folder')
-        print("selected path:", filepath)
-        self.ui.statusbar.showMessage(f"selected folder: {filepath}", 2000)    # if use textChanged instead of textEdited signal in lineEdit_22 to statusbar connection, can remove this line, since textChanged is emitted the text is change by users OR programmatically (textEdited is only emited when text is changed by users)
-        if page == "quick":
-            self.ui.lineEdit_p1.setText(filepath)
-        elif page == "step1" and not self.main_dir_selection_locked:
-            self.main_dir_path = os.path.join(filepath, "CryoDataBot")
-            self.ui.lineEdit_p2.setText(self.main_dir_path.replace("\\", "/"))    # doesnt modify self.main_dir_path btw
-            # self.make_main_dir(main_dir_path)
-            self.lock_main_dir_selection()
-        elif page == "step2":
-            self.ui.lineEdit_p3.setText(filepath)
+    # STEP 2: redundancy_filter (this is abstracted away for the user)
+    def redund_filter():
+        pass
 
     def summary(self):
         pass
 
 
 
-
+    # STEP 4: generate dataset
 
     #QTreeWidget stuff --> TODO: move to its own file, need to slightly rewrite cuz accessing ui widgets, like pass in the tree widget
     def add_group(self):
