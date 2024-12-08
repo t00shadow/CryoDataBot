@@ -794,7 +794,7 @@ def label_maps(label_groups: list[dict[str: str|int]],
     logger.info(calculate_title_padding('Dataset generation completed'))
 
 
-if __name__ == "__main__":
+def main():
     # from config file read default values
     generate_dataset_config = ConfigParser(default_section='generate_dataset')
     generate_dataset_config.read('CryoDataBotConfig.ini')
@@ -863,3 +863,5 @@ if __name__ == "__main__":
                )
 
 
+if __name__ == "__main__":
+    main()

@@ -410,8 +410,8 @@ def map_model_filter(df:pd.DataFrame, vof_threshold:float=0.25, dice_threshold:f
     return kept_df, removed_df
 
 
-if __name__ == '__main__':
-    # from config file read default values
+def main():
+        # from config file read default values
     redundancy_filter_config = ConfigParser(default_section='redundancy_filter')
     redundancy_filter_config.read('CryoDataBotConfig.ini')
     q_threshold = redundancy_filter_config.getfloat('user_settings', 'q_threshold')
@@ -422,3 +422,7 @@ if __name__ == '__main__':
                q_threshold=q_threshold, 
                uni_threshold=uni_threshold, 
                )
+
+
+if __name__ == '__main__':
+    main()
