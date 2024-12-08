@@ -809,7 +809,7 @@ def main():
 
     csv_path = 'CryoDataBot_Data/Metadata/ribosome_res_1-4_001/ribosome_res_1-4_001_Final.csv'
     group_names = ['secondary_strctures', 'residue_types', 'key_atoms']
-    from atom_in_models import atoms_sugar_ring, residues_RNA
+    from backend_helpers.atom_in_models import atoms_sugar_ring, residues_RNA
     label_groups = [
                    [{'secondary_type': 'Helix', 'residue_type': '', 'atom_type': '', 'element_type': '', 'metal_type': '', 'label': 1},
                     {'secondary_type': 'Sheet', 'residue_type': '', 'atom_type': '', 'element_type': '', 'metal_type': '', 'label': 2},
