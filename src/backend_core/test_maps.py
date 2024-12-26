@@ -24,12 +24,12 @@ def generate_test_label_maps(emdb_id: str|int,
         file = requests.get(url).json()
     except Exception as e:
         print(f'Error Getting Fitted PDB: {e}')
-        return None
+        exit(1)
     try:
         pdb_id = file['crossreferences']['pdb_list']['pdb_reference'][0]['pdb_id']
     except Exception as e:
         print('No Fitted PDB Found')
-        return None
+        exit(1)
     print('Fitted PDB_ID Fetched')
 
     # directories
@@ -51,12 +51,14 @@ def generate_test_label_maps(emdb_id: str|int,
         file = requests.get(url).json()
     except Exception as e:
         print(f'Error Fetching recommended_contour_level: {e}')
-        return None
+        exit(1)
     try:
         recl = file[emdb_id]["recommended_contour_level"]["recl"]
     except Exception as e:
         print('No recommended_contour_level Found')
-        return None
+        exit(1)
+    else:
+        print('Fetched recommended_contour_level')
     
     # normalize the map
     print('Normalizing Map...')

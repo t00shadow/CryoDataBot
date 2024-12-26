@@ -63,7 +63,7 @@ label_inputs = {
 }
 
 test_inputs = {
-    'emdb_id':'12345',
+    'emdb_id':10769,
     'label_groups':label_groups,
     'group_names':group_names,
 }

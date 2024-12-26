@@ -149,7 +149,7 @@ def extract_params(file_path: str,
                    )->dict:
     params = {}
     with open(file_path, 'r') as j:
-        contents = json.loads(j.read(), parse_int=True)
+        contents = json.loads(j.read())
     for arg in args:
         try:
             params[arg] = contents[setting][arg]

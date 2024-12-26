@@ -138,20 +138,23 @@ def data_to_npy(label_groups: list,
                         group_data, dis_array = label_npy(group_data, protein_2nd_structure_coords[2], tag, dis_array, atom_grid_radius)
         data.append(group_data)
 
-        if generate_test is True:
-            print(f'Generating Test Maps for "{normalized_map_path}"')
-            for idx, group_name in enumerate(group_names):
-                print(f'Generating Test Maps for Group: {group_name}')
-                classes = len(label_groups[idx])
-                for label in range(1, classes + 1):
-                    out_map = os.path.join(os.path.dirname(normalized_map_path),f"EMD_{emdb_id}_{group_name}_{label}.mrc")
-                    shutil.copy(normalized_map_path, out_map)
-                    with mrcfile.open(out_map, mode='r+') as mrc:
-                        TEST_data = np.zeros_like(group_data)
-                        TEST_data = np.where(group_data == label, group_data, 0)
-                        mrc.set_data(TEST_data)
-                    print( f'   Label-{label} Written')
-            return None
+    if generate_test is True:
+        print(f'Generating Test Maps for "{normalized_map_path}"')
+        for idx, group_name in enumerate(group_names):
+            print(f'Generating Test Maps for Group: {group_name}')
+            classes = len(label_groups[idx])
+            group_data = data[idx]
+            for label in range(1, classes + 1):
+                out_map = os.path.join(os.path.dirname(normalized_map_path),'Test_Maps',
+                                       f"EMD_{emdb_id}_{group_name}_{label}.mrc")
+                shutil.copy(normalized_map_path, out_map)
+                with mrcfile.open(out_map, mode='r+') as mrc:
+                    TEST_data = np.zeros_like(group_data)
+                    TEST_data = np.where(group_data == label, group_data, 0)
+                    mrc.set_data(TEST_data)
+                print( f'   Label-{label} Written')
+        print('Test Maps Generated')
+        return None
 
     data.append(map_data)
     group_names.append('map_sample')

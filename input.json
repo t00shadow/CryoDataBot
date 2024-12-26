@@ -278,7 +278,7 @@
         ]
     },
     "test_inputs": {
-        "emdb_id": "12345",
+        "emdb_id": 10769,
         "label_groups": [
             [
                 {
