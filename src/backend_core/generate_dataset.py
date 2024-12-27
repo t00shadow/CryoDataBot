@@ -140,13 +140,14 @@ def data_to_npy(label_groups: list,
 
     if generate_test is True:
         print(f'Generating Test Maps for "{normalized_map_path}"')
+        test_map_folder = os.path.join(os.path.dirname(normalized_map_path), 'Test_Maps')
+        os.makedirs(test_map_folder, exist_ok=True)
         for idx, group_name in enumerate(group_names):
             print(f'Generating Test Maps for Group: {group_name}')
             classes = len(label_groups[idx])
             group_data = data[idx]
             for label in range(1, classes + 1):
-                out_map = os.path.join(os.path.dirname(normalized_map_path),'Test_Maps',
-                                       f"EMD_{emdb_id}_{group_name}_{label}.mrc")
+                out_map = os.path.join(test_map_folder, f"EMD_{emdb_id}_{group_name}_{label}.mrc")
                 shutil.copy(normalized_map_path, out_map)
                 with mrcfile.open(out_map, mode='r+') as mrc:
                     TEST_data = np.zeros_like(group_data)

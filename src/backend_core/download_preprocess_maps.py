@@ -119,7 +119,7 @@ def fetch_map_model(csv_info, path_info, overwrite=False):
 
 
 # Step2.1: download the map and model of one entry
-def download_one_map(emdb_id, pdb, raw_map_path, model_path, overwrite=False):
+def download_one_map(emdb_id, pdb, raw_map_path, model_path, overwrite=False, test_download=False):
     """
     Downloads and extracts a map file from the Electron Microscopy Data Bank (EMDB) 
     and a model file from the Protein Data Bank (PDB).
@@ -178,6 +178,8 @@ def download_one_map(emdb_id, pdb, raw_map_path, model_path, overwrite=False):
                     os.remove(raw_map_path)
         except Exception as e:
             logger.warning(f"Error Downloading EMD_{emdb_id} Map File: {e}")
+            if test_download:
+                raise e
         else:
             logger.info(f"Downloaded: emd_{emdb_id}.map")
 
@@ -186,6 +188,8 @@ def download_one_map(emdb_id, pdb, raw_map_path, model_path, overwrite=False):
             urllib.request.urlretrieve(pdb_fetch_link, model_path)
         except Exception as e:
             logger.warning(f"Error Downloading PDB-{pdb} Model File: {e}")
+            if test_download:
+                raise e
         else:
             logger.info(f"Downloaded: {pdb}.cif")
 
