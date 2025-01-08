@@ -39,7 +39,7 @@ from my_logger import Handler
 # from z_fetch_sample_info import search_emdb
 # from z_refine_sample_info_DEBUGGING import refine_csv
 
-from backend_core import fetch_sample_info, redundancy_filter, downloading_and_preprocessing, generate_dataset
+from backend_core import fetch_sample_info, redundancy_filter, downloading_and_preprocessing, downloading_and_preprocessing_NO_GPU, generate_dataset
 
 
 
@@ -138,7 +138,7 @@ class MainWindow(qtw.QMainWindow):    # Make sure the root widget/class is the r
         self.ui.clearMMF_btn.clicked.connect(lambda: self.ui.mapModelFitnessSpinBox.setValue(0))
         self.ui.clearSim_btn.clicked.connect(lambda: self.ui.similaritySpinBox.setValue(100))
         # page 4
-        self.ui.pushButton_p4_2.clicked.connect(self.gen_dataset)
+        self.ui.pushButton_p4_2.clicked.connect(self.gen_ds)
 
 
         ### QTreeWidget
@@ -256,11 +256,17 @@ class MainWindow(qtw.QMainWindow):    # Make sure the root widget/class is the r
         self.ui.pushButton_p3_4.setText("Preprocess")
         self.ui.pushButton_p2_2.setText("Search")
         # self.ui.lineEdit_p1_2.setText(r"C:\Users\noelu\CryoDataBot\JUNK_TEST_FOLDER\Labels")
-        self.ui.lineEdit_p3_2.setText(r"C:\Users\noelu\CryoDataBot\JUNK_TEST_FOLDER\Labels")
+        self.ui.lineEdit_p2.setText(r"C:/Users/noelu/CryoDataBot/JUNKSTUFF/CryoDataBot")
+        self.ui.lineEdit_p3.setText(r"C:/Users/noelu/CryoDataBot/JUNKSTUFF/CryoDataBot\download_file_010\download_file_010.csv")
+        self.ui.lineEdit_p3_2.setText(r"C:\Users\noelu\CryoDataBot\JUNKSTUFF\CryoDataBot\download_file_010\download_file_010_Final.csv")
         self.ui.statusbar.showMessage("example status bar message")
 
         # self.ui.lineEdit_p1_2.findChild(qtw.QToolButton).setIcon(qtg.QIcon(r"GUI_custom_widgets/svgs/clear_small-svgrepo-com.svg"))
         self.ui.lineEdit_p3_2.findChild(qtw.QToolButton).setIcon(qtg.QIcon(r"GUI_custom_widgets/svgs/clear_small-svgrepo-com.svg"))
+
+        self.ui.training_spinBox.setValue(80)
+        self.ui.testing_spinBox.setValue(10)
+        self.ui.validation_spinBox.setValue(10)
         # ===================================================== 
 
 
@@ -341,9 +347,16 @@ class MainWindow(qtw.QMainWindow):    # Make sure the root widget/class is the r
 
 
 
-    # functions, for bigger gui could put these in separate files and import them
-    # Edit: ehh havent needed it so far
+    #& ===== Custom Functions ======================
 
+    #? General functions
+    # TODO: consider switching to a popup menu. Have something like that already (the dialog box when deleting labels)
+    def show_tooltip_on_click(self, message: str):
+        button = self.sender()
+        qtw.QToolTip.showText(button.mapToGlobal(qtc.QPoint(15, -10)), message, button)
+
+
+    #? Sidebar functions
     def collapse_leftpanel(self):
         """Collapse sidebar by hiding button text, showing only icons."""
         self.ui.leftpanel.resize(self.ui.leftpanel.minimumWidth(), self.ui.leftpanel.height())
@@ -369,8 +382,6 @@ class MainWindow(qtw.QMainWindow):    # Make sure the root widget/class is the r
         else:
             self.collapse_leftpanel()
 
-
-
     # for left panel. maybe store btns and pages in a lookup table/dictionary so can relate them easier
     def uncheck_other_buttons(self):
         # set all to false and then set the sender to true
@@ -384,16 +395,12 @@ class MainWindow(qtw.QMainWindow):    # Make sure the root widget/class is the r
         self.sender().setChecked(True)
 
 
-    
-    def show_tooltip_on_click(self, message: str):
-        button = self.sender()
-        qtw.QToolTip.showText(button.mapToGlobal(qtc.QPoint(15, -10)), message, button)
-
     # makes the CryoDataBot main directory at user specified location
     # lowkey this is unneeded if u use os.makedirs in the other steps
     # ideas for helping visually clue viewers in that it's only needs to be set once, is having it greyed out, and then clicking a gear button to trigger a dialog window to edit it. or having a dropdown and then gear icon again idk
     # OR make an inital page (like vscodes home page thing or chimeras, that asks users to select a home save folder upon first launch (stores it some json or smth))
     
+    #? File management functions
     # TODO: small bug, if no folder is selected, it becomes just "CryoDataBot. like as the absolute path lol. just use os.getcwd or wtv
     def make_main_dir(self, dir_path):
         print("make_main_dir fxn triggered")
@@ -439,6 +446,7 @@ class MainWindow(qtw.QMainWindow):    # Make sure the root widget/class is the r
 
 
 
+    #! DELETE THIS LATER
     # junk fxn for testing signals and slots, can delete/comment out later
     def run_naive(self):
         userinput = self.ui.lineEdit.text()
@@ -448,9 +456,7 @@ class MainWindow(qtw.QMainWindow):    # Make sure the root widget/class is the r
     #     self.ui.statusBar.showMessage(string)
 
 
-    # STEP 1: fetch_sample_info
-
-    # this fxn needs to be updated
+    #~ STEP 1: fetch_sample_info
     def fetch_sample_info(self) -> None:
         """
         Return value is ... Creates new files.
@@ -459,8 +465,7 @@ class MainWindow(qtw.QMainWindow):    # Make sure the root widget/class is the r
         ----------
         None
         """
-        # mm kinda debatable if this should be here, cuz you could skip this step
-        # so nah this shouldnt be here, instead the first button that gets clicked should trigger this (how to do that elegantly without shoving if statements everywhere)
+        # make the dir only when you decide to download anything. might need to move this elsewhere
         self.make_main_dir(self.main_dir_path)
 
         query = self.userInputQuery.text()    # change this to the custom widget like in gen_dataset_quick()
@@ -471,14 +476,14 @@ class MainWindow(qtw.QMainWindow):    # Make sure the root widget/class is the r
         #TODO: put a try block here or some if statements to catch if btn is clicked with no parameters set
         output_path = fetch_sample_info.search_emdb(processed_query, save_path)
         print(f"path of metadata file: {output_path}")     # needs to return path of folder where shit is saved
-        self.ui.lineEdit_p3.setText("placeholder generated path")
-
-    def gen_dataset(self):
-        # self.ui.groups_of_labels is an array of string arrays
-        # for each group, generate a labeled dataset
-        pass
+        self.ui.lineEdit_p3.setText(output_path)
 
     # Helper function for gen_dataset_quick
+    # Edit no longer parsing query, just asking users to follow EMDB search syntax and letting them preview results b4 downloading
+    # implementing a parser would be kinda difficult and a waste of time given the amt of combinations and dif syntax to check
+    # EMDB search engine was built using  Apache Solr server so check the SOlr query parser tutorial if wanna make a parser (https://solr.apache.org/guide/8_4/the-standard-query-parser.html).
+    # Full list of EMDB query fields: https://www.ebi.ac.uk/emdb/documentation/search/fields
+    # TLDR: faster to just provide a link to documentation and have users preview their results instead of wasting time on a complicated text validator.
     def parseQuery(self, page="quick"):
         if page == "quick":
             # return " AND ".join(self.querywidget.keywords)    # dont need to this cuz can directly access, basically global. instead just pass a string or int to distinguish which to use. tho maybe have 2 separate fxn is better cuz dont have to run an if statement each time u press the button
@@ -489,8 +494,7 @@ class MainWindow(qtw.QMainWindow):    # Make sure the root widget/class is the r
         else:
             return ""     # spit out an error, this is only for the developer, not a runtime thing
 
-    # ignore this for now
-    # EDOT: do NOT do it like this, new approach just manually set shit, but still call all 4 fxns
+    # ignore this for now, this function is OUTDATED bc some backend stuff changed
     def gen_dataset_quick(self):
         # print(self.querywidget.junk_val)
         # print(self.querywidget.junk_arr)
@@ -510,20 +514,92 @@ class MainWindow(qtw.QMainWindow):    # Make sure the root widget/class is the r
         else:
             main_new_myversion.main(save_path, save_path)
 
-    # STEP 2: redundancy_filter (this is abstracted away for the user)
+    # DEMO version. To switch to normal just fetch the user input from the appropriate qwidgets (mostly lineedits) and pass the user input to the backend fxn.
+    #~ STEP 2: redundancy_filter
+    # def redund_filter(self):
+    #     redundancy_filter.main()
+    
     def redund_filter(self):
-        # replaced everything here with a dumbed down version for testing purposes:
-        redundancy_filter.main()
+        step1_csv_path = self.ui.lineEdit_p3.text()
+        q_thresh = self.ui.qScoreDoubleSpinBox.value()
+        uni_thresh = self.ui.similaritySpinBox.value()
+        step2_csv_path = redundancy_filter.filter_csv(step1_csv_path, q_thresh, uni_thresh)
+        self.ui.lineEdit_p3_2.setText(step2_csv_path)
 
-    # Move this to the very bottom
-    def summary(self):
+    #~ STEP 3: downloading & preprocessing (this is abstracted away for the user, i.e. no separate button for this step. still debating if should happen with step 2's button or with step 4's button (leaning towards step 4). orrrr actually add another button on one of those pages to initiate this step?)
+    def dl_and_preproc(self):
+        pass     # no physical button for this step, it happens with another step
+
+    #~ STEP 4: generate dataset
+    # def gen_ds(self):
+    # #     downloading_and_preprocessing.main()
+    #     downloading_and_preprocessing_NO_GPU.main()
+    #     generate_dataset.main()
+
+    def gen_ds(self):
+        # Step 3 (downloading and preprocessing)
+        metadata_path = self.ui.lineEdit_p3_2.text()
+        temp = self.ui.lineEdit_p2.text()
+        raw_dir = temp + "/Raw"
+        if not os.path.exists(raw_dir):
+            os.makedirs(raw_dir)
+        print(raw_dir)
+        overwrite = False
+        give_map = True
+        protein_tag_dist = 1
+        map_threashold = 0.15
+        vof_threashold = 0.25
+        dice_threashold = 0.4
+        #! comment out this line to test only the labeling step
+        downloading_and_preprocessing_NO_GPU.downloading_and_preprocessing(metadata_path, raw_dir, overwrite, give_map, protein_tag_dist, map_threashold, vof_threashold, dice_threashold)
+        
+        #! Was testing stuff earlier, but should be able to comment out print statements now
+        # Step 4 (actually generating the labeled datasets)
+        print("SEE HERE!!!")   #^ comment out later
+        label_groups = []  # list of list of dicts?
+        group_names = []
+        for i in range(self.ui.treeWidget_p4.topLevelItemCount()):
+            group = self.ui.treeWidget_p4.topLevelItem(i)
+            print(group.text(0))   #^ comment out later
+            group_names.append(group.text(0))
+
+            for j in range(group.childCount()):
+                label = group.child(j)
+                secondary_struct_combo = self.ui.treeWidget_p4.itemWidget(label, 1)
+                residues_combo = self.ui.treeWidget_p4.itemWidget(label, 2)
+                atoms_lineedit = self.ui.treeWidget_p4.itemWidget(label, 3)
+                print([secondary_struct_combo.currentText(), residues_combo.currentText(), atoms_lineedit.text(), j+1])    #^ comment out later
+                label_groups.append([{'secondary_type': secondary_struct_combo.currentText(), 'residue_type': residues_combo.currentText(), 'atom_type': atoms_lineedit.text(), 'label': j+1}])
+        print("DIVIDER")      #^ comment out later
+        print(group_names)    #^ comment out later
+        print(label_groups)   #^ comment out later
+        # assert(False)       #^ uncomment to stop execution here
+        # raw_path already defined above as raw_dir
+        temp_sample_path = temp + "/Temp"
+        if not os.path.exists(temp_sample_path):
+            os.makedirs(temp_sample_path)
+        sample_path = temp + "/Training"
+        if not os.path.exists(sample_path):
+            os.makedirs(sample_path)
+        ratio_training = self.ui.training_spinBox.value() / 100
+        ratio_testing = self.ui.testing_spinBox.value() / 100
+        ratio_validation = self.ui.validation_spinBox.value() / 100
+        ratio_t_t_v = [ratio_training, ratio_testing, ratio_validation]
+        npy_size = self.ui.spinBox_4.value()
+        extract_stride = 32
+        atom_grid_radius = 1.5
+        n_workers = 4
+        generate_dataset.label_maps(label_groups, group_names, metadata_path, raw_dir, temp_sample_path, sample_path, ratio_t_t_v, npy_size, extract_stride, atom_grid_radius, n_workers)
+
+
+    # could use this, might need another page for summary stats? or display below labels
+    def summary(self):    # summary stats or smth
         pass
 
-    # STEP 3: downloading & preprocessing
 
-    # STEP 4: generate dataset
 
-    #QTreeWidget stuff --> TODO: move to its own file, need to slightly rewrite cuz accessing ui widgets, like pass in the tree widget
+
+    # Labels stuff
     def add_group(self):
         """Add a new group to the tree widget (top-level item, editable)."""
         group_name = f"Group {self.ui.treeWidget_p4.topLevelItemCount() + 1}"
