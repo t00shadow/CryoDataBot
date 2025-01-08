@@ -797,54 +797,54 @@ class MainWindow(qtw.QMainWindow):    # Make sure the root widget/class is the r
     #     self.ui.spinBox_2.blockSignals(False)
 
 
-    # #^ REFACTORIZATION 1:    btw in the order parameter, only need the last 2 spinboxes, since the first is accounted for by the value parameter, but just left it in since more readable from a glance
+    # #^ REFACTORIZATION 1: ideally the same performance as refactorization 2. better loose coupling than refactorization 2 (prob makes no difference). So a little better IF the value of the spinbox changes unexpectedly after the signal is emitted.
+    # When spinbox 1 changes, update spinbox 2 and 3 accordingly
+    def spin_box_changed_generic(self, value, other_boxes):
+        other_boxes[0].blockSignals(True)  # Temporarily block the other spinbox signals to avoid recursion
+        other_boxes[1].blockSignals(True)
+
+        Y_final, Z_final = self.new_spinbox_vals(value, other_boxes[0].value())
+        other_boxes[0].setValue(Y_final)
+        other_boxes[1].setValue(Z_final)
+
+        other_boxes[0].blockSignals(False)  # Unblock signals
+        other_boxes[1].blockSignals(False)
+    # When spinbox 1 changes, update spinbox 2 and 3 accordingly
+    def on_spin_box1_changed(self, value):
+        self.spin_box_changed_generic(value, [self.ui.spinBox_2, self.ui.spinBox_3])    # 1, 2, 3
+
+    # When spinbox 2 changes, update spinbox 1 and 3 accordingly
+    def on_spin_box2_changed(self, value):
+        self.spin_box_changed_generic(value, [self.ui.spinBox, self.ui.spinBox_3])      # 2, 1, 3
+
+    # When spinbox 3 changes, update spinbox 1 and 2 accordingly
+    def on_spin_box3_changed(self, value):
+        self.spin_box_changed_generic(value, [self.ui.spinBox, self.ui.spinBox_2])      # 3, 1, 2
+
+
+    #^ REFACTORIZATION 2: more readable code. ideally the same performance as refactorization 1. potentially slightly more responsive and more prone to unexpected changes in value. worse loose coupling. Rly only an issue IF the value of the spinbox changes unexpectedly after the signal is emitted (maybe value changed super fast, like with an infinite scroll scrollwheel?).
     # # When spinbox 1 changes, update spinbox 2 and 3 accordingly
-    # def spin_box_changed_generic(self, value, order):
+    # def spin_box_changed_generic(self, order):
     #     order[1].blockSignals(True)  # Temporarily block the other spinbox signals to avoid recursion
     #     order[2].blockSignals(True)
 
-    #     Y_final, Z_final = self.new_spinbox_vals(value, order[1].value())
+    #     Y_final, Z_final = self.new_spinbox_vals(order[0].value(), order[1].value())
     #     order[1].setValue(Y_final)
     #     order[2].setValue(Z_final)
 
     #     order[1].blockSignals(False)  # Unblock signals
     #     order[2].blockSignals(False)
     # # When spinbox 1 changes, update spinbox 2 and 3 accordingly
-    # def on_spin_box1_changed(self, value):
-    #     self.spin_box_changed_generic(value, [self.ui.spinBox, self.ui.spinBox_2, self.ui.spinBox_3])
+    # def on_spin_box1_changed(self):
+    #     self.spin_box_changed_generic([self.ui.spinBox, self.ui.spinBox_2, self.ui.spinBox_3])
 
     # # When spinbox 2 changes, update spinbox 1 and 3 accordingly
-    # def on_spin_box2_changed(self, value):
-    #     self.spin_box_changed_generic(value, [self.ui.spinBox_2, self.ui.spinBox, self.ui.spinBox_3])
+    # def on_spin_box2_changed(self):
+    #     self.spin_box_changed_generic([self.ui.spinBox_2, self.ui.spinBox, self.ui.spinBox_3])
 
     # # When spinbox 3 changes, update spinbox 1 and 2 accordingly
-    # def on_spin_box3_changed(self, value):
-    #     self.spin_box_changed_generic(value, [self.ui.spinBox_3, self.ui.spinBox, self.ui.spinBox_2])
-
-
-    #^ REFACTORIZATION 2: gets rid of value parameter, since can just fetch value of combobox using .value(). Maybeee slight performance hit (unnoticeable for me), but code is more readable so worth IMO.
-    # When spinbox 1 changes, update spinbox 2 and 3 accordingly
-    def spin_box_changed_generic(self, order):
-        order[1].blockSignals(True)  # Temporarily block the other spinbox signals to avoid recursion
-        order[2].blockSignals(True)
-
-        Y_final, Z_final = self.new_spinbox_vals(order[0].value(), order[1].value())
-        order[1].setValue(Y_final)
-        order[2].setValue(Z_final)
-
-        order[1].blockSignals(False)  # Unblock signals
-        order[2].blockSignals(False)
-    # When spinbox 1 changes, update spinbox 2 and 3 accordingly
-    def on_spin_box1_changed(self):
-        self.spin_box_changed_generic([self.ui.spinBox, self.ui.spinBox_2, self.ui.spinBox_3])
-
-    # When spinbox 2 changes, update spinbox 1 and 3 accordingly
-    def on_spin_box2_changed(self):
-        self.spin_box_changed_generic([self.ui.spinBox_2, self.ui.spinBox, self.ui.spinBox_3])
-
-    # When spinbox 3 changes, update spinbox 1 and 2 accordingly
-    def on_spin_box3_changed(self):
-        self.spin_box_changed_generic([self.ui.spinBox_3, self.ui.spinBox, self.ui.spinBox_2])
+    # def on_spin_box3_changed(self):
+    #     self.spin_box_changed_generic([self.ui.spinBox_3, self.ui.spinBox, self.ui.spinBox_2])
 
 
 
