@@ -9,7 +9,7 @@ class LabelComboBox_v2(QComboBox):
         self.view().installEventFilter(self)   # Install event filter on the view
 
         # self.lineEdit().textEdited.connect(self.showPopup)
-        self.lineEdit().setPlaceholderText("wtf")
+        self.lineEdit().setPlaceholderText("Select")
 
     # Event filter forwards view key events to the line edit
     def eventFilter(self, watched, event):
