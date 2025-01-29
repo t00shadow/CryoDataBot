@@ -49,6 +49,7 @@ def search_emdb(
     logger = logging.getLogger('Fetch_Sample_Info_Logger')
     logger.setLevel(logging.DEBUG)
 
+    os.makedirs(save_path, exist_ok=True)   # bugfix: if save_path doesnt exist yet, next line will throw an error
     # check file names
     num = 1
     if file_name is None:
@@ -335,7 +336,7 @@ def main():
 
     path = search_emdb(query="ribosome AND resolution:[1 TO 4}",
                        file_name='ribosome_res_1-4',
-                       save_path='CryoDataBot_Data/Metadata',
+                       save_path='CryoDataBot_Data/Metadata2',
                        fetch_qscore=fetch_qscore,
                        fetch_classification=fetch_classification, 
                        rows=20,
