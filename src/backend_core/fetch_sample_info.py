@@ -49,6 +49,7 @@ def search_emdb(
     logger = logging.getLogger('Fetch_Sample_Info_Logger')
     logger.setLevel(logging.DEBUG)
 
+    os.makedirs(save_path, exist_ok=True)
     # check file names
     num = 1
     if file_name is None:
