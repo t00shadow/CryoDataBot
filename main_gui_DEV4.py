@@ -21,7 +21,8 @@ from PyQt5.QtCore import QTextCodec
 codec = QTextCodec.codecForName("UTF-8")
 
 # from guiskin_DEV2_alt import Ui_MainWindow    # need the "Ui_" prefix
-from guiskin_DEV2_alt_TEMP_DEMO_VERSION import Ui_MainWindow    # need the "Ui_" prefix
+from guiskin_DEV2_alt_TEMP_DEMO_VERSION import Ui_MainWindow
+from guiskin_DEV3 import Ui_MainWindow
 #from guiskin import Ui_MainWindow
 
 import GUI_custom_widgets.z_Tag_main_alt_allcode_v2 as TTEwidget2
@@ -404,6 +405,9 @@ class MainWindow(qtw.QMainWindow):    # Make sure the root widget/class is the r
     # TODO: small bug, if no folder is selected, it becomes just "CryoDataBot. like as the absolute path lol. just use os.getcwd or wtv
     def make_main_dir(self, dir_path):
         print("make_main_dir fxn triggered")
+        # https://stackoverflow.com/questions/273192/how-do-i-create-a-directory-and-any-missing-parent-directories
+        # switch to pathlib
+        # already tested it in the "temp.py" file
         try:
             if not os.path.exists(dir_path):
                 os.mkdir(dir_path)

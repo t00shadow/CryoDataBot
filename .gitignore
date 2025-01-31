@@ -16,3 +16,9 @@ JUNK_DONT_COMMIT.py
 *.pyc
 
 /CryoDataBot_Data
+
+/build
+/dist
+*.spec
+/JUNKSTUFF
+/zzzzz_TEST
