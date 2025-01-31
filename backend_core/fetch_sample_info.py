@@ -336,7 +336,7 @@ def main():
 
     path = search_emdb(query="ribosome AND resolution:[1 TO 4}",
                        file_name='ribosome_res_1-4',
-                       save_path='CryoDataBot_Data/Metadata2',
+                       save_path='CryoDataBot_Data/Metadata',
                        fetch_qscore=fetch_qscore,
                        fetch_classification=fetch_classification, 
                        rows=20,

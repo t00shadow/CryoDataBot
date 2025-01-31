@@ -4,21 +4,23 @@
 cryodatabot.egg-info/
 # /EVALUATION
 
-JUNK_DONT_COMMIT.py
-
-/CSV
-*.csv
-*.log
-
-/JUNK_TEST_FOLDER
-/TEST_FILES_noncode
-
+# pycache
 *.pyc
 
-/CryoDataBot_Data
-
+# build files (for .exe)
 /build
 /dist
 *.spec
+
+# files generated from running the code
+/CSV
+*.csv
+*.log
+/CryoDataBot_Data
 /JUNKSTUFF
+
+# misc testing stuff
+/JUNK_TEST_FOLDER
+/TEST_FILES_noncode
 /zzzzz_TEST
+JUNK_DONT_COMMIT.py
