@@ -51,19 +51,19 @@ def downloading_and_preprocessing(metadata_path,
     3. Resample and normalize map files.
        - Uses preprocess_maps(path_info) to preprocess the downloaded map files.
     """ 
-    # configure logger
-    logger = logging.getLogger('Downloading_and_Preprocessing_Logger')
-    logger.setLevel(logging.INFO)  
-    std_out_hdlr = logging.StreamHandler()
-    std_out_hdlr.setLevel(logging.INFO)
-    log_file_path = metadata_path.replace('.csv', '_downloading_and_preprocessing.log')
+    # # configure logger
+    # logger = logging.getLogger('Downloading_and_Preprocessing_Logger')
+    # logger.setLevel(logging.INFO)  
+    # std_out_hdlr = logging.StreamHandler()
+    # std_out_hdlr.setLevel(logging.INFO)
+    # log_file_path = metadata_path.replace('.csv', '_downloading_and_preprocessing.log')
 
-    file_hdlr = logging.FileHandler(log_file_path)
-    file_hdlr.setLevel(logging.INFO)
-    #std_out_hdlr.setFormatter(logging.Formatter(''))
-    file_hdlr.setFormatter(logging.Formatter('%(asctime)s %(levelname)s: %(message)s', datefmt='%m/%d/%Y %I:%M:%S %p'))
-    logger.addHandler(std_out_hdlr)
-    logger.addHandler(file_hdlr)
+    # file_hdlr = logging.FileHandler(log_file_path)
+    # file_hdlr.setLevel(logging.INFO)
+    # #std_out_hdlr.setFormatter(logging.Formatter(''))
+    # file_hdlr.setFormatter(logging.Formatter('%(asctime)s %(levelname)s: %(message)s', datefmt='%m/%d/%Y %I:%M:%S %p'))
+    # logger.addHandler(std_out_hdlr)
+    # logger.addHandler(file_hdlr)
 
     # Step1: create map and model paths for downloading and preprocessing from csv info
     # read additional recl column using read_csv_info func
@@ -78,7 +78,7 @@ def downloading_and_preprocessing(metadata_path,
     # logger.info('')
 
     # Step3: preprocess maps using multithreasing (Resample and normalize map files)
-    logger.info(calculate_title_padding('Preprocessing Maps'))
+    # logger.info(calculate_title_padding('Preprocessing Maps'))
     preprocess_maps(csv_info, 
                     path_info, 
                     metadata_path, 
@@ -88,8 +88,8 @@ def downloading_and_preprocessing(metadata_path,
                     vof_threashold, 
                     dice_threashold
                     )
-    logger.info(calculate_title_padding('Preprocessing Completed'))
-    logger.info('')
+    # logger.info(calculate_title_padding('Preprocessing Completed'))
+    # logger.info('')
 
 # Step2: download maps and models using multithreasing
 def fetch_map_model(csv_info, path_info, overwrite=False):
@@ -221,16 +221,18 @@ def preprocess_maps(csv_info,
        - Appends the result to the results list.
     5. Logs the completion of the preprocessing process.
     """
-    logger = logging.getLogger('Downloading_and_Preprocessing_Logger')
+    # logger = logging.getLogger('Downloading_and_Preprocessing_Logger')
 
     _, _, _, recls = csv_info
     raw_map_paths, model_paths, _ = path_info
 
-    results = []
-    failed: list[str] = []
-    with logging_redirect_tqdm([logger]):
-        for raw_map_path, model_path, recl in tqdm(zip(raw_map_paths, model_paths, recls), total=len(raw_map_paths), desc='Preprocessing Maps'):
-            preprocess_one_map(recl, raw_map_path, model_path, give_map, protein_tag_dist, map_threashold)
+    # results = []
+    # failed: list[str] = []
+    for raw_map_path, model_path, recl in zip(raw_map_paths, model_paths, recls):
+        preprocess_one_map(recl, raw_map_path, model_path, give_map, protein_tag_dist, map_threashold)
+    # with logging_redirect_tqdm([logger]):
+    #     for raw_map_path, model_path, recl in tqdm(zip(raw_map_paths, model_paths, recls), total=len(raw_map_paths), desc='Preprocessing Maps'):
+    #         preprocess_one_map(recl, raw_map_path, model_path, give_map, protein_tag_dist, map_threashold)
 
             # try:
                 # vof, dice = preprocess_one_map(recl, raw_map_path, model_path, give_map, protein_tag_dist, map_threashold)
@@ -331,42 +333,45 @@ def preprocess_one_map(recl: float, raw_map_path: str, model_path: str, give_map
     17. Saves the normalized map and binary map if give_map is True.
     18. Returns the VOF and Dice coefficient.
     """
-    logger = logging.getLogger('Downloading_and_Preprocessing_Logger')
+    # logger = logging.getLogger('Downloading_and_Preprocessing_Logger')
 
-    pdb = os.path.basename(model_path).split(".")[0]
-    emdb_id = os.path.basename(raw_map_path).split(".")[0].split('_')[1]
+    # pdb = os.path.basename(model_path).split(".")[0]
+    # emdb_id = os.path.basename(raw_map_path).split(".")[0].split('_')[1]
     #save_path = os.path.dirname(raw_map_path)
 
-    logger.info(f'Preprocessing Map: FITTED_PDB: {pdb} EMDB_ID: EMD-{emdb_id}')
-
+    # logger.info(f'Preprocessing Map: FITTED_PDB: {pdb} EMDB_ID: EMD-{emdb_id}')
+# 
     # TBD20240925: check if the origin is [0, 0, 0] first - if is not then just skip all of the rest steps and remove the entry in the csv
-    with mrcfile.mmap(raw_map_path) as mrc:
+    with mrcfile.open(raw_map_path) as mrc:
+    # with mrcfile.mmap(raw_map_path) as mrc:
         if mrc.header.nzstart != 0 or mrc.header.nystart != 0 or mrc.header.nxstart != 0:
             raise ValueError('The start of axis is not zero.')
 
     # if the origin is [0, 0, 0], then the following steps
     # Load the map
-    try:
-        logger.info('  Normalizing Map')
-        map_F = map_normalizing(raw_map_path, recl)
-        
-        if give_map:
-            map_path = f"{raw_map_path.split('.map')[0]}_normalized.mrc"
-            map_output(raw_map_path, cp.asnumpy(map_F), map_path, is_model=False)
-            logger.info(f'  Normalized Map Saved as "{map_path}"')
-    except FileNotFoundError as e:
-        logger.warning(f'  Error Loading Map: {e}')
-        logger.warning('  !!! Preprocessing Failed !!!')
-        logger.info('')
-        return (0, 0)
-    except ValueError as e:
-        logger.warning(f'  Error Normalizing Map: {e}')
-        logger.warning('  !!! Preprocessing Failed !!!')
-        logger.info('')
-        return (0, 0)
-    else:
-        logger.info('  Successfully Normalized Map')
-        map_boundary = np.shape(map_F)
+    # try:
+    #     logger.info('  Normalizing Map')
+    map_F = map_normalizing(raw_map_path, recl)
+    # print(map_F)
+    
+    # if give_map:
+    map_path = f"{raw_map_path.split('.map')[0]}_normalized.mrc"
+    map_out = cp.asnumpy(map_F)
+    map_output(raw_map_path, map_out, map_path, is_model=False)
+        # logger.info(f'  Normalized Map Saved as "{map_path}"')
+    # except FileNotFoundError as e:
+    #     logger.warning(f'  Error Loading Map: {e}')
+    #     logger.warning('  !!! Preprocessing Failed !!!')
+    #     logger.info('')
+    #     return (0, 0)
+    # except ValueError as e:
+    #     logger.warning(f'  Error Normalizing Map: {e}')
+    #     logger.warning('  !!! Preprocessing Failed !!!')
+    #     logger.info('')
+    #     return (0, 0)
+    # else:
+    #     logger.info('  Successfully Normalized Map')
+    #     map_boundary = np.shape(map_F)
 
     # try:
     #     protein_tag = map_from_cif(model_path, map_boundary, protein_tag_dist)
@@ -407,7 +412,7 @@ def preprocess_one_map(recl: float, raw_map_path: str, model_path: str, give_map
     #         mrc.set_data(map_F.astype(np.int8))
     #     logger.info(f'  Binary Map of {emdb_id} Saved as "BINARY_{emdb_id}.mrc"\n')
 
-    logger.info('')
+    # logger.info('')
 
     # return vof, dice
 
@@ -502,13 +507,23 @@ def map_normalizing(raw_map_path, recl=0.0):
         recl = 0.0
     with mrcfile.mmap(raw_map_path, 'r+') as mrc:
         # Load map data
-        map_data = cp.array(mrc.data, dtype=np.float32)
-        map_origin = np.array([mrc.header.nxstart, mrc.header.nystart, mrc.header.nzstart], dtype=np.int8)
+        mapp_data = cp.array(mrc.data, dtype=np.float32)
+        # map_origin = np.array([mrc.header.nxstart, mrc.header.nystart, mrc.header.nzstart], dtype=np.int8)
         map_orientation = np.array([mrc.header.mapc, mrc.header.mapr, mrc.header.maps], dtype=np.float32)
 
+        # map_output(raw_map_path, cp.asnumpy(mapp_data), output_map=f'{raw_map_path}_1.mrc', is_model=False)
+
         # Resample map to 1.0A*1.0A*1.0A grid size
+        # zoom_factors = [1.06, 1.06, 1.06]
         zoom_factors = [mrc.voxel_size.z, mrc.voxel_size.y, mrc.voxel_size.x]
-        map_data = zoom(map_data, zoom_factors)
+
+        # print(zoom_factors)
+        map_data = zoom(mapp_data, zoom_factors)
+        # Check the data after zoom
+        if not cp.all(cp.isfinite(map_data)):
+            raise ValueError("Map data contains non-finite values after zoom.")
+        # map_output(raw_map_path, cp.asnumpy(map_data), output_map=f'{raw_map_path}_2.mrc', is_model=False)
+
 
         # remove noisy values that are too small
         count_good = np.sum(map_data > max(0, recl))
@@ -526,6 +541,9 @@ def map_normalizing(raw_map_path, recl=0.0):
             bottom_value_percentile = (1-(count_good*0.7)/count_total)*100
             value_bottom = np.percentile(map_data, bottom_value_percentile)
         map_data -= max(value_bottom, 0)
+
+        # map_output(raw_map_path, cp.asnumpy(map_data), output_map=f'{raw_map_path}_3.mrc', is_model=False)
+
 
 
        # # Normalize map values to the range (0.0, 1.0)
@@ -548,6 +566,8 @@ def map_normalizing(raw_map_path, recl=0.0):
         map_data = cp.transpose(map_data, map_orientation)
 
 
+        # map_output(raw_map_path, cp.asnumpy(map_data), output_map=f'{raw_map_path}_4.mrc', is_model=False)
+
 
     return map_data
     
@@ -558,7 +578,7 @@ def map_output(input_map, map_data, output_map, is_model=False):
         os.remove(output_map)
 
     shutil.copyfile(input_map, output_map)
-    with mrcfile.mmap(output_map, mode='r+') as mrc:
+    with mrcfile.open(output_map, mode='r+') as mrc:
         if is_model:
             map_data = map_data.astype(np.int8)
         else:
@@ -621,12 +641,13 @@ if __name__ == '__main__':
 
     # matadata_path = 'CryoDataBot_Data/Metadata/ribosome_res_1-4_001/ribosome_res_1-4_001_Final.csv'
 
-    csv_path = 'final_test_dataTEST.csv' # 'CryoDataBot_Data/Metadata/ribosome_res_3-4_2nd_dataset/ribosome_res_3-4_2nd_dataset_Final_goodvof-test.csv'
+    csv_path = 'final_test_data.csv' # 'CryoDataBot_Data/Metadata/ribosome_res_3-4_2nd_dataset/ribosome_res_3-4_2nd_dataset_Final_goodvof-test.csv'
     raw_path = 'raw_data' # 'CryoDataBot_Data/Raw'
     temp_path = 'Temp' # 'CryoDataBot_Data/Temp'
     sample_path = 'test_data_set' # 'CryoDataBot_Data/CryoREAD_training_with_CryDataBot_dataset'
     # sample_path = 'CryoDataBot_Data/CryoREAD_training_with_CryDataBot_dataset-test'
 
+    # HOME_PATH = '/mnt/d/Database/CryoDataBot_for_cryoREAD/'
     HOME_PATH = '/mnt/e/OneDrive/UCLA_Science/CryoDataBot/CryoREAD_training_with_CryDataBot_dataset/test_data' # '/home/qiboxu/Database'
     csv_path = os.path.join(HOME_PATH, csv_path)
     raw_path = os.path.join(HOME_PATH, raw_path)
