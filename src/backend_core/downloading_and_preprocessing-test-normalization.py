@@ -70,12 +70,12 @@ def downloading_and_preprocessing(metadata_path,
     read_csv_info_with_recl = csv_col_reader('recommended_contour_level')(read_csv_info)
     csv_info, path_info = read_csv_info_with_recl(metadata_path, raw_dir)
 
-    # # Step2: download maps and models using multithreasing
-    logger.info(calculate_title_padding('Downloading Map & PDB Files'))
-    logger.info(f'MetaData Path: "{os.path.abspath(metadata_path)}"')
-    fetch_map_model(csv_info, path_info, overwrite)
-    logger.info(calculate_title_padding('Downloading Completed'))
-    logger.info('')
+    # # # Step2: download maps and models using multithreasing
+    # logger.info(calculate_title_padding('Downloading Map & PDB Files'))
+    # logger.info(f'MetaData Path: "{os.path.abspath(metadata_path)}"')
+    # fetch_map_model(csv_info, path_info, overwrite)
+    # logger.info(calculate_title_padding('Downloading Completed'))
+    # logger.info('')
 
     # Step3: preprocess maps using multithreasing (Resample and normalize map files)
     logger.info(calculate_title_padding('Preprocessing Maps'))
@@ -230,60 +230,62 @@ def preprocess_maps(csv_info,
     failed: list[str] = []
     with logging_redirect_tqdm([logger]):
         for raw_map_path, model_path, recl in tqdm(zip(raw_map_paths, model_paths, recls), total=len(raw_map_paths), desc='Preprocessing Maps'):
-            try:
-                vof, dice = preprocess_one_map(recl, raw_map_path, model_path, give_map, protein_tag_dist, map_threashold)
-                results.append(('EMD-'+os.path.basename(raw_map_path).split(".")[0].split('_')[1], vof, dice))
-            except ValueError as e:
-                logger.warning(f'  Error Preprocessing Map: {e}')
-                logger.warning('  !!! Preprocessing Failed !!!')
-                logger.info('')
-                failed.append('EMD-'+os.path.basename(raw_map_path).split(".")[0].split('_')[1])
-            except FileNotFoundError as e:
-                logger.warning(f'  Error Preprocessing Map: {e}')
-                logger.warning('  !!! Preprocessing Failed !!!')
-                logger.info('')
-                failed.append('EMD-'+os.path.basename(raw_map_path).split(".")[0].split('_')[1])
-            except Exception as e:
-                logger.warning(f'  Error Preprocessing Map: {e}')
-                logger.warning('  !!! Preprocessing Failed !!!')
-                logger.info('')
-                failed.append('EMD-'+os.path.basename(raw_map_path).split(".")[0].split('_')[1])
+            preprocess_one_map(recl, raw_map_path, model_path, give_map, protein_tag_dist, map_threashold)
 
-    # read metadata file
-    metadata_df = pd.read_csv(metadata_path)
+            # try:
+                # vof, dice = preprocess_one_map(recl, raw_map_path, model_path, give_map, protein_tag_dist, map_threashold)
+                # results.append(('EMD-'+os.path.basename(raw_map_path).split(".")[0].split('_')[1], vof, dice))
+            # except ValueError as e:
+            #     logger.warning(f'  Error Preprocessing Map: {e}')
+            #     logger.warning('  !!! Preprocessing Failed !!!')
+            #     logger.info('')
+            #     failed.append('EMD-'+os.path.basename(raw_map_path).split(".")[0].split('_')[1])
+            # except FileNotFoundError as e:
+            #     logger.warning(f'  Error Preprocessing Map: {e}')
+            #     logger.warning('  !!! Preprocessing Failed !!!')
+            #     logger.info('')
+            #     failed.append('EMD-'+os.path.basename(raw_map_path).split(".")[0].split('_')[1])
+            # except Exception as e:
+            #     logger.warning(f'  Error Preprocessing Map: {e}')
+            #     logger.warning('  !!! Preprocessing Failed !!!')
+            #     logger.info('')
+            #     failed.append('EMD-'+os.path.basename(raw_map_path).split(".")[0].split('_')[1])
 
-    # Print out failed maps
-    logger.info('')
-    if failed:
-        logger.info('Failed to Preprocess Maps:')
-        length = len(failed)
-        for idx in range(0, length, num:=10):
-            logger.info(f'  {", ".join(failed[idx:idx + num])}')
-    failed_df_path = os.path.join(os.path.dirname(metadata_path), 'Archive', 'preprocessing_failed.csv')
-    os.makedirs(os.path.dirname(failed_df_path), exist_ok=True)
-    failed_df = metadata_df[metadata_df['emdb_id'].isin(failed)]
-    failed_df.to_csv(failed_df_path, index=False)
-    print(f'Please Check Failed Entries at:\n"{os.path.abspath(failed_df_path)}"')
-    logger.info('')
+    # # read metadata file
+    # metadata_df = pd.read_csv(metadata_path)
 
-    # save VOF/Dice            
-    result_df = pd.DataFrame(results, columns=['emdb_id', 'vof', 'dice_coefficient'])
-    metadata_df = metadata_df.merge(result_df, on='emdb_id', how='left')
+    # # Print out failed maps
+    # logger.info('')
+    # if failed:
+    #     logger.info('Failed to Preprocess Maps:')
+    #     length = len(failed)
+    #     for idx in range(0, length, num:=10):
+    #         logger.info(f'  {", ".join(failed[idx:idx + num])}')
+    # failed_df_path = os.path.join(os.path.dirname(metadata_path), 'Archive', 'preprocessing_failed.csv')
+    # os.makedirs(os.path.dirname(failed_df_path), exist_ok=True)
+    # failed_df = metadata_df[metadata_df['emdb_id'].isin(failed)]
+    # failed_df.to_csv(failed_df_path, index=False)
+    # print(f'Please Check Failed Entries at:\n"{os.path.abspath(failed_df_path)}"')
+    # logger.info('')
 
-    # Remove failed entries from metadata file
-    metadata_df = metadata_df[~metadata_df['emdb_id'].isin(failed)]
+    # # save VOF/Dice            
+    # result_df = pd.DataFrame(results, columns=['emdb_id', 'vof', 'dice_coefficient'])
+    # metadata_df = metadata_df.merge(result_df, on='emdb_id', how='left')
 
-    # remove the entries with poor map_to_model fitness
-    kept_df, removed_df = map_model_filter(metadata_df, vof_threashold, dice_threashold)
+    # # Remove failed entries from metadata file
+    # metadata_df = metadata_df[~metadata_df['emdb_id'].isin(failed)]
 
-    # save filtered file
-    kept_df.to_csv(metadata_path, index=False)
-    poor_map_path = os.path.join(os.path.dirname(metadata_path), 'Archive', 'poor_map_model_fitness.csv')
-    removed_df.to_csv(poor_map_path, index=False)
-    logger.info(f'VOF/DICE Written & Failed Entries Removed')
-    logger.info(f'New Meatadata File Written at: "{os.path.abspath(metadata_path)}"')
-    logger.info(f'Poor Map Model Fitness File Written at: "{os.path.abspath(poor_map_path)}"')
-    logger.info(f'Total Number of Poor Maps: {len(removed_df)}')
+    # # remove the entries with poor map_to_model fitness
+    # kept_df, removed_df = map_model_filter(metadata_df, vof_threashold, dice_threashold)
+
+    # # save filtered file
+    # kept_df.to_csv(metadata_path, index=False)
+    # poor_map_path = os.path.join(os.path.dirname(metadata_path), 'Archive', 'poor_map_model_fitness.csv')
+    # removed_df.to_csv(poor_map_path, index=False)
+    # logger.info(f'VOF/DICE Written & Failed Entries Removed')
+    # logger.info(f'New Meatadata File Written at: "{os.path.abspath(metadata_path)}"')
+    # logger.info(f'Poor Map Model Fitness File Written at: "{os.path.abspath(poor_map_path)}"')
+    # logger.info(f'Total Number of Poor Maps: {len(removed_df)}')
 
 
 # Step3.1: preprocess the map of one entry
@@ -366,33 +368,33 @@ def preprocess_one_map(recl: float, raw_map_path: str, model_path: str, give_map
         logger.info('  Successfully Normalized Map')
         map_boundary = np.shape(map_F)
 
-    try:
-        protein_tag = map_from_cif(model_path, map_boundary, protein_tag_dist)
-    except Exception as e:
-        logger.warning(f'  Error Reading CIF File: {e}')
-        logger.warning('  !!! Preprocessing Failed !!!')
-        logger.info('')
-        return (0, 0)   
+    # try:
+    #     protein_tag = map_from_cif(model_path, map_boundary, protein_tag_dist)
+    # except Exception as e:
+    #     logger.warning(f'  Error Reading CIF File: {e}')
+    #     logger.warning('  !!! Preprocessing Failed !!!')
+    #     logger.info('')
+    #     return (0, 0)   
 
-    try:
+    # try:
         
 
-        # Apply the map threshold
-        map_F = cp.where(map_F > 0.15, 1, 0)
-        protein_tag = cp.array(protein_tag)
-        vof, dice = planes_map(map_F, protein_tag)
+    #     # Apply the map threshold
+    #     map_F = cp.where(map_F > 0.15, 1, 0)
+    #     protein_tag = cp.array(protein_tag)
+    #     vof, dice = planes_map(map_F, protein_tag)
         
-        map_path = f"{model_path.split('.cif')[0]}_simulated.mrc"
-        map_output(raw_map_path, cp.asnumpy(protein_tag), map_path, is_model=True)
+    #     map_path = f"{model_path.split('.cif')[0]}_simulated.mrc"
+    #     map_output(raw_map_path, cp.asnumpy(protein_tag), map_path, is_model=True)
             
-    except Exception as e:
-            logger.warning(f'  Error Calculating Map to Model Fitness: {e}')
-            logger.warning('  !!! Preprocessing Failed !!!')
-            logger.info('')
-            return (0, 0)
-    else:
-        logger.info('  Map_to_Model Calculation Completed:')
-        logger.info(f'  Volume Overlap Fraction (VOF): {(vof*100):.4f}%, Dice Coefficient: {(dice*100):.4f}%')
+    # except Exception as e:
+    #         logger.warning(f'  Error Calculating Map to Model Fitness: {e}')
+    #         logger.warning('  !!! Preprocessing Failed !!!')
+    #         logger.info('')
+    #         return (0, 0)
+    # else:
+    #     logger.info('  Map_to_Model Calculation Completed:')
+    #     logger.info(f'  Volume Overlap Fraction (VOF): {(vof*100):.4f}%, Dice Coefficient: {(dice*100):.4f}%')
 
     # # test
     # if give_map:
@@ -407,7 +409,7 @@ def preprocess_one_map(recl: float, raw_map_path: str, model_path: str, give_map
 
     logger.info('')
 
-    return vof, dice
+    # return vof, dice
 
 
 def planes_map(map_F, protein_tag):
@@ -495,6 +497,7 @@ def map_normalizing(raw_map_path, recl=0.0):
        - Raises a ValueError if the 99.9th percentile is zero.
     5. Checks if the start of the axis is zero and raises a ValueError if not.
     """
+    print(raw_map_path, recl)
     if recl == '':
         recl = 0.0
     with mrcfile.mmap(raw_map_path, 'r+') as mrc:
@@ -524,15 +527,27 @@ def map_normalizing(raw_map_path, recl=0.0):
             value_bottom = np.percentile(map_data, bottom_value_percentile)
         map_data -= max(value_bottom, 0)
 
+
+       # # Normalize map values to the range (0.0, 1.0)
+        # data_99_9 = np.percentile(map_data, 99.9)
+        # if data_99_9 == 0.:
+        #     raise ValueError('Empty map (99.9th percentile of map data is zero)')
+        # map_data /= data_99_9
+        # map_data = np.clip(map_data, 0., 1.)
+
         # Normalize map values to the range (0.0, 1.0)
-        data_99_9 = np.percentile(map_data, 99.9)
-        if data_99_9 == 0.:
+        positive_data = map_data
+        positive_data = positive_data[positive_data >= 0]
+        positive_data_99 = cp.percentile(positive_data, 99)
+        if positive_data_99 == 0.:
             raise ValueError('Empty map (99.9th percentile of map data is zero)')
-        map_data /= data_99_9
-        map_data = np.clip(map_data, 0., 1.)
+        map_data = map_data / positive_data_99
+        map_data = cp.clip(map_data, 0., 1.)
 
         map_orientation = np.array([mrc.header.mapc-1, mrc.header.mapr-1, mrc.header.maps-1], dtype=np.int32)
         map_data = cp.transpose(map_data, map_orientation)
+
+
 
     return map_data
     
@@ -601,13 +616,26 @@ if __name__ == '__main__':
     give_map = True # downloading_and_preprocessing_config.getboolean('user_settings', 'give_map')
     protein_tag_dist = 1 # downloading_and_preprocessing_config.getint('user_settings', 'protein_tag_dist')
     map_threashold = 0.15 # downloading_and_preprocessing_config.getfloat('user_settings', 'map_threashold')
-    vof_threashold = 1 # downloading_and_preprocessing_config.getfloat('user_settings', 'vof_threashold')
-    dice_threashold = 1 # downloading_and_preprocessing_config.getfloat('user_settings', 'dice_threashold')
+    vof_threashold = 0 # downloading_and_preprocessing_config.getfloat('user_settings', 'vof_threashold')
+    dice_threashold = 0 # downloading_and_preprocessing_config.getfloat('user_settings', 'dice_threashold')
 
     # matadata_path = 'CryoDataBot_Data/Metadata/ribosome_res_1-4_001/ribosome_res_1-4_001_Final.csv'
-    matadata_path = '/home/qiboxu/Database/CryoDataBot_Data/Metadata/ribosome_res_3-4_1st_dataset/more-test.csv'
 
-    raw_dir = '/home/qiboxu/Database/CryoDataBot_Data/Raw'
+    csv_path = 'final_test_dataTEST.csv' # 'CryoDataBot_Data/Metadata/ribosome_res_3-4_2nd_dataset/ribosome_res_3-4_2nd_dataset_Final_goodvof-test.csv'
+    raw_path = 'raw_data' # 'CryoDataBot_Data/Raw'
+    temp_path = 'Temp' # 'CryoDataBot_Data/Temp'
+    sample_path = 'test_data_set' # 'CryoDataBot_Data/CryoREAD_training_with_CryDataBot_dataset'
+    # sample_path = 'CryoDataBot_Data/CryoREAD_training_with_CryDataBot_dataset-test'
+
+    HOME_PATH = '/mnt/e/OneDrive/UCLA_Science/CryoDataBot/CryoREAD_training_with_CryDataBot_dataset/test_data' # '/home/qiboxu/Database'
+    csv_path = os.path.join(HOME_PATH, csv_path)
+    raw_path = os.path.join(HOME_PATH, raw_path)
+    temp_path = os.path.join(HOME_PATH, temp_path)
+    sample_path = os.path.join(HOME_PATH, sample_path)
+
+    matadata_path = csv_path # '/home/qiboxu/Database/CryoDataBot_Data/Metadata/ribosome_res_3-4_1st_dataset/more-test.csv'
+
+    raw_dir = raw_path #'/home/qiboxu/Database/CryoDataBot_Data/Raw'
     downloading_and_preprocessing(matadata_path, 
                                   raw_dir, 
                                   overwrite,
