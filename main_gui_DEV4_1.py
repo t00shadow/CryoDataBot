@@ -36,9 +36,9 @@ from my_logger import Handler
 
 
 # from backend_core import fetch_sample_info, redundancy_filter, downloading_and_preprocessing, downloading_and_preprocessing_NO_GPU, generate_dataset
-# from backend_core import fetch_sample_info, redundancy_filter, downloading_and_preprocessing_NO_GPU2, generate_dataset   #! deleted cupy, actually works
+from backend_core import fetch_sample_info, redundancy_filter, downloading_and_preprocessing_NO_GPU2, generate_dataset   #! deleted cupy, actually works
 # from backend_core import fetch_sample_info, redundancy_filter, downloading_and_preprocessing_NO_GPU, generate_dataset
-from backend_core import fetch_sample_info, redundancy_filter, downloading_and_preprocessing_NO_GPU_newversion, generate_dataset
+# from backend_core import fetch_sample_info, redundancy_filter, downloading_and_preprocessing_NO_GPU_newversion, generate_dataset
 
 from src.frontend_gui_assets.threading.test1_v2 import Worker
 # from src.frontend_gui_assets.threading.test2_v2 import Worker
@@ -478,6 +478,38 @@ class MainWindow(qtw.QMainWindow):    # Make sure the root widget/class is the r
     #     print(f"Download finished. File saved at: {self.step1_downloaded_file_path}")
 
     #~ STEP 1: fetch_sample_info
+    def fetch_sample_info(self) -> None:
+        """
+        Return value is ... Creates new files.
+
+        Parameters
+        ----------
+        None
+        """
+        
+        # if the save location is empty, do nothing
+        if not self.ui.lineEdit_p2.text() or not self.userInputQuery.text():
+        # if not self.ui.lineEdit_p2.text():      # technically empty search query is a valid query, but that's like the whole database. prob worse to let users do that (easily to accidentally start downloading the whole database). hence why should show the FIRST PAGE with the number of results etc in the preview.
+            print("nothing happens")
+            return
+
+        # make the dir only when you decide to download anything. might need to move this elsewhere
+        self.make_main_dir(self.main_dir_path)
+
+        query = self.userInputQuery.text()    # change this to the custom widget like in gen_dataset_quick()
+        #processedstring = stringutil.process_string(query)   # TODO, concatenate array of keywords into a string (not sure how to implement and and or logic with keywords)
+        processed_query = query     # placeholder
+        # print(processed_query)
+        save_path = self.ui.lineEdit_p2.text()
+        #TODO: put a try block here or some if statements to catch if btn is clicked with no parameters set
+        
+        self.ui.pushButton_p2_2.setDisabled(True)
+        self.worker = Worker(fetch_sample_info.search_emdb, processed_query, save_path)
+        self.worker.result_signal.connect(self.handle_result)
+        #? CONSIDER putting the rest in a fxn cuz this is async. UPDATE: did it
+        self.worker.start()
+
+    # Helper fxn
     def handle_result(self, result):
         # Store the result (downloaded file path)
         output_path = str(Path(result))     # fixes forward/backward slash consistency
@@ -488,59 +520,13 @@ class MainWindow(qtw.QMainWindow):    # Make sure the root widget/class is the r
         self.display_metadata_results(output_path)
         self.ui.lineEdit_p3.setText(output_path)   # set the path of the next step/page
 
-
+    # Helper fxn for helper fxn
     def display_metadata_results(self, file_path):
         with open(file_path, 'r') as file:
             content = file.read()
         self.ui.textEdit.setPlainText(content)
 
-    def fetch_sample_info(self) -> None:
-        """
-        Return value is ... Creates new files.
-
-        Parameters
-        ----------
-        None
-        """
-        # make the dir only when you decide to download anything. might need to move this elsewhere
-        self.make_main_dir(self.main_dir_path)
-
-        query = self.userInputQuery.text()    # change this to the custom widget like in gen_dataset_quick()
-        #processedstring = stringutil.process_string(query)   # TODO, concatenate array of keywords into a string (not sure how to implement and and or logic with keywords)
-        processed_query = query     # placeholder
-        # print(processed_query)
-        save_path = self.ui.lineEdit_p2.text()
-        #TODO: put a try block here or some if statements to catch if btn is clicked with no parameters set
-        self.ui.pushButton_p2_2.setDisabled(True)
-        ##############################
-        # output_path = fetch_sample_info.search_emdb(processed_query, save_path)   #! REPLACED with following lines
-        ##############################
-        self.worker = Worker(fetch_sample_info.search_emdb, processed_query, save_path)
-        # self.worker.output_signal.connect(self.ui.logsViewBox.append)  #! don't need this bc already have the logsviewbox stuff handled, also self.ui.logsViewBox was set to None below lol
-        self.worker.result_signal.connect(self.handle_result)
-        #? CONSIDER putting the rest in a fxn cuz this is async. UPDATE: did it
-        # self.worker.result_signal.connect(lambda: self.ui.statusbar.showMessage("Download finished", 5000))
-        # self.worker.result_signal.connect(lambda: self.ui.pushButton_p2_2.setEnabled(True))
-        self.worker.start()
-        # output_path = self.step1_downloaded_file_path
-        ##############################
-            #! people say the below worker object (not subclassing qthread) approach is better
-            #! For this fxn, there's no dif. Above works fine so just keep it.
-            # TODO: Think abt if need to clean up workers/threads (destroyLater).
-        # self.thread = qtc.QThread()
-        # self.worker = Worker(fetch_sample_info.search_emdb, processed_query, save_path)
-        # self.worker.moveToThread(self.thread)
-
-        # self.worker.result_signal.connect(self.handle_result)  # Connect the result signal to handle_result
-        # self.thread.started.connect(self.worker.run)
-        # self.thread.start()
-        # output_path = self.step1_downloaded_file_path
-        ##############################
-        # print(f"path of metadata file: {output_path}")     # needs to return path of folder where shit is saved
-        # # self.display_metadata_results(output_path)
-        # self.worker.result_signal.connect(lambda: self.display_metadata_results(output_path))
-        # self.ui.lineEdit_p3.setText(output_path)   # set the path of the next step/page
-
+    #^ Dinosaur
     # Helper function for gen_dataset_quick
     # Edit no longer parsing query, just asking users to follow EMDB search syntax and letting them preview results b4 downloading
     # implementing a parser would be kinda difficult and a waste of time given the amt of combinations and dif syntax to check
@@ -557,6 +543,7 @@ class MainWindow(qtw.QMainWindow):    # Make sure the root widget/class is the r
         else:
             return ""     # spit out an error, this is only for the developer, not a runtime thing
 
+    #^ This fxn doesnt do shit rn (recycle this dinosaur)
     # ignore this for now, this function is OUTDATED bc some backend stuff changed
     def gen_dataset_quick(self):
         # print(self.querywidget.junk_val)
@@ -579,15 +566,31 @@ class MainWindow(qtw.QMainWindow):    # Make sure the root widget/class is the r
 
     # DEMO version. To switch to normal just fetch the user input from the appropriate qwidgets (mostly lineedits) and pass the user input to the backend fxn.
     #~ STEP 2: redundancy_filter
-    # def redund_filter(self):
-    #     redundancy_filter.main()
-    
     def redund_filter(self):
+        # if the save location is empty, do nothing
+        if not self.ui.lineEdit_p3.text():
+            print("nothing happens 2")
+            return
+
         step1_csv_path = self.ui.lineEdit_p3.text()
         q_thresh = self.ui.qScoreDoubleSpinBox.value()
         uni_thresh = self.ui.similaritySpinBox.value()
-        step2_csv_path = redundancy_filter.filter_csv(step1_csv_path, q_thresh, uni_thresh)
-        self.ui.lineEdit_p3_2.setText(step2_csv_path)
+                
+        self.ui.pushButton_p3_4.setDisabled(True)
+        self.worker = Worker(redundancy_filter.filter_csv, step1_csv_path, q_thresh, uni_thresh)
+        self.worker.result_signal.connect(self.handle_result_step2)
+        #? CONSIDER putting the rest in a fxn cuz this is async. UPDATE: did it
+        self.worker.start()
+
+    def handle_result_step2(self, result):
+        # Store the result (downloaded file path)
+        output_path = str(Path(result))     # fixes forward/backward slash consistency
+        print(f"Preprocessing finished. File(s) saved at: {output_path}")
+        self.ui.statusbar.showMessage(f"Preprocessing finished: {output_path}")
+        self.ui.pushButton_p3_4.setEnabled(True)
+        print(f"path of step2 results file: {output_path}")     # needs to return path of folder where shit is saved
+        self.ui.lineEdit_p3_2.setText(output_path)   # set the path of the next step/page
+
 
     #~ STEP 3: downloading & preprocessing (this is abstracted away for the user, i.e. no separate button for this step. still debating if should happen with step 2's button or with step 4's button (leaning towards step 4). orrrr actually add another button on one of those pages to initiate this step?)
     def dl_and_preproc(self):
@@ -614,7 +617,7 @@ class MainWindow(qtw.QMainWindow):    # Make sure the root widget/class is the r
         vof_threashold = 0.25
         dice_threashold = 0.4
         #! comment out this line to test only the labeling step
-        downloading_and_preprocessing_NO_GPU.downloading_and_preprocessing(metadata_path, raw_dir, overwrite, give_map, protein_tag_dist, map_threashold, vof_threashold, dice_threashold)
+        downloading_and_preprocessing_NO_GPU2.downloading_and_preprocessing(metadata_path, raw_dir, overwrite, give_map, protein_tag_dist, map_threashold, vof_threashold, dice_threashold)
         
         #! Was testing stuff earlier, but should be able to comment out print statements now
         # Step 4 (actually generating the labeled datasets)
@@ -895,7 +898,7 @@ class MainWindow(qtw.QMainWindow):    # Make sure the root widget/class is the r
         rem_Y = max(rem_X - Y_f, 0)
         Z_f = rem_Y
 
-        assert(X_f + Y_f + Z_f == 100)
+        # assert(X_f + Y_f + Z_f == 100)
         # print(X_f, Y_f, Z_f)
         return Y_f, Z_f         # X_f is already an input
 

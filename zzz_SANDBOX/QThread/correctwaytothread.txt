@@ -1,0 +1,12 @@
+The correct way to thread in Qt is to prepare an object/worker (QObject) class with all your desired functionality in it. Then create a new QThread instance, push the QObject onto it using moveToThread(QThread*) of the QObject instance and call start() on the QThread instance. That's all. You set up the proper signal/slot connections to make it quit properly and such, and that's all.
+
+
+
+Do NOT subclass Qthread and implement your own run() function. This is wrong. A QThread should be used much like a a regular thread instance (^ follow above instructions)
+Also not that QThread is not actually a thread; it's a wrapper around a thread object.
+
+Sources:
+0. https://stackoverflow.com/a/14178944
+1 (main source). https://mayaposch.wordpress.com/2011/11/01/how-to-really-truly-use-qthreads-the-full-explanation/
+2. https://wiki.qt.io/QThreads_general_usage#:~:text=The%20main%20thing%20in%20this,your%20desired%20functionality%20in%20it.
+3. https://stackoverflow.com/questions/40284850/qthread-vs-stdthread

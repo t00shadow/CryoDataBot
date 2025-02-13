@@ -1,3 +1,6 @@
+# This approach is bad. Not recommended to subclass QThread and implement your own run funcion. 
+# Instead, use the worker object (subclass QObject) with moveToThread() approach.
+
 import sys
 import time
 from PyQt5.QtCore import QThread, pyqtSignal
