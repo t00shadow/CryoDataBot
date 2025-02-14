@@ -6,22 +6,23 @@ import urllib.request
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from configparser import ConfigParser
 
-import cupy as xp
+# import cupy as xp
 import gemmi
 import mrcfile
 import numpy as np
+xp = np
 import pandas as pd
-try:
-    if xp.cuda.runtime.getDeviceCount() > 0:
-        print("NVIDIA GPU detected. Using CuPy and cupyx.scipy.ndimage")
-        from cupyx.scipy.ndimage import binary_dilation, zoom
-    else:
-        raise RuntimeError("No GPU available.")
-except (ImportError, RuntimeError) as e:
-    # Fallback to NumPy if CuPy is unavailable or no GPU is detected
-    print("Falling back to NumPy and regular scipy.ndimage due to:", e)
-    xp = np
-    from scipy.ndimage import binary_dilation, zoom
+# try:
+#     if xp.cuda.runtime.getDeviceCount() > 0:
+#         print("NVIDIA GPU detected. Using CuPy and cupyx.scipy.ndimage")
+#         from cupyx.scipy.ndimage import binary_dilation, zoom
+#     else:
+#         raise RuntimeError("No GPU available.")
+# except (ImportError, RuntimeError) as e:
+#     # Fallback to NumPy if CuPy is unavailable or no GPU is detected
+#     print("Falling back to NumPy and regular scipy.ndimage due to:", e)
+#     xp = np
+from scipy.ndimage import binary_dilation, zoom
 from tqdm import tqdm
 from tqdm.contrib.logging import logging_redirect_tqdm
 

@@ -1,0 +1,11 @@
+gemmi
+mrcfile
+numpy
+pandas
+PyQt5
+Requests
+setuptools
+tqdm
+urllib3
+split-folders
+scipy
