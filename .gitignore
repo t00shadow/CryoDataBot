@@ -9,6 +9,7 @@ cryodatabot.egg-info/
 
 # vscode
 .vscode
+.idea
 
 # build files (for .exe)
 /build
