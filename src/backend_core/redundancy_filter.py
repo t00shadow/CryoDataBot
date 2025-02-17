@@ -11,6 +11,7 @@ from tqdm import tqdm
 import sys
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), os.pardir)))
 from backend_helpers.helper_funcs import calculate_title_padding
+from backend_helpers.file_utils import has_entries
 
 
 def filter_csv(input_csv, q_threshold: float = 0.0, uni_threshold: float = 1.0):
@@ -18,7 +19,7 @@ def filter_csv(input_csv, q_threshold: float = 0.0, uni_threshold: float = 1.0):
     :param file_path: path to .csv file
     :param uni_threshold: percentage uniprot similarity
     :param uni_threshold: q_score threshold
-    """
+    """    
     save_path = os.path.dirname(input_csv)
 
     # configure logger
@@ -31,6 +32,11 @@ def filter_csv(input_csv, q_threshold: float = 0.0, uni_threshold: float = 1.0):
     file_hdlr.setFormatter(logging.Formatter('%(asctime)s %(levelname)s: %(message)s', datefmt='%m/%d/%Y %I:%M:%S %p'))
     logger.addHandler(std_out_hdlr)
     logger.addHandler(file_hdlr)
+
+    # check if the input file has entries
+    if not has_entries(input_csv):
+        logger.info("Invalid metadata CSV: No data rows found.")
+        return
 
     logger.info(calculate_title_padding('Filtering EMDB Entries'))
     logger.info(f'Filtering Sample Information with Q_Score = {q_threshold} and Similarity_Threshold = {uni_threshold*100}%')

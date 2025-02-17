@@ -32,14 +32,9 @@ from frontend_gui_assets.GUI_custom_widgets.easyCloseDialog import EasyCloseDial
 from frontend_gui_assets.my_logger import Handler
 
 
-# import main_new_myversion
+from backend_core import fetch_sample_info, redundancy_filter, downloading_and_preprocessing_NO_GPU2, generate_dataset
 
-# from z_fetch_sample_info import search_emdb
-# from z_refine_sample_info_DEBUGGING import refine_csv
-
-from backend_core import fetch_sample_info, redundancy_filter, downloading_and_preprocessing, downloading_and_preprocessing_NO_GPU, generate_dataset
-
-
+from frontend_gui_assets.threading.test1_v2 import Worker
 
 
 class NoEditDelegate(qtw.QStyledItemDelegate):    # only import stuff i need (change this at end of development)
@@ -81,6 +76,7 @@ class MainWindow(qtw.QMainWindow):    # Make sure the root widget/class is the r
         self.main_dir_path = ""
         self.leftpanel_buttons = {}    # key, value = QPushButton, text().  Alternatively just use two lists
 
+        self.step1_downloaded_file_path = None     # needs to exist first. my variable names are SO ass
 
         # ======== SIGNALS AND SLOTS ========
         # TODO: CONSIDER organizing them by page? tho just added pages to the names so mb not
@@ -100,24 +96,18 @@ class MainWindow(qtw.QMainWindow):    # Make sure the root widget/class is the r
 
 
         ## buttons
-        # page 0
+        # Home (page 0)
         self.ui.main_save_path_btn.clicked.connect(lambda: self.browse_folder(page="home"))
-        # page 1
+        # Quickstart (page 1)
         # self.ui.pushButton_p1.clicked.connect(lambda: self.browse_folder(page="quick"))
         # self.ui.pushButton_p1_2.clicked.connect(lambda: self.ui.statusbar.showMessage("query (preview): " + self.parseQuery(page="quick")))    # intentionally didnt add time limit for this message so users can take their time to read it
         self.ui.pushButton_p1_3.clicked.connect(self.gen_dataset_quick)
-        # page 2
+        # Fetch Metadata (page 2)
         self.ui.pushButton_p2.clicked.connect(lambda: self.browse_folder(page="step1"))
         self.ui.pushButton_p2_2.clicked.connect(self.fetch_sample_info)
 
-        self.lockBtn = qtw.QPushButton()
-        self.lockBtn.setCursor(qtc.Qt.PointingHandCursor)
-        self.lockBtn.setIcon(qtg.QIcon(r"src/frontend_gui_assets/GUI_custom_widgets/svgs/lock-open-svgrepo-com.svg"))
-        # self.lockBtn.clicked.connect(lambda: self.lockBtn.setIcon(qtg.QIcon(r"src/frontend_gui_assets/GUI_custom_widgets/svgs/lock-open-svgrepo-com.svg")))
-        self.lockBtn.clicked.connect(self.lock_main_dir_selection)
-        self.ui.B1_csvFilepath.layout().insertWidget(0, self.lockBtn)
         self.ui.pushButton_p3_4.clicked.connect(self.redund_filter)
-        # page 3
+        # Download and Preprocess (page 3)
         self.ui.pushButton_p3.clicked.connect(lambda: self.browse_folder(page="step2"))
         self.ui.resetDefaultVal_btn.clicked.connect(lambda: self.ui.lineEdit_p3.setText(self.default_metadata_filepath))
         
@@ -135,7 +125,7 @@ class MainWindow(qtw.QMainWindow):    # Make sure the root widget/class is the r
         self.ui.clearQScore_btn.clicked.connect(lambda: self.ui.qScoreDoubleSpinBox.setValue(0))  # make these global vars above?, since may be used in 2 dif places
         self.ui.clearMMF_btn.clicked.connect(lambda: self.ui.mapModelFitnessSpinBox.setValue(0))
         self.ui.clearSim_btn.clicked.connect(lambda: self.ui.similaritySpinBox.setValue(100))
-        # page 4
+        # Generate Datasets (page 4)
         self.ui.pushButton_p4_2.clicked.connect(self.gen_ds)
 
 
@@ -262,6 +252,9 @@ class MainWindow(qtw.QMainWindow):    # Make sure the root widget/class is the r
         # self.ui.lineEdit_p1_2.findChild(qtw.QToolButton).setIcon(qtg.QIcon(r"src/frontend_gui_assets/GUI_custom_widgets/svgs/clear_small-svgrepo-com.svg"))
         self.ui.lineEdit_p3_2.findChild(qtw.QToolButton).setIcon(qtg.QIcon(r"src/frontend_gui_assets/GUI_custom_widgets/svgs/clear_small-svgrepo-com.svg"))
 
+        self.ui.qScoreDoubleSpinBox.setDecimals(3)   #figured this out my making a new form in qtdesigner with just 2 spinboxes (one w/ the default 2 decimal places and one changed to 3, then looked at Form > View python code)
+        self.ui.qScoreDoubleSpinBox.setSingleStep(0.001)
+        self.ui.similaritySpinBox.setValue(0)    # new default value, equivalent to changing it in qt designer
         self.ui.training_spinBox.setValue(80)
         self.ui.testing_spinBox.setValue(10)
         self.ui.validation_spinBox.setValue(10)
@@ -337,6 +330,9 @@ class MainWindow(qtw.QMainWindow):    # Make sure the root widget/class is the r
 
         # self.ui.statusbar.
 
+        # Set the default cursor for all buttons (faster than manually doing in designer)
+        self.set_cursor_for_buttons()
+
         self.setup_logger()
 
         # Your code ends here
@@ -348,6 +344,11 @@ class MainWindow(qtw.QMainWindow):    # Make sure the root widget/class is the r
     #& ===== Custom Functions ======================
 
     #? General functions
+    def set_cursor_for_buttons(self):
+        # Iterate through all children and set the cursor for buttons
+        for btn in self.findChildren(qtw.QPushButton):
+            btn.setCursor(qtc.Qt.PointingHandCursor)
+
     # TODO: consider switching to a popup menu. Have something like that already (the dialog box when deleting labels)
     def show_tooltip_on_click(self, message: str):
         button = self.sender()
@@ -411,37 +412,20 @@ class MainWindow(qtw.QMainWindow):    # Make sure the root widget/class is the r
         except Exception as error:
             print("An exception occurred:", error)    # TODO: switch to a logger statement
 
-    def lock_main_dir_selection(self):
-        if self.ui.lineEdit_p2.text() == "":
-            self.ui.statusbar.showMessage("select a folder", 1000)
-            return
-
-        if not self.main_dir_selection_locked:
-            self.lockBtn.setIcon(qtg.QIcon(r"src/frontend_gui_assets/GUI_custom_widgets/svgs/lock-closed-svgrepo-com.svg"))
-            self.ui.lineEdit_p2.setStyleSheet("background-color: white")
-            self.ui.pushButton_p2.setDisabled(True)
-            self.main_dir_selection_locked = True
-        else:
-            self.lockBtn.setIcon(qtg.QIcon(r"src/frontend_gui_assets/GUI_custom_widgets/svgs/lock-open-svgrepo-com.svg"))
-            self.ui.lineEdit_p2.setStyleSheet("background-color: white; color: black")
-            self.ui.pushButton_p2.setDisabled(False)
-            self.main_dir_selection_locked = False
-
         # this code looks kinda gross
-    def browse_folder(self, page="quick"):
+    def browse_folder(self, page="home"):
         filepath = qtw.QFileDialog.getExistingDirectory(self, 'Select Folder')
         print("selected path:", filepath)
         self.ui.statusbar.showMessage(f"selected folder: {filepath}", 2000)    # if use textChanged instead of textEdited signal in lineEdit_22 to statusbar connection, can remove this line, since textChanged is emitted the text is change by users OR programmatically (textEdited is only emited when text is changed by users)
+        self.main_dir_path = filepath       # this is just to store this value so make_main_dir() can access it later
+        #? should adopt a more modular approach to mapping fxns to modules. create a dictionary of mappings are the start of the program? Or adopt the MVC design pattern
         if page == "home":
-            self.main_dir_path = os.path.join(filepath, "CryoDataBot")
-            self.ui.main_save_path_lineedit.setText(self.main_dir_path.replace("\\", "/"))
+            self.ui.main_save_path_lineedit.setText(self.main_dir_path)
         elif page == "quick":
-            self.ui.lineEdit_p1.setText(filepath)
+            self.ui.lineEdit_p1.setText(filepath)   # seems the name of this widget changed or was deleted
         elif page == "step1" and not self.main_dir_selection_locked:
-            self.main_dir_path = os.path.join(filepath, "CryoDataBot")
-            self.ui.lineEdit_p2.setText(self.main_dir_path.replace("\\", "/"))    # doesnt modify self.main_dir_path btw
+            self.ui.lineEdit_p2.setText(self.main_dir_path)    # doesnt modify self.main_dir_path btw
             # self.make_main_dir(main_dir_path)
-            self.lock_main_dir_selection()
         elif page == "step2":
             self.ui.lineEdit_p3.setText(filepath)
 
@@ -457,6 +441,15 @@ class MainWindow(qtw.QMainWindow):    # Make sure the root widget/class is the r
     #     self.ui.statusBar.showMessage(string)
 
 
+
+    #! rewrite for better usuability, pass in self.step1_downloaded_file_path as a parameter
+    #& so like def handle_result(self, result, storage_var)
+    #~ general helper fxn
+    # def handle_result(self, result):
+    #     # Store the result (downloaded file path)
+    #     self.step1_downloaded_file_path = result
+    #     print(f"Download finished. File saved at: {self.step1_downloaded_file_path}")
+
     #~ STEP 1: fetch_sample_info
     def fetch_sample_info(self) -> None:
         """
@@ -466,6 +459,13 @@ class MainWindow(qtw.QMainWindow):    # Make sure the root widget/class is the r
         ----------
         None
         """
+        
+        # if the save location is empty, do nothing
+        if not self.ui.lineEdit_p2.text() or not self.userInputQuery.text():
+        # if not self.ui.lineEdit_p2.text():      # technically empty search query is a valid query, but that's like the whole database. prob worse to let users do that (easily to accidentally start downloading the whole database). hence why should show the FIRST PAGE with the number of results etc in the preview.
+            print("nothing happens")
+            return
+
         # make the dir only when you decide to download anything. might need to move this elsewhere
         self.make_main_dir(self.main_dir_path)
 
@@ -475,10 +475,30 @@ class MainWindow(qtw.QMainWindow):    # Make sure the root widget/class is the r
         # print(processed_query)
         save_path = self.ui.lineEdit_p2.text()
         #TODO: put a try block here or some if statements to catch if btn is clicked with no parameters set
-        output_path = fetch_sample_info.search_emdb(processed_query, save_path)
-        print(f"path of metadata file: {output_path}")     # needs to return path of folder where shit is saved
-        self.ui.lineEdit_p3.setText(output_path)
+        
+        self.ui.pushButton_p2_2.setDisabled(True)
+        self.worker = Worker(fetch_sample_info.search_emdb, processed_query, save_path)
+        self.worker.result_signal.connect(self.handle_result)
+        #? CONSIDER putting the rest in a fxn cuz this is async. UPDATE: did it
+        self.worker.start()
 
+    # Helper fxn
+    def handle_result(self, result):
+        output_path = str(Path(result))     # fixes forward/backward slash consistency
+        print(f"Download finished. File saved at: {output_path}")
+        self.ui.statusbar.showMessage(f"Download finished: {output_path}")
+        self.ui.pushButton_p2_2.setEnabled(True)
+        print(f"path of metadata file: {output_path}")     # needs to return path of folder where shit is saved
+        self.display_metadata_results(output_path)
+        self.ui.lineEdit_p3.setText(output_path)   # set the path of the next step/page
+
+    # Helper fxn for helper fxn
+    def display_metadata_results(self, file_path):
+        with open(file_path, 'r') as file:
+            content = file.read()
+        self.ui.textEdit.setPlainText(content)
+
+    #^ Dinosaur
     # Helper function for gen_dataset_quick
     # Edit no longer parsing query, just asking users to follow EMDB search syntax and letting them preview results b4 downloading
     # implementing a parser would be kinda difficult and a waste of time given the amt of combinations and dif syntax to check
@@ -495,6 +515,7 @@ class MainWindow(qtw.QMainWindow):    # Make sure the root widget/class is the r
         else:
             return ""     # spit out an error, this is only for the developer, not a runtime thing
 
+    #^ This fxn doesnt do shit rn (recycle this dinosaur)
     # ignore this for now, this function is OUTDATED bc some backend stuff changed
     def gen_dataset_quick(self):
         # print(self.querywidget.junk_val)
@@ -517,15 +538,31 @@ class MainWindow(qtw.QMainWindow):    # Make sure the root widget/class is the r
 
     # DEMO version. To switch to normal just fetch the user input from the appropriate qwidgets (mostly lineedits) and pass the user input to the backend fxn.
     #~ STEP 2: redundancy_filter
-    # def redund_filter(self):
-    #     redundancy_filter.main()
-    
     def redund_filter(self):
+        # if the save location is empty, do nothing
+        if not self.ui.lineEdit_p3.text():
+            print("nothing happens 2")
+            return
+
         step1_csv_path = self.ui.lineEdit_p3.text()
         q_thresh = self.ui.qScoreDoubleSpinBox.value()
         uni_thresh = self.ui.similaritySpinBox.value()
-        step2_csv_path = redundancy_filter.filter_csv(step1_csv_path, q_thresh, uni_thresh)
-        self.ui.lineEdit_p3_2.setText(step2_csv_path)
+                
+        self.ui.pushButton_p3_4.setDisabled(True)
+        self.worker = Worker(redundancy_filter.filter_csv, step1_csv_path, q_thresh, uni_thresh)
+        self.worker.result_signal.connect(self.handle_result_step2)
+        #? CONSIDER putting the rest in a fxn cuz this is async. UPDATE: did it
+        self.worker.start()
+
+    def handle_result_step2(self, result):
+        # Finish redundancy_filter
+        output_path = str(Path(result))     # fixes forward/backward slash consistency
+        print(f"Preprocessing finished. File(s) saved at: {output_path}")
+        self.ui.statusbar.showMessage(f"Preprocessing finished: {output_path}")
+        self.ui.pushButton_p3_4.setEnabled(True)
+        print(f"path of step2 results file: {output_path}")     # needs to return path of folder where shit is saved
+        self.ui.lineEdit_p3_2.setText(output_path)   # set the path of the next step/page
+
 
     #~ STEP 3: downloading & preprocessing (this is abstracted away for the user, i.e. no separate button for this step. still debating if should happen with step 2's button or with step 4's button (leaning towards step 4). orrrr actually add another button on one of those pages to initiate this step?)
     def dl_and_preproc(self):
@@ -552,7 +589,7 @@ class MainWindow(qtw.QMainWindow):    # Make sure the root widget/class is the r
         vof_threashold = 0.25
         dice_threashold = 0.4
         #! comment out this line to test only the labeling step
-        downloading_and_preprocessing_NO_GPU.downloading_and_preprocessing(metadata_path, raw_dir, overwrite, give_map, protein_tag_dist, map_threashold, vof_threashold, dice_threashold)
+        downloading_and_preprocessing_NO_GPU2.downloading_and_preprocessing(metadata_path, raw_dir, overwrite, give_map, protein_tag_dist, map_threashold, vof_threashold, dice_threashold)
         
         #! Was testing stuff earlier, but should be able to comment out print statements now
         # Step 4 (actually generating the labeled datasets)
@@ -833,7 +870,7 @@ class MainWindow(qtw.QMainWindow):    # Make sure the root widget/class is the r
         rem_Y = max(rem_X - Y_f, 0)
         Z_f = rem_Y
 
-        assert(X_f + Y_f + Z_f == 100)
+        # assert(X_f + Y_f + Z_f == 100)
         # print(X_f, Y_f, Z_f)
         return Y_f, Z_f         # X_f is already an input
 
@@ -928,7 +965,7 @@ class MainWindow(qtw.QMainWindow):    # Make sure the root widget/class is the r
 
 
 
-
+    #! move this to the top for better readability
     def setup_logger(self):
         handler = Handler(self)
         log_text_box = qtw.QPlainTextEdit(self)

@@ -1,11 +1,30 @@
 /test.py
-**/__pycache__/
+/__pycache__
 .venv/
-.idea/
 cryodatabot.egg-info/
 # /EVALUATION
 
-# /CSV
-# *.csv
-# *.log
-# *.xml
+# pycache
+*.pyc
+
+# vscode
+.vscode
+.idea
+
+# build files (for .exe)
+/build
+/dist
+*.spec
+
+# files generated from running the code
+/CSV
+*.csv
+*.log
+/CryoDataBot_Data
+/JUNKSTUFF
+
+# misc testing stuff
+/JUNK_TEST_FOLDER
+/TEST_FILES_noncode
+/zzzzz_TEST
+JUNK_DONT_COMMIT.py
