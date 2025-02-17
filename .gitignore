@@ -7,6 +7,9 @@ cryodatabot.egg-info/
 # pycache
 *.pyc
 
+# vscode
+.vscode
+
 # build files (for .exe)
 /build
 /dist

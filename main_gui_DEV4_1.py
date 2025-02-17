@@ -38,7 +38,7 @@ from my_logger import Handler
 # from backend_core import fetch_sample_info, redundancy_filter, downloading_and_preprocessing, downloading_and_preprocessing_NO_GPU, generate_dataset
 from backend_core import fetch_sample_info, redundancy_filter, downloading_and_preprocessing_NO_GPU2, generate_dataset   #! deleted cupy, actually works
 # from backend_core import fetch_sample_info, redundancy_filter, downloading_and_preprocessing_NO_GPU, generate_dataset
-# from backend_core import fetch_sample_info, redundancy_filter, downloading_and_preprocessing_NO_GPU_newversion, generate_dataset
+# from backend_core import fetch_sample_info, redundancy_filter, downloading_and_preprocessing_NO_GPU_newversion, generate_dataset    #ignore the naming scheme between ..._newversion and ...2
 
 from src.frontend_gui_assets.threading.test1_v2 import Worker
 # from src.frontend_gui_assets.threading.test2_v2 import Worker
@@ -113,12 +113,6 @@ class MainWindow(qtw.QMainWindow):    # Make sure the root widget/class is the r
         self.ui.pushButton_p2.clicked.connect(lambda: self.browse_folder(page="step1"))
         self.ui.pushButton_p2_2.clicked.connect(self.fetch_sample_info)
 
-        self.lockBtn = qtw.QPushButton()
-        self.lockBtn.setCursor(qtc.Qt.PointingHandCursor)
-        self.lockBtn.setIcon(qtg.QIcon(r"GUI_custom_widgets/svgs/lock-open-svgrepo-com.svg"))
-        # self.lockBtn.clicked.connect(lambda: self.lockBtn.setIcon(qtg.QIcon(r"GUI_custom_widgets/svgs/lock-open-svgrepo-com.svg")))
-        self.lockBtn.clicked.connect(self.lock_main_dir_selection)
-        self.ui.B1_csvFilepath.layout().insertWidget(0, self.lockBtn)
         self.ui.pushButton_p3_4.clicked.connect(self.redund_filter)
         # Download and Preprocess (page 3)
         self.ui.pushButton_p3.clicked.connect(lambda: self.browse_folder(page="step2"))
@@ -265,6 +259,9 @@ class MainWindow(qtw.QMainWindow):    # Make sure the root widget/class is the r
         # self.ui.lineEdit_p1_2.findChild(qtw.QToolButton).setIcon(qtg.QIcon(r"GUI_custom_widgets/svgs/clear_small-svgrepo-com.svg"))
         self.ui.lineEdit_p3_2.findChild(qtw.QToolButton).setIcon(qtg.QIcon(r"GUI_custom_widgets/svgs/clear_small-svgrepo-com.svg"))
 
+        self.ui.qScoreDoubleSpinBox.setDecimals(3)   #figured this out my making a new form in qtdesigner with just 2 spinboxes (one w/ the default 2 decimal places and one changed to 3, then looked at Form > View python code)
+        self.ui.qScoreDoubleSpinBox.setSingleStep(0.001)
+        self.ui.similaritySpinBox.setValue(0)    # new default value, equivalent to changing it in qt designer
         self.ui.training_spinBox.setValue(80)
         self.ui.testing_spinBox.setValue(10)
         self.ui.validation_spinBox.setValue(10)
@@ -422,37 +419,20 @@ class MainWindow(qtw.QMainWindow):    # Make sure the root widget/class is the r
         except Exception as error:
             print("An exception occurred:", error)    # TODO: switch to a logger statement
 
-    def lock_main_dir_selection(self):
-        if self.ui.lineEdit_p2.text() == "":
-            self.ui.statusbar.showMessage("select a folder", 1000)
-            return
-
-        if not self.main_dir_selection_locked:
-            self.lockBtn.setIcon(qtg.QIcon(r"GUI_custom_widgets/svgs/lock-closed-svgrepo-com.svg"))
-            self.ui.lineEdit_p2.setStyleSheet("background-color: white")
-            self.ui.pushButton_p2.setDisabled(True)
-            self.main_dir_selection_locked = True
-        else:
-            self.lockBtn.setIcon(qtg.QIcon(r"GUI_custom_widgets/svgs/lock-open-svgrepo-com.svg"))
-            self.ui.lineEdit_p2.setStyleSheet("background-color: white; color: black")
-            self.ui.pushButton_p2.setDisabled(False)
-            self.main_dir_selection_locked = False
-
         # this code looks kinda gross
-    def browse_folder(self, page="quick"):
+    def browse_folder(self, page="home"):
         filepath = qtw.QFileDialog.getExistingDirectory(self, 'Select Folder')
         print("selected path:", filepath)
         self.ui.statusbar.showMessage(f"selected folder: {filepath}", 2000)    # if use textChanged instead of textEdited signal in lineEdit_22 to statusbar connection, can remove this line, since textChanged is emitted the text is change by users OR programmatically (textEdited is only emited when text is changed by users)
+        self.main_dir_path = filepath       # this is just to store this value so make_main_dir() can access it later
+        #? should adopt a more modular approach to mapping fxns to modules. create a dictionary of mappings are the start of the program? Or adopt the MVC design pattern
         if page == "home":
-            self.main_dir_path = os.path.join(filepath, "CryoDataBot")
-            self.ui.main_save_path_lineedit.setText(self.main_dir_path.replace("\\", "/"))
+            self.ui.main_save_path_lineedit.setText(self.main_dir_path)
         elif page == "quick":
-            self.ui.lineEdit_p1.setText(filepath)
+            self.ui.lineEdit_p1.setText(filepath)   # seems the name of this widget changed or was deleted
         elif page == "step1" and not self.main_dir_selection_locked:
-            self.main_dir_path = os.path.join(filepath, "CryoDataBot")
-            self.ui.lineEdit_p2.setText(self.main_dir_path.replace("\\", "/"))    # doesnt modify self.main_dir_path btw
+            self.ui.lineEdit_p2.setText(self.main_dir_path)    # doesnt modify self.main_dir_path btw
             # self.make_main_dir(main_dir_path)
-            self.lock_main_dir_selection()
         elif page == "step2":
             self.ui.lineEdit_p3.setText(filepath)
 
@@ -511,7 +491,6 @@ class MainWindow(qtw.QMainWindow):    # Make sure the root widget/class is the r
 
     # Helper fxn
     def handle_result(self, result):
-        # Store the result (downloaded file path)
         output_path = str(Path(result))     # fixes forward/backward slash consistency
         print(f"Download finished. File saved at: {output_path}")
         self.ui.statusbar.showMessage(f"Download finished: {output_path}")
@@ -583,7 +562,7 @@ class MainWindow(qtw.QMainWindow):    # Make sure the root widget/class is the r
         self.worker.start()
 
     def handle_result_step2(self, result):
-        # Store the result (downloaded file path)
+        # Finish redundancy_filter
         output_path = str(Path(result))     # fixes forward/backward slash consistency
         print(f"Preprocessing finished. File(s) saved at: {output_path}")
         self.ui.statusbar.showMessage(f"Preprocessing finished: {output_path}")

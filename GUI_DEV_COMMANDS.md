@@ -1,3 +1,28 @@
+# installing packages
+```
+cat requirements.txt | xargs -n 1 -I {} pip install {} || echo "Failed to install {}"
+```
+This command will continue installing from requirements.txt even if a package fails to install. (pip install -r requirements.txt stops as soon as one package fails to install)
+
+Explanation:
+1. ```cat``` reads in requirements.txt and spits out its contents to standard output
+
+2. pipe (```|```) redirects cat's output and sends it as input to xargs
+
+3. ```xargs -n 1 -I {} pip install {}```
+    - xargs is a command used to build and execute command lines from standard input.
+        - -n 1: This option tells xargs to use one argument at a time from the input for each command execution.
+    - This means for each line in the requirements.txt file (which is a package name), it will execute pip install \<package\> once per line.
+        - -I {}: This option allows you to specify a placeholder ({}) in the command. xargs will replace {} with the current item being processed (each package name in this case).
+        -   For example, if the current line in requirements.txt is numpy, it will replace {} with numpy in the pip install {} command.
+    - pip install {}: This is the command that gets executed for each package. The {} is a placeholder that gets replaced by the package name from requirements.txt.
+        - For example, it would run pip install numpy for a line containing numpy.
+
+4. ```|| echo "Failed to install {}"```
+    - || is a logical OR. runs the command to the right only if the left command fails
+    - {} is the same placeholder from the left side of the ||
+    - echo is the bash equivalent of print()
+
 # ui file:
 ```
 pyuic5 -x "/mnt/c/Users/noelu/Python Projects/PyQt GUI practice/QtDesigner_practice/dataset_gen_tool_GUI/dataset_gen_tool_v10.ui" -o guiskin_DEV2.py

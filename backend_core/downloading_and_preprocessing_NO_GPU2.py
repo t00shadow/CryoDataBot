@@ -11,6 +11,7 @@ import mrcfile
 import numpy as np
 import pandas as pd
 xp = np
+from scipy.ndimage import binary_dilation, zoom
 from tqdm import tqdm
 from tqdm.contrib.logging import logging_redirect_tqdm
 
@@ -18,6 +19,7 @@ import sys
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), os.pardir)))
 from backend_helpers.helper_funcs import calculate_title_padding, csv_col_reader, read_csv_info
 from backend_core.redundancy_filter import map_model_filter
+from backend_helpers.file_utils import has_entries
 
 
 # main function
@@ -66,6 +68,10 @@ def downloading_and_preprocessing(metadata_path,
 
     # Step1: create map and model paths for downloading and preprocessing from csv info
     # read additional recl column using read_csv_info func
+    if not has_entries(metadata_path):
+        logger.info("Invalid CSV file: No data rows found.")
+        return
+    
     read_csv_info_with_recl = csv_col_reader('recommended_contour_level')(read_csv_info)
     csv_info, path_info = read_csv_info_with_recl(metadata_path, raw_dir)
 
@@ -620,7 +626,7 @@ def main():
     dice_threashold = downloading_and_preprocessing_config.getfloat('user_settings', 'dice_threashold')
 
     # matadata_path = 'CryoDataBot_Data/Metadata/ribosome_res_1-4_001/ribosome_res_1-4_001_Final.csv'
-    matadata_path = r'C:\Users\noelu\CryoDataBot\CryoDataBot_Data\Metadata\ribosome_res_1-4_001\ribosome_res_1-4_001_Final.csv'
+    matadata_path = r'C:\Users\noelu\CryoDataBot\JUNKSTUFF\CryoDataBot\download_file_044\download_file_044_Final.csv'
     raw_dir = 'CryoDataBot_Data/Raw'
     downloading_and_preprocessing(matadata_path, 
                                   raw_dir, 

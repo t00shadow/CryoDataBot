@@ -1,4 +1,19 @@
 from pathlib import Path
+import os
+
+print(Path(r'C:\Users\noelu/CryoDataBot\temp.py'))
+
+print(Path.cwd())
+print(type(Path.cwd()))
+print(str(Path.cwd()))
+print(type(str(Path.cwd())))
+print(os.getcwd())
+print(type(os.getcwd()))
+
+
+assert(False)
+
+from pathlib import Path
 # my_directory = "zzzzz_TEST/parent/parent/directory"
 # Path(my_directory).mkdir(parents=True, exist_ok=True)
 
@@ -16,6 +31,7 @@ hiddenimports = collect_submodules('cupy_backends.cuda')  # collect submodules o
 #hiddenimports += collect_submodules('cupy_backends')  # collect submodules for all backends
 print(hiddenimports)
 
+assert(False)
 
 import csv
 
