@@ -68,15 +68,16 @@ class MainWindow(qtw.QMainWindow):    # Make sure the root widget/class is the r
         # self.resize(1000, 700)        # HOTFIX, functionally same as changing the size in the pyuic5 generated .py file but you aren't meant to edit that (can also just change size in designer, butttt it looks fine in designer). prob should involve screensize or smth, vanilla size is different than qt designer preview. prob cuz of screen resolution and/or dpi settings or smth. high dpi scaling can affect how pixels are rendered
 
         # ======== VARIABLES ========
-        self.default_folder = ""      # set this using os.join, etc. OR force users to pick smth idk
-        self.default_metadata_filepath = r"C:\Users\noelu\CryoDataBot\JUNK_TEST_FOLDER\...\metadata"
+        self.save_location = Path.cwd().as_posix()      # default
         self.labels = [[]]     # list of list of dicts, initialize as list of empty list
         self.label_dict_template = {'secondary_type': '', 'residue_type': '', 'atom_type': '', 'label': ''}
-        self.main_dir_selection_locked = False
         self.main_dir_path = ""
         self.leftpanel_buttons = {}    # key, value = QPushButton, text().  Alternatively just use two lists
 
-        self.step1_downloaded_file_path = None     # needs to exist first. my variable names are SO ass
+        #& QoL feature: stores results of each step. Use case: selected a different file but want to restore the filepath of the results of your current sesion. Relevant buttons: self.ui.resetDefaultVal_btn and self.ui.resetDefaultVal_btn_2. Note: these variables are only relevant for these buttons.
+        #! might delete this functionality tho. EDIT: found out abt selectAll() and then insert() which preserves undo/redo history unlike selectText(). so might actually delete this in the next commit
+        self.step1_results_path = None
+        self.step2_results_path = None
 
         # ======== SIGNALS AND SLOTS ========
         # TODO: CONSIDER organizing them by page? tho just added pages to the names so mb not
@@ -90,26 +91,27 @@ class MainWindow(qtw.QMainWindow):    # Make sure the root widget/class is the r
         # self.ui.lineEdit_p1.setText(r"C:\Users\noelu\CryoDataBot\JUNK_TEST_FOLDER")
         self.ui.lineEdit_12.setPlaceholderText("[sample] AND [range_keyword: x TO y] AND [keyword]")
         self.ui.lineEdit_12.setText("")
-        # self.ui.lineEdit_p2.setText(r"C:\Users\noelu\CryoDataBot\JUNK_TEST_FOLDER")
+        self.ui.lineEdit_p2.setText(self.save_location)     # default save location for the whole thing
         # TODO: enable elide for all filepath text fields
-        self.ui.lineEdit_p3.setText(self.default_metadata_filepath)
 
-
-        ## buttons
-        # Home (page 0)
+        ### buttons
+        #? Home (page 0)
         self.ui.main_save_path_btn.clicked.connect(lambda: self.browse_folder(page="home"))
-        # Quickstart (page 1)
+        #? Quickstart (page 1)
         # self.ui.pushButton_p1.clicked.connect(lambda: self.browse_folder(page="quick"))
         # self.ui.pushButton_p1_2.clicked.connect(lambda: self.ui.statusbar.showMessage("query (preview): " + self.parseQuery(page="quick")))    # intentionally didnt add time limit for this message so users can take their time to read it
         self.ui.pushButton_p1_3.clicked.connect(self.gen_dataset_quick)
-        # Fetch Metadata (page 2)
+        #? Fetch Metadata (page 2) - Step 1
         self.ui.pushButton_p2.clicked.connect(lambda: self.browse_folder(page="step1"))
         self.ui.pushButton_p2_2.clicked.connect(self.fetch_sample_info)
-
-        self.ui.pushButton_p3_4.clicked.connect(self.redund_filter)
-        # Download and Preprocess (page 3)
+        #? Download and Preprocess (page 3) - Step 2
         self.ui.pushButton_p3.clicked.connect(lambda: self.browse_folder(page="step2"))
-        self.ui.resetDefaultVal_btn.clicked.connect(lambda: self.ui.lineEdit_p3.setText(self.default_metadata_filepath))
+        self.ui.resetDefaultVal_btn.clicked.connect(lambda: self.ui.lineEdit_p3.setText(self.step1_results_path))
+        self.ui.pushButton_p3_4.clicked.connect(self.redund_filter)
+        #? Generate Dataset (page 4) - Step 3
+        self.ui.pushButton_p3_2.clicked.connect(lambda: self.browse_folder(page="step3"))
+        self.ui.resetDefaultVal_btn_2.clicked.connect(lambda: self.ui.lineEdit_p3_2.setText(self.step2_results_path))
+
         
         # make these tool tips in designer in rich text on a testpage, and then copy paste them from the generated ui code, and then delete the test page at runtime
         self.ui.qScoreInfo_btn.clicked.connect(lambda: self.show_tooltip_on_click("QScore: \ndescrip... *consider using richtext (if possible) to have colors and bold, italics, etc"))
@@ -124,7 +126,7 @@ class MainWindow(qtw.QMainWindow):    # Make sure the root widget/class is the r
 
         self.ui.clearQScore_btn.clicked.connect(lambda: self.ui.qScoreDoubleSpinBox.setValue(0))  # make these global vars above?, since may be used in 2 dif places
         self.ui.clearMMF_btn.clicked.connect(lambda: self.ui.mapModelFitnessSpinBox.setValue(0))
-        self.ui.clearSim_btn.clicked.connect(lambda: self.ui.similaritySpinBox.setValue(100))
+        self.ui.clearSim_btn.clicked.connect(lambda: self.ui.similaritySpinBox.setValue(0))
         # Generate Datasets (page 4)
         self.ui.pushButton_p4_2.clicked.connect(self.gen_ds)
 
@@ -243,16 +245,13 @@ class MainWindow(qtw.QMainWindow):    # Make sure the root widget/class is the r
         self.ui.B_refineCSV.setTitle("Filters")
         self.ui.pushButton_p3_4.setText("Preprocess")
         self.ui.pushButton_p2_2.setText("Search")
-        # self.ui.lineEdit_p1_2.setText(r"C:\Users\noelu\CryoDataBot\JUNK_TEST_FOLDER\Labels")
-        self.ui.lineEdit_p2.setText(r"C:/Users/noelu/CryoDataBot/JUNKSTUFF/CryoDataBot")
-        self.ui.lineEdit_p3.setText(r"C:/Users/noelu/CryoDataBot/JUNKSTUFF/CryoDataBot\download_file_010\download_file_010.csv")
-        self.ui.lineEdit_p3_2.setText(r"C:\Users\noelu\CryoDataBot\JUNKSTUFF\CryoDataBot\download_file_010\download_file_010_Final.csv")
         self.ui.statusbar.showMessage("example status bar message")
 
         # self.ui.lineEdit_p1_2.findChild(qtw.QToolButton).setIcon(qtg.QIcon(r"src/frontend_gui_assets/GUI_custom_widgets/svgs/clear_small-svgrepo-com.svg"))
         self.ui.lineEdit_p3_2.findChild(qtw.QToolButton).setIcon(qtg.QIcon(r"src/frontend_gui_assets/GUI_custom_widgets/svgs/clear_small-svgrepo-com.svg"))
 
         self.ui.qScoreDoubleSpinBox.setDecimals(3)   #figured this out my making a new form in qtdesigner with just 2 spinboxes (one w/ the default 2 decimal places and one changed to 3, then looked at Form > View python code)
+        self.ui.qScoreDoubleSpinBox.setMinimum(-1.0)   # qscores < 0 are bad, but giving users more flexibility in case they have some usecase
         self.ui.qScoreDoubleSpinBox.setSingleStep(0.001)
         self.ui.similaritySpinBox.setValue(0)    # new default value, equivalent to changing it in qt designer
         self.ui.training_spinBox.setValue(80)
@@ -414,20 +413,52 @@ class MainWindow(qtw.QMainWindow):    # Make sure the root widget/class is the r
 
         # this code looks kinda gross
     def browse_folder(self, page="home"):
-        filepath = qtw.QFileDialog.getExistingDirectory(self, 'Select Folder')
-        print("selected path:", filepath)
-        self.ui.statusbar.showMessage(f"selected folder: {filepath}", 2000)    # if use textChanged instead of textEdited signal in lineEdit_22 to statusbar connection, can remove this line, since textChanged is emitted the text is change by users OR programmatically (textEdited is only emited when text is changed by users)
-        self.main_dir_path = filepath       # this is just to store this value so make_main_dir() can access it later
         #? should adopt a more modular approach to mapping fxns to modules. create a dictionary of mappings are the start of the program? Or adopt the MVC design pattern
         if page == "home":
-            self.ui.main_save_path_lineedit.setText(self.main_dir_path)
+            filepath = qtw.QFileDialog.getExistingDirectory(self, caption='Select Folder')
+            if not filepath:
+                print("no directory selected")
+                return
+            self.ui.main_save_path_lineedit.setText(filepath)     # gui visual update
+            self.save_location = filepath                            # store the value
+            # reflect the change on the other page
+            self.ui.lineEdit_p2.setText(filepath)        # should maybe update gui values differently, like listen for changes. Look at how MVC design pattern does it
         elif page == "quick":
+            filepath = qtw.QFileDialog.getExistingDirectory(self, caption='Select Folder')
+            if not filepath:
+                print("no directory selected")
+                return
             self.ui.lineEdit_p1.setText(filepath)   # seems the name of this widget changed or was deleted
-        elif page == "step1" and not self.main_dir_selection_locked:
-            self.ui.lineEdit_p2.setText(self.main_dir_path)    # doesnt modify self.main_dir_path btw
-            # self.make_main_dir(main_dir_path)
+        elif page == "step1":
+            filepath = qtw.QFileDialog.getExistingDirectory(self, caption='Select Folder')
+            if not filepath:
+                print("no directory selected")
+                return
+            self.ui.lineEdit_p2.setText(filepath)     # gui visual update
+            self.save_location = filepath                # store the value
+            # reflect the change on the other page
+            self.ui.main_save_path_lineedit.setText(filepath)     # should maybe update gui values differently, like listen for changes. Look at how MVC design pattern does it
         elif page == "step2":
-            self.ui.lineEdit_p3.setText(filepath)
+            filepath = qtw.QFileDialog.getOpenFileName(self, caption='Select File', filter="(*.csv)")[0]    # returns a Tuple[str, str], keep first value
+            if not filepath:
+                print("no file selected")
+                return
+            #& This approach of selectAll() and then insert() preserves undo/redo history as compared to setText(). If make the folder selection lineedits editable too, adopt this approach for them too. For that u need a way to verify the folder exists, kinda like vscode select an interpreter typa thing.
+            # self.ui.lineEdit_p3.setText(filepath)
+            self.ui.lineEdit_p3.selectAll()
+            self.ui.lineEdit_p3.insert(filepath)
+        elif page == "step3":
+            filepath = qtw.QFileDialog.getOpenFileName(self, caption='Select File', filter="(*.csv)")[0]
+            if not filepath:
+                print("no file selected")
+                return
+            # self.ui.lineEdit_p3_2.setText(filepath)
+            self.ui.lineEdit_p3_2.selectAll()
+            self.ui.lineEdit_p3_2.insert(filepath)
+        
+        print("selected path:", filepath)     # debugging, shows up in console. Could consider displaying in gui's log too.
+        self.ui.statusbar.showMessage(f"selected folder: {filepath}", 2000)    # if use textChanged instead of textEdited signal in lineEdit_22 to statusbar connection, can remove this line, since textChanged is emitted the text is change by users OR programmatically (textEdited is only emited when text is changed by users)
+        self.main_dir_path = filepath       # this is just to store this value so make_main_dir() can access it later
 
 
 
@@ -442,13 +473,13 @@ class MainWindow(qtw.QMainWindow):    # Make sure the root widget/class is the r
 
 
 
-    #! rewrite for better usuability, pass in self.step1_downloaded_file_path as a parameter
+    #! rewrite for better usuability, pass in self.step1_results_path as a parameter, also need to pass in the widgets to display too, etc. dif for each step
     #& so like def handle_result(self, result, storage_var)
     #~ general helper fxn
     # def handle_result(self, result):
     #     # Store the result (downloaded file path)
-    #     self.step1_downloaded_file_path = result
-    #     print(f"Download finished. File saved at: {self.step1_downloaded_file_path}")
+    #     self.step1_results_path = result
+    #     print(f"Download finished. File saved at: {self.step1_results_path}")
 
     #~ STEP 1: fetch_sample_info
     def fetch_sample_info(self) -> None:
@@ -461,8 +492,8 @@ class MainWindow(qtw.QMainWindow):    # Make sure the root widget/class is the r
         """
         
         # if the save location is empty, do nothing
-        if not self.ui.lineEdit_p2.text() or not self.userInputQuery.text():
-        # if not self.ui.lineEdit_p2.text():      # technically empty search query is a valid query, but that's like the whole database. prob worse to let users do that (easily to accidentally start downloading the whole database). hence why should show the FIRST PAGE with the number of results etc in the preview.
+        #^ changed from self.ui.lineEdit_p2.text() to self.save_location to migrate closer to MVC design pattern
+        if not self.save_location or not self.userInputQuery.text():    # technically empty search query is a valid query, but that's the whole database. kinda annoying when u accidently download the whole database
             print("nothing happens")
             return
 
@@ -473,7 +504,7 @@ class MainWindow(qtw.QMainWindow):    # Make sure the root widget/class is the r
         #processedstring = stringutil.process_string(query)   # TODO, concatenate array of keywords into a string (not sure how to implement and and or logic with keywords)
         processed_query = query     # placeholder
         # print(processed_query)
-        save_path = self.ui.lineEdit_p2.text()
+        save_path = self.save_location
         #TODO: put a try block here or some if statements to catch if btn is clicked with no parameters set
         
         self.ui.pushButton_p2_2.setDisabled(True)
@@ -484,13 +515,14 @@ class MainWindow(qtw.QMainWindow):    # Make sure the root widget/class is the r
 
     # Helper fxn
     def handle_result(self, result):
-        output_path = str(Path(result))     # fixes forward/backward slash consistency
+        output_path = Path(result).as_posix()     # fixes forward/backward slash consistency
         print(f"Download finished. File saved at: {output_path}")
         self.ui.statusbar.showMessage(f"Download finished: {output_path}")
         self.ui.pushButton_p2_2.setEnabled(True)
         print(f"path of metadata file: {output_path}")     # needs to return path of folder where shit is saved
         self.display_metadata_results(output_path)
         self.ui.lineEdit_p3.setText(output_path)   # set the path of the next step/page
+        self.step1_results_path = output_path         # save the value so it can be restored easily if needed
 
     # Helper fxn for helper fxn
     def display_metadata_results(self, file_path):
@@ -556,12 +588,13 @@ class MainWindow(qtw.QMainWindow):    # Make sure the root widget/class is the r
 
     def handle_result_step2(self, result):
         # Finish redundancy_filter
-        output_path = str(Path(result))     # fixes forward/backward slash consistency
+        output_path = Path(result).as_posix()     # fixes forward/backward slash consistency
         print(f"Preprocessing finished. File(s) saved at: {output_path}")
         self.ui.statusbar.showMessage(f"Preprocessing finished: {output_path}")
         self.ui.pushButton_p3_4.setEnabled(True)
         print(f"path of step2 results file: {output_path}")     # needs to return path of folder where shit is saved
         self.ui.lineEdit_p3_2.setText(output_path)   # set the path of the next step/page
+        self.step2_results_path = output_path           # save the value so it can be restored easily if needed
 
 
     #~ STEP 3: downloading & preprocessing (this is abstracted away for the user, i.e. no separate button for this step. still debating if should happen with step 2's button or with step 4's button (leaning towards step 4). orrrr actually add another button on one of those pages to initiate this step?)
@@ -577,7 +610,7 @@ class MainWindow(qtw.QMainWindow):    # Make sure the root widget/class is the r
     def gen_ds(self):
         # Step 3 (downloading and preprocessing)
         metadata_path = self.ui.lineEdit_p3_2.text()
-        temp = self.ui.lineEdit_p2.text()
+        temp = self.save_location
         raw_dir = temp + "/Raw"
         if not os.path.exists(raw_dir):
             os.makedirs(raw_dir)
