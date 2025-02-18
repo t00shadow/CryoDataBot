@@ -82,7 +82,7 @@ class MainWindow(qtw.QMainWindow):    # Make sure the root widget/class is the r
         self.leftpanel_buttons = {}    # key, value = QPushButton, text().  Alternatively just use two lists
 
         #& QoL feature: stores results of each step. Use case: selected a different file but want to restore the filepath of the results of your current sesion. Relevant buttons: self.ui.resetDefaultVal_btn and self.ui.resetDefaultVal_btn_2. Note: these variables are only relevant for these buttons.
-        #! might delete this functionality tho
+        #! might delete this functionality tho. EDIT: found out abt selectAll() and then insert() which preserves undo/redo history unlike selectText(). so might actually delete this in the next commit
         self.step1_results_path = None
         self.step2_results_path = None
 
@@ -133,7 +133,7 @@ class MainWindow(qtw.QMainWindow):    # Make sure the root widget/class is the r
 
         self.ui.clearQScore_btn.clicked.connect(lambda: self.ui.qScoreDoubleSpinBox.setValue(0))  # make these global vars above?, since may be used in 2 dif places
         self.ui.clearMMF_btn.clicked.connect(lambda: self.ui.mapModelFitnessSpinBox.setValue(0))
-        self.ui.clearSim_btn.clicked.connect(lambda: self.ui.similaritySpinBox.setValue(100))
+        self.ui.clearSim_btn.clicked.connect(lambda: self.ui.similaritySpinBox.setValue(0))
         # Generate Datasets (page 4)
         self.ui.pushButton_p4_2.clicked.connect(self.gen_ds)
 
@@ -258,6 +258,8 @@ class MainWindow(qtw.QMainWindow):    # Make sure the root widget/class is the r
         self.ui.lineEdit_p3_2.findChild(qtw.QToolButton).setIcon(qtg.QIcon(r"GUI_custom_widgets/svgs/clear_small-svgrepo-com.svg"))
 
         self.ui.qScoreDoubleSpinBox.setDecimals(3)   #figured this out my making a new form in qtdesigner with just 2 spinboxes (one w/ the default 2 decimal places and one changed to 3, then looked at Form > View python code)
+        # ...setMaximum(...) was done in the guiskin file, hence why it's not here
+        self.ui.qScoreDoubleSpinBox.setMinimum(-1.0)   # qscores < 0 are bad, but giving users more flexibility in case they have some usecase
         self.ui.qScoreDoubleSpinBox.setSingleStep(0.001)
         self.ui.similaritySpinBox.setValue(0)    # new default value, equivalent to changing it in qt designer
         self.ui.training_spinBox.setValue(80)
