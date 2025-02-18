@@ -422,9 +422,9 @@ def main():
     redundancy_filter_config.read('CryoDataBotConfig.ini')
     q_threshold = redundancy_filter_config.getfloat('user_settings', 'q_threshold')
     uni_threshold = redundancy_filter_config.getfloat('user_settings', 'uni_threshold')
-    matadata_path = 'CryoDataBot_Data/Metadata/ribosome_res_1-4_001/ribosome_res_1-4_001.csv'
+    metadata_path = 'JUNKSTUFF/test/download_file_005/download_file_005_full.csv'
 
-    filter_csv(input_csv=matadata_path, 
+    filter_csv(input_csv=metadata_path, 
                q_threshold=q_threshold, 
                uni_threshold=uni_threshold, 
                )
