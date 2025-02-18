@@ -85,6 +85,8 @@ class MainWindow(qtw.QMainWindow):    # Make sure the root widget/class is the r
         #! might delete this functionality tho. EDIT: found out abt selectAll() and then insert() which preserves undo/redo history unlike selectText(). so might actually delete this in the next commit
         self.step1_results_path = None
         self.step2_results_path = None
+        self.step3_results_path = None
+        self.step4_results_path = None     # THIS one is currently unused. Would only be used by a summary page/message.
 
         # ======== SIGNALS AND SLOTS ========
         # TODO: CONSIDER organizing them by page? tho just added pages to the names so mb not
@@ -111,13 +113,13 @@ class MainWindow(qtw.QMainWindow):    # Make sure the root widget/class is the r
         #? Fetch Metadata (page 2) - Step 1
         self.ui.pushButton_p2.clicked.connect(lambda: self.browse_folder(page="step1"))
         self.ui.pushButton_p2_2.clicked.connect(self.fetch_sample_info)
-        #? Download and Preprocess (page 3) - Step 2
+        #? Download and Preprocess (page 3) - Step 2 (step 3 abstracted away)
         self.ui.pushButton_p3.clicked.connect(lambda: self.browse_folder(page="step2"))
         self.ui.resetDefaultVal_btn.clicked.connect(lambda: self.ui.lineEdit_p3.setText(self.step1_results_path))
         self.ui.pushButton_p3_4.clicked.connect(self.redund_filter)
-        #? Generate Dataset (page 4) - Step 3
-        self.ui.pushButton_p3_2.clicked.connect(lambda: self.browse_folder(page="step3"))
-        self.ui.resetDefaultVal_btn_2.clicked.connect(lambda: self.ui.lineEdit_p3_2.setText(self.step2_results_path))
+        #? Generate Dataset (page 4) - Step 4
+        self.ui.pushButton_p3_2.clicked.connect(lambda: self.browse_folder(page="step4"))
+        self.ui.resetDefaultVal_btn_2.clicked.connect(lambda: self.ui.lineEdit_p3_2.setText(self.step3_results_path))
 
         
         # make these tool tips in designer in rich text on a testpage, and then copy paste them from the generated ui code, and then delete the test page at runtime
@@ -460,7 +462,7 @@ class MainWindow(qtw.QMainWindow):    # Make sure the root widget/class is the r
             # self.ui.lineEdit_p3.setText(filepath)
             self.ui.lineEdit_p3.selectAll()
             self.ui.lineEdit_p3.insert(filepath)
-        elif page == "step3":
+        elif page == "step4":
             filepath = qtw.QFileDialog.getOpenFileName(self, caption='Select File', filter="(*.csv)")[0]
             if not filepath:
                 print("no file selected")
@@ -532,7 +534,6 @@ class MainWindow(qtw.QMainWindow):    # Make sure the root widget/class is the r
         print(f"Download finished. File saved at: {output_path}")
         self.ui.statusbar.showMessage(f"Download finished: {output_path}")
         self.ui.pushButton_p2_2.setEnabled(True)
-        print(f"path of metadata file: {output_path}")     # needs to return path of folder where shit is saved
         self.display_metadata_results(output_path)
         self.ui.lineEdit_p3.setText(output_path)   # set the path of the next step/page
         self.step1_results_path = output_path         # save the value so it can be restored easily if needed
@@ -600,19 +601,44 @@ class MainWindow(qtw.QMainWindow):    # Make sure the root widget/class is the r
         self.worker.start()
 
     def handle_result_step2(self, result):
-        # Finish redundancy_filter
+        # Finish handling redundancy_filter
         output_path = Path(result).as_posix()     # fixes forward/backward slash consistency
-        print(f"Preprocessing finished. File(s) saved at: {output_path}")
-        self.ui.statusbar.showMessage(f"Preprocessing finished: {output_path}")
-        self.ui.pushButton_p3_4.setEnabled(True)
-        print(f"path of step2 results file: {output_path}")     # needs to return path of folder where shit is saved
-        self.ui.lineEdit_p3_2.setText(output_path)   # set the path of the next step/page
+        print(f"Metadata filtering finished. File(s) saved at: {output_path}")
+        self.ui.statusbar.showMessage(f"Metadata filtering finished: {output_path}")
+        # self.ui.pushButton_p3_4.setEnabled(True)     #! SAVE TILL AFTER STEP 3
+        # self.ui.lineEdit_p3_2.setText(output_path)   # set the path of the next step/page       #! SAVE TILL AFTER STEP 3
         self.step2_results_path = output_path           # save the value so it can be restored easily if needed
+        self.dl_and_preproc(output_path)    # no args yet, still WIP w/ some hardcoded constants
 
 
-    #~ STEP 3: downloading & preprocessing (this is abstracted away for the user, i.e. no separate button for this step. still debating if should happen with step 2's button or with step 4's button (leaning towards step 4). orrrr actually add another button on one of those pages to initiate this step?)
-    def dl_and_preproc(self):
-        pass     # no physical button for this step, it happens with another step
+    #~ STEP 3: downloading & preprocessing (this is abstracted away for the user, uses the same button as step 2)
+    def dl_and_preproc(self, file):
+                # Step 3 (downloading and preprocessing)
+        metadata_path = file
+        temp = self.save_location
+        raw_dir = temp + "/Raw"        # rewrite this with pathlib library
+        if not os.path.exists(raw_dir):
+            os.makedirs(raw_dir)
+        print(raw_dir)
+        overwrite = False
+        give_map = True
+        protein_tag_dist = 1
+        map_threashold = 0.15
+        vof_threashold = 0.25
+        dice_threashold = 0.4
+
+        self.worker = Worker(downloading_and_preprocessing_NO_GPU2.downloading_and_preprocessing, metadata_path, raw_dir, overwrite, give_map, protein_tag_dist, map_threashold, vof_threashold, dice_threashold)
+        self.worker.result_signal.connect(self.handle_result_step3)
+        self.worker.start()
+
+    def handle_result_step3(self, result):
+        # Finish handling downloading_and_preprocessing
+        output_path = Path(result).as_posix()     # fixes forward/backward slash consistency
+        print(f"Downloading and Downloading finished. File(s) saved at: {output_path}")
+        self.ui.statusbar.showMessage(f"Downloading and Preprocessing finished: {output_path}")
+        self.ui.pushButton_p3_4.setEnabled(True)
+        self.ui.lineEdit_p3_2.setText(output_path)   # set the path of the next step/page
+        self.step3_results_path = output_path           # save the value so it can be restored easily if needed
 
     #~ STEP 4: generate dataset
     # def gen_ds(self):
@@ -634,8 +660,8 @@ class MainWindow(qtw.QMainWindow):    # Make sure the root widget/class is the r
         map_threashold = 0.15
         vof_threashold = 0.25
         dice_threashold = 0.4
-        #! comment out this line to test only the labeling step
-        downloading_and_preprocessing_NO_GPU2.downloading_and_preprocessing(metadata_path, raw_dir, overwrite, give_map, protein_tag_dist, map_threashold, vof_threashold, dice_threashold)
+        #! comment out this line since bound step 3 to step 2's button instead
+        # downloading_and_preprocessing_NO_GPU2.downloading_and_preprocessing(metadata_path, raw_dir, overwrite, give_map, protein_tag_dist, map_threashold, vof_threashold, dice_threashold)
         
         #! Was testing stuff earlier, but should be able to comment out print statements now
         # Step 4 (actually generating the labeled datasets)
@@ -673,8 +699,19 @@ class MainWindow(qtw.QMainWindow):    # Make sure the root widget/class is the r
         extract_stride = 32
         atom_grid_radius = 1.5
         n_workers = 4
-        generate_dataset.label_maps(label_groups, group_names, metadata_path, raw_dir, temp_sample_path, sample_path, ratio_t_t_v, npy_size, extract_stride, atom_grid_radius, n_workers)
 
+        self.ui.pushButton_p4_2.setDisabled(True)
+        self.worker = Worker(generate_dataset.label_maps, label_groups, group_names, metadata_path, raw_dir, temp_sample_path, sample_path, ratio_t_t_v, npy_size, extract_stride, atom_grid_radius, n_workers)
+        self.worker.result_signal.connect(self.handle_result_step4)
+        self.worker.start()
+
+    def handle_result_step4(self, result):
+        # Finish handling downloading_and_preprocessing
+        output_path = Path(result).as_posix()     # fixes forward/backward slash consistency
+        print(f"Generating datasets finished. File(s) saved in directory: {output_path}")
+        self.ui.statusbar.showMessage(f"Generating datasets finished. File(s) saved in directory: {output_path}")
+        self.ui.pushButton_p4_2.setEnabled(True)
+        self.step4_results_path = output_path           # save the value so it can be restored easily if needed
 
     # could use this, might need another page for summary stats? or display below labels
     def summary(self):    # summary stats or smth

@@ -96,6 +96,8 @@ def downloading_and_preprocessing(metadata_path,
     logger.info(calculate_title_padding('Preprocessing Completed'))
     logger.info('')
 
+    return os.path.abspath(metadata_path)        # i think this is the right return value, i didnt write this script. return a tuple or list if theres multiple relevant files
+
 # Step2: download maps and models using multithreasing
 def fetch_map_model(csv_info, path_info, overwrite=False):
     """
