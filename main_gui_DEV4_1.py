@@ -265,6 +265,11 @@ class MainWindow(qtw.QMainWindow):    # Make sure the root widget/class is the r
         self.ui.training_spinBox.setValue(80)
         self.ui.testing_spinBox.setValue(10)
         self.ui.validation_spinBox.setValue(10)
+
+        # hide progress bars initially
+        self.ui.progressBar_p4_2.hide()    # name's backwards. This one is unnecessary in most cases, even long metadata queries take just a few seconds. Could delete it.     <-- fetch metadata page
+        # add a progressbar to the preprocess page since will move downloading maps and models to that page
+        self.ui.progressBar_p4.hide()      #   <--- gen dataset page
         # ===================================================== 
 
 
