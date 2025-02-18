@@ -96,6 +96,8 @@ def downloading_and_preprocessing(metadata_path,
     logger.info(calculate_title_padding('Preprocessing Completed'))
     logger.info('')
 
+    return os.path.abspath(metadata_path)        # i think this is the right return value, i didnt write this script. return a tuple or list if theres multiple relevant files
+
 # Step2: download maps and models using multithreasing
 def fetch_map_model(csv_info, path_info, overwrite=False):
     """
@@ -625,10 +627,10 @@ def main():
     vof_threashold = downloading_and_preprocessing_config.getfloat('user_settings', 'vof_threashold')
     dice_threashold = downloading_and_preprocessing_config.getfloat('user_settings', 'dice_threashold')
 
-    # metadata_path = 'CryoDataBot_Data/Metadata/ribosome_res_1-4_001/ribosome_res_1-4_001_Final.csv'
-    metadata_path = r'C:\Users\noelu\CryoDataBot\JUNKSTUFF\CryoDataBot\download_file_044\download_file_044_Final.csv'
+    # matadata_path = 'CryoDataBot_Data/Metadata/ribosome_res_1-4_001/ribosome_res_1-4_001_Final.csv'
+    matadata_path = r'C:\Users\noelu\CryoDataBot\JUNKSTUFF\CryoDataBot\download_file_044\download_file_044_Final.csv'
     raw_dir = 'CryoDataBot_Data/Raw'
-    downloading_and_preprocessing(metadata_path, 
+    downloading_and_preprocessing(matadata_path, 
                                   raw_dir, 
                                   overwrite,
                                   give_map,
