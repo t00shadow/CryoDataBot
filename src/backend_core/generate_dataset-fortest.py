@@ -64,6 +64,7 @@ def data_to_npy(label_groups: list,
     try:
         # Read the MRC map file and change the coordinates order to [z, y, x]
         map_data, map_size = check_mrc_coordinates_order(normalized_map_path)
+        print(normalized_map_path)
 
         # Read the PDB model file
         structure = gemmi.read_structure(model_path)
@@ -84,19 +85,21 @@ def data_to_npy(label_groups: list,
     # Compute the grid parameters for splitting the volume
     start_coords, n_samples = compute_grid_params(box_min, box_max, map_size,
                                                   npy_size)
-                                                  
     # Creating labels
     helices, sheets = protein_2nd_structure_lists(structure)
     for group in label_groups:
         # initialize datastruct for every group
-        group_data = np.zeros(map_size, np.int8)  
+        group_data = np.zeros(map_size, np.int8)
         dis_array = None
         label_coords = None
 
         for label in group:
-            secondary_type, residue_type, atom_type, element_type, metal_type, tag = label['secondary_type'].split(','), \
-                label['residue_type'].split(','), label['atom_type'].split(','), label['element_type'].split(','),\
-                    label['metal_type'].split(','), label['label']
+            secondary_type = label['secondary_type'].split(',') 
+            residue_type = label['residue_type'].split(',')
+            atom_type = label['atom_type'].split(',')
+            element_type = label['element_type'].split(',')
+            metal_type = label['metal_type'].split(',')
+            tag = label['label']
             
             if residue_type == ['']:
                 residue_type = None
@@ -152,20 +155,21 @@ def data_to_npy(label_groups: list,
                         TEST_data = np.zeros_like(group_data)
                         TEST_data = np.where(group_data == label, group_data, 0)
                         mrc.set_data(TEST_data)
-
-                        # Update the header information
                         mrc.header.mapc = 1  # X-axis
                         mrc.header.mapr = 2  # Y-axis
                         mrc.header.maps = 3  # Z-axis
                         mrc.update_header_stats()
+
                     print( f'   Label-{label} Written')
             return None
 
-    data.append(map_data)
-    group_names.append('map_sample')
+    # data.append(map_data)
+    # group_names.append('map_sample')
 
-    num_labels, sample_num = split_to_npy(data, temp_sample_path, start_coords, 
-                              n_samples, npy_size, group_names, emdb_id, extract_stride)
+    # num_labels, sample_num = split_to_npy(data, temp_sample_path, start_coords, 
+    #                           n_samples, npy_size, group_names, emdb_id, extract_stride)
+
+    num_labels, sample_num = 1, 1
 
     return num_labels, sample_num
 
@@ -190,7 +194,7 @@ def check_mrc_coordinates_order(mrc_path):
         map_data = np.array(mrc.data)
         mapc, mapr, maps = mrc.header.mapc, mrc.header.mapr, mrc.header.maps
         if not (mapc == 1 and mapr == 2 and maps == 3):
-            #print('Swap the mrc coordinates to "z, y, x"')
+            print('Swap the mrc coordinates to "z, y, x"')
             if mapc == 1 and mapr == 3 and maps == 2:
                 map_data = map_data.swapaxes(1, 2)
             elif mapc == 2 and mapr == 1 and maps == 3:
@@ -652,6 +656,7 @@ def label_maps(label_groups: list[dict[str: str|int]],
                extract_stride: int = 32,
                atom_grid_radius: float = 1.5,
                n_workers: int = 4,
+               generate_test = False,
                ):
     """
     Generates and manages datasets for training models.
@@ -692,6 +697,7 @@ def label_maps(label_groups: list[dict[str: str|int]],
     csv_info, path_info = read_csv_info(metadata_path, raw_path)
     emdb_ids, _, _ = csv_info
     _, model_paths, normalized_map_paths = path_info
+    # print(model_paths, normalized_map_paths)
     training_set_name = os.path.splitext(os.path.basename(metadata_path))[0]
 
     # configure logger
@@ -717,159 +723,181 @@ def label_maps(label_groups: list[dict[str: str|int]],
 
     # num of label in each group for all models
     num_of_label_in_each_group_for_all_models = np.array([np.zeros(30,dtype=np.int64) for _ in range(len(group_names))])
-    
+
     logger.info('Start Generating Label Files from Maps and Models')
 
-    futures = []
-    try:
-        with ProcessPoolExecutor(max_workers=n_workers) as executor:
-            futures = [executor.submit(data_to_npy, label_groups, group_names, normalized_map_paths[idx], model_paths[idx], 
-                    temp_sample_path, emdb_ids[idx], npy_size, extract_stride, atom_grid_radius) for idx in range(len(emdb_ids))]
+    for idx in range(len(emdb_ids)):
+        data_to_npy(label_groups, group_names, normalized_map_paths[idx], model_paths[idx], 
+                    temp_sample_path, emdb_ids[idx], npy_size, extract_stride, atom_grid_radius, generate_test)
             
-            # Process the results as they complete
-            with logging_redirect_tqdm([logger]):
-                i = 0
-                total_num_npy = 0
-                for future in tqdm(as_completed(futures), total=len(futures), desc='Labeling Maps'):
-                    try:
-                        num_labels, sample_num = future.result(timeout=60*10)
-                    except Exception as e:
-                        logger.warning(f'Generating Label Files Failed for EMDB-{emdb_ids[i]}: {e}')
-                    else:
-                        logger.info(f'Finished Generating Label Files from EMDB-{emdb_ids[i]}')
-                        num_of_label_in_each_group_for_all_models = [num_of_label_in_each_group_for_all_models[idx]+num_labels[idx]\
-                                                                for idx in range(len(label_groups))]
-                        total_num_npy += sample_num
-                    finally:
-                        i += 1
-    except BrokenExecutor as e:
-        logger.error(f'Error Generating Label Files: {e}')
-        logger.error('!!! Please Check the Input Map/Model Paths and Try Again !!!')
-        logger.error(calculate_title_padding('Dataset Generation Failed'))
-        return
-    logger.info('Successfully Generated All Label Files')
+    # futures = []
+    # try:
+    #     with ProcessPoolExecutor(max_workers=n_workers) as executor:
+    #         futures = [executor.submit(data_to_npy, label_groups, group_names, normalized_map_paths[idx], model_paths[idx], 
+    #                 temp_sample_path, emdb_ids[idx], npy_size, extract_stride, atom_grid_radius, generate_test) for idx in range(len(emdb_ids))]
+            
+    #         # Process the results as they complete
+    #         with logging_redirect_tqdm([logger]):
+    #             i = 0
+    #             total_num_npy = 0
+    #             for future in tqdm(as_completed(futures), total=len(futures), desc='Labeling Maps'):
+    #                 try:
+    #                     num_labels, sample_num = future.result(timeout=60*10)
+    #                 except Exception as e:
+    #                     logger.warning(f'Generating Label Files Failed for EMDB-{emdb_ids[i]}: {e}')
+    #                 else:
+    #                     logger.info(f'Finished Generating Label Files from EMDB-{emdb_ids[i]}')
+    #                     num_of_label_in_each_group_for_all_models = [num_of_label_in_each_group_for_all_models[idx]+num_labels[idx]\
+    #                                                             for idx in range(len(label_groups))]
+    #                     total_num_npy += sample_num
+    #                 finally:
+    #                     i += 1
+    # except BrokenExecutor as e:
+    #     logger.error(f'Error Generating Label Files: {e}')
+    #     logger.error('!!! Please Check the Input Map/Model Paths and Try Again !!!')
+    #     logger.error(calculate_title_padding('Dataset Generation Failed'))
+    #     return
+    # logger.info('Successfully Generated All Label Files')
 
-    # 3.3 Split data into training and validation dataset
-    final_sample_path = os.path.join(sample_path, training_set_name)
-    logger.info('')
-    logger.info('Start Splitting Data into Training, Testing, and Validation Sets')
-    try:
-        split_folders(temp_sample_path, final_sample_path, ratio_t_t_v)
-        logger.info('Successfully Splitted Data')
-    except Exception as e:
-        logger.error(f'Splitting Failed. Error: {e}')
+    # # 3.3 Split data into training and validation dataset
+    # final_sample_path = os.path.join(sample_path, training_set_name)
+    # logger.info('')
+    # logger.info('Start Splitting Data into Training, Testing, and Validation Sets')
+    # try:
+    #     split_folders(temp_sample_path, final_sample_path, ratio_t_t_v)
+    #     logger.info('Successfully Splitted Data')
+    # except Exception as e:
+    #     logger.error(f'Splitting Failed. Error: {e}')
 
-    # register to move log file to final sample path
-    atexit.register(move_log_file, log_file_path, final_sample_path)
+    # # register to move log file to final sample path
+    # atexit.register(move_log_file, log_file_path, final_sample_path)
 
-    # Stats
-    msg = 'Statistical results:\n'
-    msg += f"Dataset Size (Number of .npy Files): {total_num_npy}\n"
-    num_of_label_in_each_group_for_all_models = [np.trim_zeros(sub_array, 'b') \
-                                                 for sub_array in num_of_label_in_each_group_for_all_models]
-    msg += "Number of Labels in Each Group:\n"
-    ratio_of_label = {key: [] for key in group_names}
-    for group_idx in range(len(label_groups)):
-        group_name = group_names[group_idx]
-        msg += f'    Group {group_name}:\n'
-        sum_label_per_group = 0
-        group = num_of_label_in_each_group_for_all_models[group_idx]
-        if len(group) != 0:
-            for label in range(len(group)):
-                label_num = group[label]
-                msg += f'        Label-{label}: {label_num}\n'
-                sum_label_per_group += label_num
-                ratio_of_label[group_name].append(int(group[0]//label_num))
-                if label == len(group)-1:
-                    msg += f'        Total: {sum_label_per_group}\n'
-        else:
-            msg += '     The group is empty.\n'
-            continue
-    print('\n'+msg)
-    stats_path = os.path.join(final_sample_path, 'statistics.txt')
-    with open(stats_path, "w") as file:
-        file.write(msg)
-    logger.info(f'Statistics Results Written into "{stats_path}"')
+    # # Stats
+    # msg = 'Statistical results:\n'
+    # msg += f"Dataset Size (Number of .npy Files): {total_num_npy}\n"
+    # num_of_label_in_each_group_for_all_models = [np.trim_zeros(sub_array, 'b') \
+    #                                              for sub_array in num_of_label_in_each_group_for_all_models]
+    # msg += "Number of Labels in Each Group:\n"
+    # ratio_of_label = {key: [] for key in group_names}
+    # for group_idx in range(len(label_groups)):
+    #     group_name = group_names[group_idx]
+    #     msg += f'    Group {group_name}:\n'
+    #     sum_label_per_group = 0
+    #     group = num_of_label_in_each_group_for_all_models[group_idx]
+    #     if len(group) != 0:
+    #         for label in range(len(group)):
+    #             label_num = group[label]
+    #             msg += f'        Label-{label}: {label_num}\n'
+    #             sum_label_per_group += label_num
+    #             ratio_of_label[group_name].append(int(group[0]//label_num))
+    #             if label == len(group)-1:
+    #                 msg += f'        Total: {sum_label_per_group}\n'
+    #     else:
+    #         msg += '     The group is empty.\n'
+    #         continue
+    # print('\n'+msg)
+    # stats_path = os.path.join(final_sample_path, 'statistics.txt')
+    # with open(stats_path, "w") as file:
+    #     file.write(msg)
+    # logger.info(f'Statistics Results Written into "{stats_path}"')
 
-    # 3.4 Calculate weight, create weight file and save it (ratio of labels)
-    weight_path = os.path.join(final_sample_path, 'class_weight_for_training.txt')
-    with open(weight_path, "w") as file:
-        json.dump(ratio_of_label, file)
-    logger.info(f'Weights Written into "{weight_path}"')
+    # # 3.4 Calculate weight, create weight file and save it (ratio of labels)
+    # weight_path = os.path.join(final_sample_path, 'class_weight_for_training.txt')
+    # with open(weight_path, "w") as file:
+    #     json.dump(ratio_of_label, file)
+    # logger.info(f'Weights Written into "{weight_path}"')
     
-    logger.info(calculate_title_padding('Dataset generation completed'))
-
-    return final_sample_path       # this is the folder with both files. Alternatively, return [stats_path, weights_path]
+    # logger.info(calculate_title_padding('Dataset generation completed'))
 
 
-def main():
-    # from config file read default values
-    generate_dataset_config = ConfigParser(default_section='generate_dataset')
-    generate_dataset_config.read('CryoDataBotConfig.ini')
-    ratio_t_t_v = (generate_dataset_config.getfloat('user_settings', 'ratio_training'),
-                   generate_dataset_config.getfloat('user_settings', 'ratio_testing'),
-                   generate_dataset_config.getfloat('user_settings', 'ratio_validation'),
-                   )
-    npy_size = generate_dataset_config.getint('user_settings', 'npy_size')
-    extract_stride = generate_dataset_config.getint('user_settings', 'extract_stride')
-    atom_grid_radius = generate_dataset_config.getfloat('user_settings', 'atom_grid_radius')
-    n_workers = generate_dataset_config.getint('user_settings', 'n_workers')
 
-    csv_path = 'CryoDataBot_Data/Metadata/ribosome_res_1-4_001/ribosome_res_1-4_001_Final.csv'
-    group_names = ['secondary_strctures', 'residue_types', 'key_atoms']
+
+
+
+if __name__ == "__main__":
+    # # from config file read default values
+    # generate_dataset_config = ConfigParser(default_section='generate_dataset')
+    # generate_dataset_config.read('CryoDataBotConfig.ini')
+    # ratio_t_t_v = (generate_dataset_config.getfloat('user_settings', 'ratio_training'),
+    #                generate_dataset_config.getfloat('user_settings', 'ratio_testing'),
+    #                generate_dataset_config.getfloat('user_settings', 'ratio_validation'),
+    #                )
+    # npy_size = generate_dataset_config.getint('user_settings', 'npy_size')
+    # extract_stride = generate_dataset_config.getint('user_settings', 'extract_stride')
+    # atom_grid_radius = generate_dataset_config.getfloat('user_settings', 'atom_grid_radius')
+    # n_workers = generate_dataset_config.getint('user_settings', 'n_workers')
+
+    # generate_dataset_config = ConfigParser(default_section='generate_dataset')
+    # generate_dataset_config.read('CryoDataBotConfig.ini')
+    ratio_t_t_v = (.8, .0, .2)
+    npy_size = 64
+    extract_stride = 32
+    atom_grid_radius = 2.
+    n_workers = 4
+
+
+# ----------------------------------------
+    # csv_path = 'final_test_data.csv' # 'CryoDataBot_Data/Metadata/ribosome_res_3-4_2nd_dataset/ribosome_res_3-4_2nd_dataset_Final_goodvof-test.csv'
+    raw_path = 'raw_data' # 'CryoDataBot_Data/Raw'
+    temp_path = 'Temp' # 'CryoDataBot_Data/Temp'
+    sample_path = 'test_data_set' # 'CryoDataBot_Data/CryoREAD_training_with_CryDataBot_dataset'
+    # sample_path = 'CryoDataBot_Data/CryoREAD_training_with_CryDataBot_dataset-test'
+
+    HOME_PATH = '/mnt/e/OneDrive/UCLA_Science/CryoDataBot/CryoREAD_training_with_CryDataBot_dataset/test_data' # '/home/qiboxu/Database'
+    # csv_path = os.path.join(HOME_PATH, csv_path)
+    raw_path = os.path.join(HOME_PATH, raw_path)
+    temp_path = os.path.join(HOME_PATH, temp_path)
+    sample_path = os.path.join(HOME_PATH, sample_path)
+
+# CryoREAD config ----------------------------------------
+    atom_grid_radius = 1.5
+
+    cryoREAD_sugar = ["C5'", "C4'", "O4'", "C3'", "C2'", "C1'", "O2'"]
+    cryoREAD_phosphate = ["O5'", "O3'", "P", "OP1", "OP2"]
+    residues_RNA = ['A', 'G', 'C', 'U']
+    atoms_base_A = ['N9', 'C8', 'N7', 'C5', 'C6', 'N6', 'N1', 'C2', 'N3', 'C4']
+    atoms_base_G = ['N9', 'C8', 'N7', 'C5', 'C6', 'O6', 'N1', 'C2', 'N2', 'N3', 'C4']
+    atoms_base_C = ['N1', 'C2', 'O2', 'N3', 'C4', 'N4', 'C5', 'C6']
+    atoms_base_U = ['N1', 'C2', 'O2', 'N3', 'C4', 'O4', 'C5', 'C6']
+    # atoms_base_T = ['N1', 'C2', 'O2', 'N3', 'C4', 'O4', 'C5', 'C6', 'C7']
+    atoms_nuc_base = list(set(atoms_base_A + atoms_base_G + atoms_base_C + atoms_base_U))
+
+    ratio_t_t_v = [.0, 1.0, 0.0]
+    group_names = ['secondary_strctures']
+
     from backend_helpers.atom_in_models import atoms_sugar_ring, residues_RNA
     label_groups = [
-                   [{'secondary_type': 'Helix', 'residue_type': '', 'atom_type': '', 'element_type': '', 'metal_type': '', 'label': 1},
-                    {'secondary_type': 'Sheet', 'residue_type': '', 'atom_type': '', 'element_type': '', 'metal_type': '', 'label': 2},
-                    {'secondary_type': 'Loop', 'residue_type': '', 'atom_type': '', 'element_type': '', 'metal_type': '', 'label': 3},
-                    {'secondary_type': '', 'residue_type': ','.join(residues_RNA), 'atom_type': '', 'element_type': '', 'metal_type': '', 'label': 4}],
-                   
-                   [{'secondary_type': '', 'residue_type': residues_protein[0], 'atom_type': '', 'element_type': '', 'metal_type': '', 'label': 1},
-                    {'secondary_type': '', 'residue_type': residues_protein[1], 'atom_type': '', 'element_type': '', 'metal_type': '', 'label': 2},
-                    {'secondary_type': '', 'residue_type': residues_protein[2], 'atom_type': '', 'element_type': '', 'metal_type': '', 'label': 3},
-                    {'secondary_type': '', 'residue_type': residues_protein[3], 'atom_type': '', 'element_type': '', 'metal_type': '', 'label': 4},
-                    {'secondary_type': '', 'residue_type': residues_protein[4], 'atom_type': '', 'element_type': '', 'metal_type': '', 'label': 5},
-                    {'secondary_type': '', 'residue_type': residues_protein[5], 'atom_type': '', 'element_type': '', 'metal_type': '', 'label': 6},
-                    {'secondary_type': '', 'residue_type': residues_protein[6], 'atom_type': '', 'element_type': '', 'metal_type': '', 'label': 7},
-                    {'secondary_type': '', 'residue_type': residues_protein[7], 'atom_type': '', 'element_type': '', 'metal_type': '', 'label': 8},
-                    {'secondary_type': '', 'residue_type': residues_protein[8], 'atom_type': '', 'element_type': '', 'metal_type': '', 'label': 9},
-                    {'secondary_type': '', 'residue_type': residues_protein[9], 'atom_type': '', 'element_type': '', 'metal_type': '', 'label': 10},
-                    {'secondary_type': '', 'residue_type': residues_protein[10], 'atom_type': '', 'element_type': '', 'metal_type': '', 'label': 11},
-                    {'secondary_type': '', 'residue_type': residues_protein[11], 'atom_type': '', 'element_type': '', 'metal_type': '', 'label': 12},
-                    {'secondary_type': '', 'residue_type': residues_protein[12], 'atom_type': '', 'element_type': '', 'metal_type': '', 'label': 13},
-                    {'secondary_type': '', 'residue_type': residues_protein[13], 'atom_type': '', 'element_type': '', 'metal_type': '', 'label': 14},
-                    {'secondary_type': '', 'residue_type': residues_protein[14], 'atom_type': '', 'element_type': '', 'metal_type': '', 'label': 15},
-                    {'secondary_type': '', 'residue_type': residues_protein[15], 'atom_type': '', 'element_type': '', 'metal_type': '', 'label': 16},
-                    {'secondary_type': '', 'residue_type': residues_protein[16], 'atom_type': '', 'element_type': '', 'metal_type': '', 'label': 17},
-                    {'secondary_type': '', 'residue_type': residues_protein[17], 'atom_type': '', 'element_type': '', 'metal_type': '', 'label': 18},
-                    {'secondary_type': '', 'residue_type': residues_protein[18], 'atom_type': '', 'element_type': '', 'metal_type': '', 'label': 19},
-                    {'secondary_type': '', 'residue_type': residues_protein[19], 'atom_type': '', 'element_type': '', 'metal_type': '', 'label': 20},
-                    {'secondary_type': '', 'residue_type': residues_RNA[0], 'atom_type': '', 'element_type': '', 'metal_type': '', 'label': 21},
-                    {'secondary_type': '', 'residue_type': residues_RNA[1], 'atom_type': '', 'element_type': '', 'metal_type': '', 'label': 22},
-                    {'secondary_type': '', 'residue_type': residues_RNA[2], 'atom_type': '', 'element_type': '', 'metal_type': '', 'label': 23},
-                    {'secondary_type': '', 'residue_type': residues_RNA[3], 'atom_type': '', 'element_type': '', 'metal_type': '', 'label': 24}],
+        # [{'secondary_type': '', 'residue_type': ','.join(residues_RNA), 'atom_type': ','.join(cryoREAD_sugar), 'element_type': '', 'metal_type': '', 'label': 1},
+        #  {'secondary_type': '', 'residue_type': ','.join(residues_RNA), 'atom_type': ','.join(cryoREAD_phosphate), 'element_type': '', 'metal_type': '', 'label': 2},
+        #  {'secondary_type': '', 'residue_type': ','.join(residues_RNA), 'atom_type': ','.join(atoms_nuc_base), 'element_type': '', 'metal_type': '', 'label': 3}],
+        # [{'secondary_type': '', 'residue_type': 'A', 'atom_type': ','.join(atoms_base_A), 'element_type': '', 'metal_type': '', 'label': 1},
+        #  {'secondary_type': '', 'residue_type': 'G', 'atom_type': ','.join(atoms_base_G), 'element_type': '', 'metal_type': '', 'label': 2},
+        #  {'secondary_type': '', 'residue_type': 'C', 'atom_type': ','.join(atoms_base_C), 'element_type': '', 'metal_type': '', 'label': 3},
+        #  {'secondary_type': '', 'residue_type': 'U', 'atom_type': ','.join(atoms_base_U), 'element_type': '', 'metal_type': '', 'label': 4}],
 
-                   [{'secondary_type': '', 'residue_type': '', 'atom_type': 'CA', 'element_type': '', 'metal_type': '', 'label': 1},
-                    {'secondary_type': '', 'residue_type': '', 'atom_type': 'P', 'element_type': '', 'metal_type': '', 'label': 2},
-                    {'secondary_type': '', 'residue_type': '', 'atom_type': ','.join(atoms_sugar_ring), 'element_type': '', 'metal_type': '', 'label': 3},],
-                  ]
-    raw_path = 'CryoDataBot_Data/Raw'
-    temp_path = 'CryoDataBot_Data/Temp'
-    sample_path = 'CryoDataBot_Data/Training'
+        [{'secondary_type': 'Helix', 'residue_type': '', 'atom_type': '', 'element_type': '', 'metal_type': '', 'label': 1},
+        {'secondary_type': 'Sheet', 'residue_type': '', 'atom_type': '', 'element_type': '', 'metal_type': '', 'label': 2},
+        {'secondary_type': 'Loop', 'residue_type': '', 'atom_type': '', 'element_type': '', 'metal_type': '', 'label': 3},
+        {'secondary_type': '', 'residue_type': ','.join(residues_RNA), 'atom_type': '', 'element_type': '', 'metal_type': '', 'label': 4}],
+
+                #    [{'secondary_type': '', 'residue_type': '', 'atom_type': 'CA', 'element_type': '', 'metal_type': '', 'label': 1},
+                #     {'secondary_type': '', 'residue_type': '', 'atom_type': 'P', 'element_type': '', 'metal_type': '', 'label': 2},
+                #     {'secondary_type': '', 'residue_type': '', 'atom_type': ','.join(atoms_sugar_ring), 'element_type': '', 'metal_type': '', 'label': 3},],
+          ]
+
+    csv_path = '/home/qiboxu/MyProject/test/test_dataset_metadata1.csv'
+    raw_path = '/home/qiboxu/Database/CryoDataBot_Data/Test-cryodatabot'
 
     label_maps(label_groups=label_groups,
                group_names=group_names,
                metadata_path=csv_path,
                raw_path=raw_path,
-               temp_sample_path=temp_path, 
+               temp_sample_path=temp_path,
                sample_path=sample_path,
                ratio_t_t_v=ratio_t_t_v,
                npy_size=npy_size,
                extract_stride=extract_stride,
                atom_grid_radius=atom_grid_radius,
                n_workers=n_workers,
+               generate_test=True,
                )
-
-
-if __name__ == "__main__":
-    main()

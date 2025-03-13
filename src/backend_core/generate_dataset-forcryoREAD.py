@@ -84,12 +84,11 @@ def data_to_npy(label_groups: list,
     # Compute the grid parameters for splitting the volume
     start_coords, n_samples = compute_grid_params(box_min, box_max, map_size,
                                                   npy_size)
-                                                  
     # Creating labels
     helices, sheets = protein_2nd_structure_lists(structure)
     for group in label_groups:
         # initialize datastruct for every group
-        group_data = np.zeros(map_size, np.int8)  
+        group_data = np.zeros(map_size, np.int8)
         dis_array = None
         label_coords = None
 
