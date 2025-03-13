@@ -793,6 +793,8 @@ def label_maps(label_groups: list[dict[str: str|int]],
     
     logger.info(calculate_title_padding('Dataset generation completed'))
 
+    return final_sample_path       # this is the folder with both files. Alternatively, return [stats_path, weights_path]
+
 
 def main():
     # from config file read default values

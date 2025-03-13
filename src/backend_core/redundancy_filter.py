@@ -11,6 +11,7 @@ from tqdm import tqdm
 import sys
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), os.pardir)))
 from backend_helpers.helper_funcs import calculate_title_padding
+from backend_helpers.file_utils import has_entries
 
 
 def filter_csv(input_csv, q_threshold: float = 0.0, uni_threshold: float = 1.0):
@@ -18,7 +19,7 @@ def filter_csv(input_csv, q_threshold: float = 0.0, uni_threshold: float = 1.0):
     :param file_path: path to .csv file
     :param uni_threshold: percentage uniprot similarity
     :param uni_threshold: q_score threshold
-    """
+    """    
     save_path = os.path.dirname(input_csv)
 
     # configure logger
@@ -31,6 +32,11 @@ def filter_csv(input_csv, q_threshold: float = 0.0, uni_threshold: float = 1.0):
     file_hdlr.setFormatter(logging.Formatter('%(asctime)s %(levelname)s: %(message)s', datefmt='%m/%d/%Y %I:%M:%S %p'))
     logger.addHandler(std_out_hdlr)
     logger.addHandler(file_hdlr)
+
+    # check if the input file has entries
+    if not has_entries(input_csv):
+        logger.info("Invalid metadata CSV: No data rows found.")
+        return
 
     logger.info(calculate_title_padding('Filtering EMDB Entries'))
     logger.info(f'Filtering Sample Information with Q_Score = {q_threshold} and Similarity_Threshold = {uni_threshold*100}%')
@@ -317,18 +323,29 @@ def first_filter(input_csv_path: str, output_dir:str):
     grouped_proteins_df = pd.concat([nonNan_xRefAlphaFold])
     #print(grouped_proteins_df)
     ##### ======= DEBUGGING =======
-    grouped_proteins_df = pd.concat([grouped_proteins.get_group(g) for g in grouped_proteins.groups], keys=grouped_proteins.groups.keys())
-    #print("after concat")
-    #print(grouped_proteins_df)
-    grouped_proteins_df.reset_index(level=0, inplace=True)
-    grouped_proteins_df.rename(columns={'level_0': 'group'}, inplace=True)
-    grouped_proteins_df = grouped_proteins_df.sort_values(by=['group'])
+    # # (NOW FIXED) bug: breaks here, most likely since grouped_proteins.groups might be empty. added 2 print statements
+    # print("Grouped Proteins Groups:", grouped_proteins.groups)
+    # print("List of DataFrames to Concatenate:", [grouped_proteins.get_group(g) for g in grouped_proteins.groups])
+    if grouped_proteins.groups:
+        grouped_proteins_df = pd.concat([grouped_proteins.get_group(g) for g in grouped_proteins.groups], keys=grouped_proteins.groups.keys())
+        #print("after concat")
+        #print(grouped_proteins_df)
+        grouped_proteins_df.reset_index(level=0, inplace=True)
+        grouped_proteins_df.rename(columns={'level_0': 'group'}, inplace=True)
+        grouped_proteins_df = grouped_proteins_df.sort_values(by=['group'])
+    else:
+        grouped_proteins_df = pd.DataFrame()  # Create an empty DataFrame if no groups exist
+        print("Warning: No groups found in grouped_proteins")
     
     grouped_proteins_alpha = nonNan_xRefAlphaFold.groupby("xref_ALPHAFOLD")
-    grouped_proteins_df_alpha = pd.concat([grouped_proteins_alpha.get_group(g) for g in grouped_proteins_alpha.groups], keys=grouped_proteins_alpha.groups.keys())
-    grouped_proteins_df_alpha.reset_index(level=0, inplace=True)
-    grouped_proteins_df_alpha.rename(columns={'level_0': 'group'}, inplace=True)
-    grouped_proteins_df_alpha = grouped_proteins_df_alpha.sort_values(by=['group'])
+    if grouped_proteins_alpha.groups:
+        grouped_proteins_df_alpha = pd.concat([grouped_proteins_alpha.get_group(g) for g in grouped_proteins_alpha.groups], keys=grouped_proteins_alpha.groups.keys())
+        grouped_proteins_df_alpha.reset_index(level=0, inplace=True)
+        grouped_proteins_df_alpha.rename(columns={'level_0': 'group'}, inplace=True)
+        grouped_proteins_df_alpha = grouped_proteins_df_alpha.sort_values(by=['group'])
+    else:
+        grouped_proteins_df_alpha = pd.DataFrame()
+        print("Warning: No groups found in grouped_proteins_alpha")
     
     grouped_proteins_df.to_csv(os.path.join(firstFilter_Path,"same_xRef.csv"), index=False)
     
@@ -416,9 +433,9 @@ def main():
     redundancy_filter_config.read('CryoDataBotConfig.ini')
     q_threshold = redundancy_filter_config.getfloat('user_settings', 'q_threshold')
     uni_threshold = redundancy_filter_config.getfloat('user_settings', 'uni_threshold')
-    matadata_path = 'CryoDataBot_Data/Metadata/ribosome_res_1-4_001/ribosome_res_1-4_001.csv'
+    metadata_path = 'JUNKSTUFF/test/download_file_005/download_file_005_full.csv'
 
-    filter_csv(input_csv=matadata_path, 
+    filter_csv(input_csv=metadata_path, 
                q_threshold=q_threshold, 
                uni_threshold=uni_threshold, 
                )
