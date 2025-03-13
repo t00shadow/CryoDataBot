@@ -1,0 +1,11 @@
+02/12/2025 05:11:04 PM INFO: --------------------------------------------------Fetching Sample Information--------------------------------------------------
+02/12/2025 05:11:04 PM INFO: Query: spliceosome AND resolution:[0 TO 0.2]
+02/12/2025 05:11:04 PM INFO: Fetching EMDB Search Data...
+02/12/2025 05:11:05 PM INFO: Successfully Fetched EMDB Search Data
+02/12/2025 05:11:05 PM INFO: 
+02/12/2025 05:11:05 PM INFO: Fetching Q-score, atom inclusion, and recommended_contour_level...
+02/12/2025 05:11:05 PM WARNING: !!! Unexpected Error Occurred while Fetching Q-score and atom_inclusion !!!: not enough values to unpack (expected 3, got 0)
+02/12/2025 05:11:05 PM WARNING: Error may Occur due to Network Problems, Please Try Again Later
+02/12/2025 05:11:05 PM WARNING: Missing Columns in CSV File: Q-score, atom_inclusion, recommended_contour_level, which may be Required for CSV Refinement
+02/12/2025 05:11:05 PM INFO: -----------------------------------------------Successfully Fetched Sample Info------------------------------------------------
+02/12/2025 05:11:05 PM INFO: 

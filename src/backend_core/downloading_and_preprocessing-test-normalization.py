@@ -641,14 +641,14 @@ if __name__ == '__main__':
 
     # matadata_path = 'CryoDataBot_Data/Metadata/ribosome_res_1-4_001/ribosome_res_1-4_001_Final.csv'
 
-    csv_path = 'final_test_data.csv' # 'CryoDataBot_Data/Metadata/ribosome_res_3-4_2nd_dataset/ribosome_res_3-4_2nd_dataset_Final_goodvof-test.csv'
+    csv_path = 'final_test_dataTEST.csv' # 'CryoDataBot_Data/Metadata/ribosome_res_3-4_2nd_dataset/ribosome_res_3-4_2nd_dataset_Final_goodvof-test.csv'
     raw_path = 'raw_data' # 'CryoDataBot_Data/Raw'
     temp_path = 'Temp' # 'CryoDataBot_Data/Temp'
     sample_path = 'test_data_set' # 'CryoDataBot_Data/CryoREAD_training_with_CryDataBot_dataset'
     # sample_path = 'CryoDataBot_Data/CryoREAD_training_with_CryDataBot_dataset-test'
 
     # HOME_PATH = '/mnt/d/Database/CryoDataBot_for_cryoREAD/'
-    HOME_PATH = '/mnt/e/OneDrive/UCLA_Science/CryoDataBot/CryoREAD_training_with_CryDataBot_dataset/test_data' # '/home/qiboxu/Database'
+    HOME_PATH = '/mnt/e/OneDrive/UCLA_Science/CryoDataBot/CryoREAD_training_with_CryDataBot_dataset/test_data1' # '/home/qiboxu/Database'
     csv_path = os.path.join(HOME_PATH, csv_path)
     raw_path = os.path.join(HOME_PATH, raw_path)
     temp_path = os.path.join(HOME_PATH, temp_path)

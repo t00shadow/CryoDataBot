@@ -334,7 +334,7 @@ def main():
     fetch_classification = fetch_sample_info_config.getboolean('user_settings', 'fetch_classification')
     rows = fetch_sample_info_config.getint('user_settings', 'rows')
 
-    path = search_emdb(query="ribosome AND resolution:[1 TO 4}",
+    path = search_emdb(query="ribosome AND dog AND resolution:[0 TO 0.1}",
                        file_name='ribosome_res_1-4',
                        save_path='CryoDataBot_Data/Metadata',
                        fetch_qscore=fetch_qscore,

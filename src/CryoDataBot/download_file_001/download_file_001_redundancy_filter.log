@@ -1,0 +1,4 @@
+02/12/2025 05:11:27 PM INFO: ----------------------------------------------------Filtering EMDB Entries-----------------------------------------------------
+02/12/2025 05:11:27 PM INFO: Filtering Sample Information with Q_Score = 0.0 and Similarity_Threshold = 10000%
+02/12/2025 05:11:27 PM INFO: 
+02/12/2025 05:11:27 PM INFO: Going Through Q-Score Filter - Removing Entries with Q-score Less Than or Equal to 0.0
