@@ -60,3 +60,20 @@ else:
 import keyword
 print(keyword.iskeyword('for'))
 print(keyword.iskeyword('file_utils'))
+
+
+
+from PyQt5.QtWidgets import QApplication, QTreeWidget, QTreeWidgetItem
+
+app = QApplication([])
+
+tree = QTreeWidget()
+tree.setColumnCount(4)  # 4 columns in total
+tree.setHeaderLabels(["Label", "Column 1", "Column 2", "Column 3"])
+
+item1 = QTreeWidgetItem(tree, ["Item 1"])  # Only first column
+item2 = QTreeWidgetItem(tree, ["Item 2", "Data 1", "Data 2"])  # Partial fill
+item3 = QTreeWidgetItem(tree, ["Item 3", "Data 1", "Data 2", "Data 3"])  # Full row
+
+tree.show()
+app.exec_()

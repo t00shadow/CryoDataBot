@@ -724,7 +724,7 @@ class MainWindow(qtw.QMainWindow):    # Make sure the root widget/class is the r
     def add_group(self):
         """Add a new group to the tree widget (top-level item, editable)."""
         group_name = f"Group {self.ui.treeWidget_p4.topLevelItemCount() + 1}"
-        group_item = qtw.QTreeWidgetItem([group_name, "", ""])
+        group_item = qtw.QTreeWidgetItem([group_name])      # no need to do [group_name, "", "", "", ""] since the other columns are blank
         group_item.setFlags(group_item.flags() | qtc.Qt.ItemIsEditable)  # Make the group item editable
         self.ui.treeWidget_p4.addTopLevelItem(group_item)
 
@@ -734,7 +734,7 @@ class MainWindow(qtw.QMainWindow):    # Make sure the root widget/class is the r
     def add_group_w_del_btn(self):
         """Add a new group to the tree widget (top-level item, editable)."""
         group_name = f"Group {self.ui.treeWidget_p4.topLevelItemCount() + 1}"
-        group_item = qtw.QTreeWidgetItem([group_name, "", ""])
+        group_item = qtw.QTreeWidgetItem([group_name])      # no need to do [group_name, "", "", "", ""] since the other columns are blank
         group_item.setFlags(group_item.flags() | qtc.Qt.ItemIsEditable)  # Make the group item editable
         for i in range (1, 4):                                                  # Make the other columns in group row uneditable
             self.ui.treeWidget_p4.setItemDelegateForColumn(i, NoEditDelegate(self))
@@ -762,7 +762,8 @@ class MainWindow(qtw.QMainWindow):    # Make sure the root widget/class is the r
         "    border: 2px solid transparent;\n"
         "}")
         group_delbtn.setCursor(qtg.QCursor(qtc.Qt.PointingHandCursor))
-        group_delbtn.clicked.connect(self.delete_group)
+        # group_delbtn.clicked.connect(self.delete_group)
+        group_delbtn.clicked.connect(lambda: self.delete_btn_clicked("group"))
         self.ui.treeWidget_p4.setItemWidget(group_item, 4, group_delbtn)
         self.ui.treeWidget_p4.itemClicked.connect(lambda: print("CASE\n    OH"))
 
@@ -782,12 +783,26 @@ class MainWindow(qtw.QMainWindow):    # Make sure the root widget/class is the r
                 group_item = selected_item.parent()
 
             label_name = f"Label {group_item.childCount() + 1}"
-            label_item = qtw.QTreeWidgetItem([label_name, "", ""])
+            label_item = qtw.QTreeWidgetItem([label_name])     # no need to do [label_name, "", "", "", ""] since the other columns are blank
             label_item.setFlags(label_item.flags() | qtc.Qt.ItemIsEditable)  # Allow editing of the label item
             group_item.addChild(label_item)
             group_item.setExpanded(True)  # Automatically expand the group when a label is added
 
-    # label here refers to a label item in the labels tree not a QLabel
+
+    # =============================
+    # Hierarchy:
+    # group_item
+    #   label_item
+    #     -label name
+    #     -secondary struct
+    #     -residues
+    #     -atoms
+    #     -delete button
+    #  label_item
+    #  ...
+    # group_item
+    # ...
+    # =============================
     def add_label_custom(self):
         """Add a label (subitem, editable) to the selected group or the parent group of the selected label."""
         selected_item = self.ui.treeWidget_p4.currentItem()    # to make this code reusable (and possible to move into a separate file, get the parent or the current widget, however that;s related to perhaps have to pass in self.smth else. alternatively leave it here but break up fxns into mutiple fxns with helpers where possible)
@@ -806,24 +821,25 @@ class MainWindow(qtw.QMainWindow):    # Make sure the root widget/class is the r
             group_item = selected_item.parent()
 
         label_name = f"Label {group_item.childCount() + 1}"
-        # label_item = qtw.QTreeWidgetItem([label_name, "", ""])
-        # label_item.setFlags(label_item.flags() | qtc.Qt.ItemIsEditable)  # Allow editing of the label item
-        child_item = qtw.QTreeWidgetItem(group_item)
-        child_item.setFlags(child_item.flags() | qtc.Qt.ItemIsEditable)  # DISABLE this and add a custom line edit with a completer
-        group_item.addChild(child_item)
+        label_name_widget = qtw.QLabel(label_name)
+        # label_name_widget.setFlags(label_name_widget.flags() | qtc.Qt.ItemIsEditable)  # Allow editing of the label item
+        
+        label_item = qtw.QTreeWidgetItem(group_item, [label_name])
+        label_item.setFlags(label_item.flags() | qtc.Qt.ItemIsEditable)  # DISABLE this and add a custom line edit with a completer
+        group_item.addChild(label_item)
 
-        self.ui.treeWidget_p4.setItemWidget(child_item, 0, qtw.QLabel(label_name))
+        # self.ui.treeWidget_p4.setItemWidget(label_item, 0, label_name_widget)
         secondary_struct_combo = LabelComboBox_v2()
         secondary_struct_combo.addItems(['', 'protein - all', 'protein - helix', 'protein - sheet', 'protein - loop', 'RNA', 'DNA'])
         secondary_struct_combo.currentTextChanged.connect(lambda: print("item changed"))
-        self.ui.treeWidget_p4.setItemWidget(child_item, 1, secondary_struct_combo)
+        self.ui.treeWidget_p4.setItemWidget(label_item, 1, secondary_struct_combo)
         # residues_combo = LabelComboBox(placeholder_text="Choose residue(s)")
         residues_combo = LabelComboBox_v2()
         residues_combo.addItems(['', 'All', 'A', 'T', 'C', 'G', 'U', 'alanine', 'arginine', 'asparagine', 'aspartic acid', 'cysteine', 'glutamic acid', 'glutamine', 'glycine', 'histidine', 'isoleucine', 'leucine', 'lysine', 'methionine', 'phenylalanine', 'proline', 'serine', 'threonine', 'tryptophan', 'tyrosine', 'valine'])
-        self.ui.treeWidget_p4.setItemWidget(child_item, 2, residues_combo)
+        self.ui.treeWidget_p4.setItemWidget(label_item, 2, residues_combo)
         atoms_lineedit = LabelLineEdit.CustomLineEdit(['All', 'C', 'N', 'P', 'O', 'H', 'Metals?'])
         atoms_lineedit.setPlaceholderText("Type in atoms")    # TODO: consider adding this to the customlineedit constructor
-        self.ui.treeWidget_p4.setItemWidget(child_item, 3, atoms_lineedit)
+        self.ui.treeWidget_p4.setItemWidget(label_item, 3, atoms_lineedit)
         label_delbtn = qtw.QPushButton()
         label_delbtn.setIcon(qtg.QIcon(r"GUI_custom_widgets/svgs/clear_inverse-svgrepo-com.svg"))
         label_delbtn.setFixedWidth(16)
@@ -844,12 +860,12 @@ class MainWindow(qtw.QMainWindow):    # Make sure the root widget/class is the r
         "}")
         label_delbtn.setCursor(qtg.QCursor(qtc.Qt.PointingHandCursor))
         # label_delbtn.clicked.connect(self.delete_label)
-        label_delbtn.clicked.connect(self.on_click)
-        self.ui.treeWidget_p4.setItemWidget(child_item, 4, label_delbtn)
+        label_delbtn.clicked.connect(lambda: self.delete_btn_clicked("label"))
+        self.ui.treeWidget_p4.setItemWidget(label_item, 4, label_delbtn)
         
-        # group_item.addChild(label_item)
+        # group_item.addChild(label_name_widget)
         group_item.setExpanded(True)  # Automatically expand the group when a label is added
-        self.ui.treeWidget_p4.setCurrentItem(child_item)
+        self.ui.treeWidget_p4.setCurrentItem(label_item)
 
         label = self.label_dict_template.copy()   # delete this later and make a separate function. More optimal way is to retrieve only when ready to generate datasets. But maybe want some method to save sessions/history later idk
         label['secondary_type'] = "obunga"
@@ -885,35 +901,37 @@ class MainWindow(qtw.QMainWindow):    # Make sure the root widget/class is the r
                 group_item = selected_item.parent()
 
             label_name = f"Label {group_item.childCount() + 1}"
-            label_item = qtw.QTreeWidgetItem([label_name, "", ""])
+            label_item = qtw.QTreeWidgetItem([label_name])
             label_item.setFlags(label_item.flags() | qtc.Qt.ItemIsEditable)  # Allow editing of the label item
             group_item.addChild(label_item)
             group_item.setExpanded(True)  # Automatically expand the group when a label is added
 
 
 ##### discord style delete button, should move these into a separate file (not just the popup dialog but the delete button too. Literally just have to modify SANDBOX_temp.py's mainwindow to just a button)
-    def on_click(self):
+    def delete_btn_clicked(self, sender_type):
         # Detect if Shift key is held
         if qtw.QApplication.keyboardModifiers() == qtc.Qt.ShiftModifier:
-            self.delete_without_confirmation()
+            self.delete_without_confirmation(sender_type)
         else:
-            self.open_popup()
+            self.open_delete_popup(sender_type)
 
-    def open_popup(self):
+    # delete confirmation popup
+    def open_delete_popup(self, sender_type):
         """Show the popup dialog."""
-        dialog = PopupDialog(self, self.delete_label)    # passing fxn as a parameter. Also, changed self.dialog to dialog since not accessed outside of this method.
+        if sender_type == "group":
+            dialog = PopupDialog(self, self.delete_group)
+        else:   # elif sender_type == "label":
+            dialog = PopupDialog(self, self.delete_label)
         dialog.setWindowModality(False)  # Non-modal, allowing interaction with the main window
         dialog.show()
 
-    def delete_without_confirmation(self):      # need to distinguish between gorups and labels (idea: check sender with self.sender?). Easy fix is making 2 dif fxns but thats kinda stupid
-        # Bypass confirmation dialog and delete directly
-        del_button = self.sender()
-        print(del_button)
-        print(type(del_button))
-        print(del_button.parent())
-
+    # Bypass confirmation dialog and delete
+    def delete_without_confirmation(self, sender_type):
         print("Deleted without confirmation!")
-        self.delete_label()
+        if sender_type == "group":
+            self.delete_group()
+        else:   # elif sender_type == "label":        
+            self.delete_label()
 
 
 
