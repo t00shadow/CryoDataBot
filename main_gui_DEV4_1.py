@@ -870,7 +870,9 @@ class MainWindow(qtw.QMainWindow):    # Make sure the root widget/class is the r
         label = self.label_dict_template.copy()   # delete this later and make a separate function. More optimal way is to retrieve only when ready to generate datasets. But maybe want some method to save sessions/history later idk
         label['secondary_type'] = "obunga"
         self.labels.append(label)    # lol its not even right
-        print(self.labels)
+        print(self.labels)           #! not as inefficient as it seems, since it only appends stuff but this makes deletion unnecessarily complicated. either assign each entry a unique id different from its name (hidden identifier)  orrrr just fetch the values only when the "generate dataset(s)" buttion is clicked. If any place needs the current values, just fetch from the widgets. Qt doesnt rly use the MVC model. it kinda has view and data combined in its widgets
+        print(f"HERE ASKDFJASLDKFJASLDKFJASLDKFJAL {self.ui.treeWidget_p4.columnCount()}")   #! [DELETE ME LATER]
+
 
     def showDeleteButton(self):
         pass

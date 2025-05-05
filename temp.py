@@ -1,3 +1,24 @@
+
+# how to dim out code blocks (effectively toggling them off)
+if False:
+    do_something()  # This is dimmed in Python in most themes
+
+
+SHOW_FEATURE = False
+if SHOW_FEATURE:
+    do_something()  # This will NOT be dimmed
+
+
+
+
+import numpy as np
+map_diag = np.array([0.5, 1.2, 0.7, 2.5, 0.2])
+print(map_diag)
+map_diag = np.where(map_diag >= 1, 1, 0)
+print(map_diag)
+
+assert(False)
+
 from pathlib import Path
 import os
 
