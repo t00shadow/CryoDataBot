@@ -21,9 +21,10 @@ from PyQt5.QtCore import QTextCodec
 codec = QTextCodec.codecForName("UTF-8")
 
 # from guiskin_DEV2_alt import Ui_MainWindow    # need the "Ui_" prefix
-from guiskin_DEV2_alt_TEMP_DEMO_VERSION import Ui_MainWindow
-from guiskin_DEV3 import Ui_MainWindow
-#from guiskin import Ui_MainWindow
+# from guiskin_DEV2_alt_TEMP_DEMO_VERSION import Ui_MainWindow
+# from guiskin_DEV3 import Ui_MainWindow           #! last used on 5/5/25 before 4:52 am. This version is STABLE. Use this if run into issues
+from guiskin_DEV3_1 import Ui_MainWindow
+#from guiskin import Ui_MainWindow                 # will become this eventually after renaming stuff
 
 import GUI_custom_widgets.z_Tag_main_alt_allcode_v2 as TTEwidget2
 from GUI_custom_widgets.LabelComboBox import LabelComboBox
@@ -39,6 +40,8 @@ from my_logger import Handler
 from backend_core import fetch_sample_info, redundancy_filter, downloading_and_preprocessing_NO_GPU2, generate_dataset   #! deleted cupy, actually works
 # from backend_core import fetch_sample_info, redundancy_filter, downloading_and_preprocessing_NO_GPU, generate_dataset
 # from backend_core import fetch_sample_info, redundancy_filter, downloading_and_preprocessing_NO_GPU_newversion, generate_dataset    #ignore the naming scheme between ..._newversion and ...2
+
+from backend_core import preview_search
 
 from src.frontend_gui_assets.threading.test1_v2 import Worker
 # from src.frontend_gui_assets.threading.test2_v2 import Worker
@@ -112,6 +115,8 @@ class MainWindow(qtw.QMainWindow):    # Make sure the root widget/class is the r
         self.ui.pushButton_p1_3.clicked.connect(self.gen_dataset_quick)
         #? Fetch Metadata (page 2) - Step 1
         self.ui.pushButton_p2.clicked.connect(lambda: self.browse_folder(page="step1"))
+        self.ui.pushButton_6.clicked.connect(self.copy_example_1)
+        self.ui.pushButton_3.clicked.connect(self.copy_example_2)
         self.ui.pushButton_p2_2.clicked.connect(self.fetch_sample_info)
         #? Download and Preprocess (page 3) - Step 2 (step 3 abstracted away)
         self.ui.pushButton_p3.clicked.connect(lambda: self.browse_folder(page="step2"))
@@ -196,7 +201,7 @@ class MainWindow(qtw.QMainWindow):    # Make sure the root widget/class is the r
         # self.ui.lineEdit_12.textEdited.connect(self.ui.statusbar.showMessage)
         # self.previewQueryBtn = self.ui.validateQuery_btn
         self.previewQueryBtn = self.ui.pushButton_16
-        self.previewQueryBtn.clicked.connect(lambda: self.ui.statusbar.showMessage("query (preview): " + self.parseQuery(page="step1")))
+        self.previewQueryBtn.clicked.connect(self.preview_search)
 
 
         ### left panel buttons (for splitter behavior)
@@ -233,12 +238,13 @@ class MainWindow(qtw.QMainWindow):    # Make sure the root widget/class is the r
         self.ui.logsWidget = None
         '''
 
-        ### TEMPORARY, THESE ARE COSMETIC CHANGES FOR TAKING NICER PICTURES
+        ### COSMETIC TWEAKS (some can be done in designer, some are code only, like setCursorWidth, and some are just easier to do here)
         # =====================================================
         self.ui.label_18.setText("")
         self.ui.plainTextEdit_2.setPlainText("\nThis page is still a work in progress. Migrating some stuff here.\nLikely will add old sessions here (similar to ChimeraX)")
         self.ui.plainTextEdit_2.setStyleSheet("border:none")
-        self.ui.textEdit.setText("query preview (temporarily disabled)")
+        self.ui.textEdit.setText("Query Preview")
+        self.ui.textEdit.setReadOnly(True)
         self.ui.sidebtn_5.setHidden(True)    # holy shit setHidden is so much more convenient
         self.ui.sidebtn_6.setHidden(True)
         self.ui.B2_queryBox.layout().removeWidget(self.ui.widget_7)
@@ -253,11 +259,24 @@ class MainWindow(qtw.QMainWindow):    # Make sure the root widget/class is the r
         # self.ui.baseLayer_3.setTitle("Preprocessing")
         self.ui.B_refineCSV.setTitle("Filters")
         self.ui.pushButton_p3_4.setText("Preprocess")
-        self.ui.pushButton_p2_2.setText("Search")
+        self.ui.pushButton_p2_2.setText("Download Search")
         self.ui.statusbar.showMessage("example status bar message")
+
+        # hide cursors (setting text selectable by keyboard flag makes the cursor show up, so hide it)
+        self.ui.textBrowser_p1.setCursorWidth(0)
+        self.ui.textBrowser_p2_2.setCursorWidth(0)
+        self.ui.textEdit_2.setCursorWidth(0)
+        self.ui.textEdit_6.setCursorWidth(0)
+        
+        # change font. slightly better than qstylesheet approach since setStyleSheet would overwrite existing style sheet. tho could fetch existing one and append to it i guess
+        font = self.ui.label_p2.font()
+        font.setPointSize(12)
+        self.ui.label_p2.setFont(font)
 
         # self.ui.lineEdit_p1_2.findChild(qtw.QToolButton).setIcon(qtg.QIcon(r"GUI_custom_widgets/svgs/clear_small-svgrepo-com.svg"))
         self.ui.lineEdit_p3_2.findChild(qtw.QToolButton).setIcon(qtg.QIcon(r"GUI_custom_widgets/svgs/clear_small-svgrepo-com.svg"))
+        self.ui.pushButton_6.setIcon(qtg.QIcon(r"GUI_custom_widgets/svgs/copy-svgrepo-com.svg"))
+        self.ui.pushButton_3.setIcon(qtg.QIcon(r"GUI_custom_widgets/svgs/copy-svgrepo-com.svg"))
 
         self.ui.qScoreDoubleSpinBox.setDecimals(3)   #figured this out my making a new form in qtdesigner with just 2 spinboxes (one w/ the default 2 decimal places and one changed to 3, then looked at Form > View python code)
         # ...setMaximum(...) was done in the guiskin file, hence why it's not here
@@ -486,6 +505,48 @@ class MainWindow(qtw.QMainWindow):    # Make sure the root widget/class is the r
     # def updateStatusBar(self, string):
     #     self.ui.statusBar.showMessage(string)
 
+    def copy_example_1(self):
+        text = self.ui.textEdit_2.toPlainText()
+        stripped_text = text.lstrip("ex.").strip()
+        qtw.QApplication.clipboard().setText(stripped_text)
+        self.ui.statusbar.showMessage(f"Copied example 1.")
+
+
+    def copy_example_2(self):
+        text = self.ui.textEdit_6.toPlainText()
+        stripped_text = text.lstrip("ex.").strip()
+        qtw.QApplication.clipboard().setText(stripped_text)
+        self.ui.statusbar.showMessage(f"Copied example 2.")
+
+
+    #& THIS is a better way to disable/enable buttons, use the sender() method instead of hardcoding buttons. Slowly refactor the other functions. Do one at a time and test them.
+    def preview_search(self):
+        # no need to check if query is valid b4 hand, the preview function will just say 0 results found
+        sender = self.sender()       # sender is a QPushButton
+        # print(f"Clicked: {repr(sender)}")
+        sender.setDisabled(True)
+        # preview_search.preview_emdb(self.userInputQuery.text())  # unthreaded version, bricks the gui for a second or two, it's noticeable
+        query = self.userInputQuery.text()
+        self.worker = Worker(preview_search.preview_emdb, query)
+        self.worker.result_signal.connect(lambda preview_result: self.handle_preview_result(result=preview_result, sender=sender))
+        self.worker.start()
+        self.ui.statusbar.showMessage(f"Search preview started.")
+
+    # Helper fxn
+    def handle_preview_result(self, result, sender):
+        self.ui.statusbar.showMessage(f"Search preview finished.")
+        sender.setEnabled(True)
+        result_string = ""
+        result_string += f"<b>Query:</b> {result['query']}<br>"
+        result_string += f"<b>Total Search Hits:</b> {result['hitCount']}<br>"
+        result_string += "<b>Preview of First 10 Entries:</b><br>"
+        for i, entry in enumerate(result['preview'], start=1):
+            result_string += (
+                f"<span style='color:slateblue;'>{i}.</span> "
+                f"{entry['emdb_id']}: {entry['title']}, resolution: {entry['resolution']}<br>"
+                )
+        # print(result_string)
+        self.ui.textEdit.setHtml(result_string)
 
 
     #! rewrite for better usuability, pass in self.step1_results_path as a parameter, also need to pass in the widgets to display too, etc. dif for each step
@@ -545,6 +606,7 @@ class MainWindow(qtw.QMainWindow):    # Make sure the root widget/class is the r
         self.ui.textEdit.setPlainText(content)
 
     #^ Dinosaur
+    #! DELETE as soon as done with gen_dataset_quick
     # Helper function for gen_dataset_quick
     # Edit no longer parsing query, just asking users to follow EMDB search syntax and letting them preview results b4 downloading
     # implementing a parser would be kinda difficult and a waste of time given the amt of combinations and dif syntax to check

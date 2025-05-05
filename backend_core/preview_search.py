@@ -48,7 +48,7 @@ def preview_emdb(query, rows=10, page=1, fl="emdb_id,title,resolution"):
     
     count_estimate_response = requests.get(f"https://www.ebi.ac.uk/emdb/api/facet/{query}?field=current_status")
     data = count_estimate_response.json()
-    count_estimate = data["current_status"]["rel"]       # REL is a status code meaning the entry has been publicly released. also the only status code this API request seems to return. Correct count in most cases, can be slightly off in some cases, but doesn't matter.
+    count_estimate = data.get("current_status", {}).get("rel", 0)   # REL is a status code meaning the entry has been publicly released. also the only status code this API request seems to return. Correct count in most cases, can be slightly off in some cases, but doesn't matter.   #! minor detail: return value for no counts is 0, could change it to a message like "No entries found!" That's what EMDB does.
 
     # Formatting search preview info into a dictionary
     preview_info = {
@@ -73,6 +73,6 @@ if __name__ == "__main__":
     print(f"Total Results: {results['hitCount']}")
     print("Preview of First 10 Entries:")
     for entry in results['preview']:
-        print(f"- {entry['emdb_id']}: {entry['title']}")
+        print(f"- {entry['emdb_id']}: {entry['title']}, resolution: {entry['resolution']}")
 
     # print(f"Runtime: {end - start} seconds")

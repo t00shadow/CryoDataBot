@@ -9,7 +9,8 @@ class OutputRedirector(QObject):
         self.output_signal.emit(message)
 
 class Worker(QThread):
-    result_signal = pyqtSignal(str)  # Signal to emit the result
+    # result_signal = pyqtSignal(str)  # Signal to emit the result
+    result_signal = pyqtSignal(object)  # Signal to emit the result. Can emit any Python object (str, dict, list, etc.)  #! changing from str to object should not break anything
     output_signal = pyqtSignal(str)  # Signal to emit the print output
 
     def __init__(self, func, *args, **kwargs):
