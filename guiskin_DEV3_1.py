@@ -2732,7 +2732,7 @@ class Ui_MainWindow(object):
         MainWindow.setStatusBar(self.statusbar)
 
         self.retranslateUi(MainWindow)
-        self.stackedWidget.setCurrentIndex(2)
+        self.stackedWidget.setCurrentIndex(3)
         QtCore.QMetaObject.connectSlotsByName(MainWindow)
 
     def retranslateUi(self, MainWindow):
@@ -2823,11 +2823,11 @@ class Ui_MainWindow(object):
         self.lineEdit_p3.setPlaceholderText(_translate("MainWindow", "metadata file (*.csv)"))
         self.pushButton_p3.setToolTip(_translate("MainWindow", "browse or type"))
         self.B_refineCSV.setTitle(_translate("MainWindow", "[name TBD]"))
-        self.qScoreLabel.setText(_translate("MainWindow", "Map Model Fitness (Q score cutoff)"))
+        self.qScoreLabel.setText(_translate("MainWindow", "Q-Score Threshold:"))
         self.similaritySpinBox.setSuffix(_translate("MainWindow", "%"))
         self.mapModelFitnessSpinBox.setSuffix(_translate("MainWindow", "%"))
-        self.mapModelFitnessLabel.setText(_translate("MainWindow", "Map Model Fitness (our calculated metric)"))
-        self.similarityLabel.setText(_translate("MainWindow", "Similarity threshold:"))
+        self.mapModelFitnessLabel.setText(_translate("MainWindow", "Map Model Fitness Threshold:"))
+        self.similarityLabel.setText(_translate("MainWindow", "Similarity Threshold:"))
         self.pushButton_p3_4.setToolTip(_translate("MainWindow", "<html><head/><body><p><span style=\" font-weight:400;\">this is limiting the window\'s thickness when shrinking btw, prob a better way to go about sizepolicys</span></p></body></html>"))
         self.pushButton_p3_4.setText(_translate("MainWindow", "[name TBD]"))
         self.page4TitleLabel.setText(_translate("MainWindow", "Generate Dataset"))

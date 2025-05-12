@@ -46,6 +46,9 @@ from backend_core import preview_search
 from src.frontend_gui_assets.threading.test1_v2 import Worker
 # from src.frontend_gui_assets.threading.test2_v2 import Worker
 
+# dialog classes for quickstart page
+import quickstart_preprocessing_dialog as qs_prepro_dialog
+
 
 class NoEditDelegate(qtw.QStyledItemDelegate):    # only import stuff i need (change this at end of development)
     def __init__(self, parent=None):
@@ -84,6 +87,11 @@ class MainWindow(qtw.QMainWindow):    # Make sure the root widget/class is the r
         self.main_dir_path = ""
         self.leftpanel_buttons = {}    # key, value = QPushButton, text().  Alternatively just use two lists
 
+        # Intialize Quickstart page instance variables
+        self.quickstart_qscore = 0
+        self.quickstart_mmf = 0
+        self.quickstart_similarity = 100
+
         #& QoL feature: stores results of each step. Use case: selected a different file but want to restore the filepath of the results of your current sesion. Relevant buttons: self.ui.resetDefaultVal_btn and self.ui.resetDefaultVal_btn_2. Note: these variables are only relevant for these buttons.
         #! might delete this functionality tho. EDIT: found out abt selectAll() and then insert() which preserves undo/redo history unlike selectText(). so might actually delete this in the next commit
         self.step1_results_path = None
@@ -91,18 +99,22 @@ class MainWindow(qtw.QMainWindow):    # Make sure the root widget/class is the r
         self.step3_results_path = None
         self.step4_results_path = None     # THIS one is currently unused. Would only be used by a summary page/message.
 
+        #! Aliases for widgets
+        #TODO: ...
+        
         # ======== SIGNALS AND SLOTS ========
         # TODO: CONSIDER organizing them by page? tho just added pages to the names so mb not
         # NVM i like the current setup better, organize by type then page. cuz each page has dif widgets so might miss one if go by page then type
 
 
-        ### lineedits
+        ### lineedits   (#! create ALIASES for these too, cant tell wth is what without looking at ui file in qt designer ugh)
         # self.ui.lineEdit.createStandardContextMenu()
         # self.ui.lineEdit.setClearButtonEnabled(True)
         # self.ui.lineEdit.setPlaceholderText("overwrote placeholder text via code")
         # self.ui.lineEdit_p1.setText(r"C:\Users\noelu\CryoDataBot\JUNK_TEST_FOLDER")
         self.ui.lineEdit_12.setPlaceholderText("[sample] AND [range_keyword: x TO y] AND [keyword]")
         self.ui.lineEdit_12.setText("")
+        self.ui.lineEdit_12.returnPressed.connect(self.preview_search)
         self.ui.lineEdit_p2.setText(self.save_location)     # default save location for the whole thing
         # TODO: enable elide for all filepath text fields
 
@@ -110,6 +122,7 @@ class MainWindow(qtw.QMainWindow):    # Make sure the root widget/class is the r
         #? Home (page 0)
         self.ui.main_save_path_btn.clicked.connect(lambda: self.browse_folder(page="home"))
         #? Quickstart (page 1)
+        self.ui.pushButton_2.clicked.connect(self.open_preprocessing_dialog)
         # self.ui.pushButton_p1.clicked.connect(lambda: self.browse_folder(page="quick"))
         # self.ui.pushButton_p1_2.clicked.connect(lambda: self.ui.statusbar.showMessage("query (preview): " + self.parseQuery(page="quick")))    # intentionally didnt add time limit for this message so users can take their time to read it
         self.ui.pushButton_p1_3.clicked.connect(self.gen_dataset_quick)
@@ -117,6 +130,8 @@ class MainWindow(qtw.QMainWindow):    # Make sure the root widget/class is the r
         self.ui.pushButton_p2.clicked.connect(lambda: self.browse_folder(page="step1"))
         self.ui.pushButton_6.clicked.connect(self.copy_example_1)
         self.ui.pushButton_3.clicked.connect(self.copy_example_2)
+        self.previewQueryBtn = self.ui.pushButton_16                       #TODO: move this alias to the top
+        self.previewQueryBtn.clicked.connect(self.preview_search)
         self.ui.pushButton_p2_2.clicked.connect(self.fetch_sample_info)
         #? Download and Preprocess (page 3) - Step 2 (step 3 abstracted away)
         self.ui.pushButton_p3.clicked.connect(lambda: self.browse_folder(page="step2"))
@@ -196,12 +211,10 @@ class MainWindow(qtw.QMainWindow):    # Make sure the root widget/class is the r
         self.querywidget2.tagTextEdited.connect(self.ui.statusbar.showMessage)
         # self.userInputQuery = self.ui.lineEdit_2       # alias for easier swtching btwn dif search bars
         self.userInputQuery = self.ui.lineEdit_12
-        self.ui.lineEdit_12.setClearButtonEnabled(True)
+        self.ui.lineEdit_12.setClearButtonEnabled(True)               #TODO: why's this still hardcoded lol
         self.userInputQuery.textEdited.connect(self.ui.statusbar.showMessage)
         # self.ui.lineEdit_12.textEdited.connect(self.ui.statusbar.showMessage)
         # self.previewQueryBtn = self.ui.validateQuery_btn
-        self.previewQueryBtn = self.ui.pushButton_16
-        self.previewQueryBtn.clicked.connect(self.preview_search)
 
 
         ### left panel buttons (for splitter behavior)
@@ -259,7 +272,7 @@ class MainWindow(qtw.QMainWindow):    # Make sure the root widget/class is the r
         # self.ui.baseLayer_3.setTitle("Preprocessing")
         self.ui.B_refineCSV.setTitle("Filters")
         self.ui.pushButton_p3_4.setText("Preprocess")
-        self.ui.pushButton_p2_2.setText("Download Search")
+        self.ui.pushButton_p2_2.setText("Download")
         self.ui.statusbar.showMessage("example status bar message")
 
         # hide cursors (setting text selectable by keyboard flag makes the cursor show up, so hide it)
@@ -385,7 +398,7 @@ class MainWindow(qtw.QMainWindow):    # Make sure the root widget/class is the r
     # TODO: consider switching to a popup menu. Have something like that already (the dialog box when deleting labels)
     def show_tooltip_on_click(self, message: str):
         button = self.sender()
-        qtw.QToolTip.showText(button.mapToGlobal(qtc.QPoint(15, -10)), message, button)
+        qtw.QToolTip.showText(button.mapToGlobal(qtc.QPoint(-30, -50)), message, button)
 
 
     #? Sidebar functions
@@ -549,6 +562,28 @@ class MainWindow(qtw.QMainWindow):    # Make sure the root widget/class is the r
         self.ui.textEdit.setHtml(result_string)
 
 
+    #~ Quickstart page
+    # Query: uses same functions as the normal version. Nothing needs to be done here.
+
+    # Preprocessing
+    def open_preprocessing_dialog(self):
+        dialog = qs_prepro_dialog.Quickstart_Preprocessing_Dialog(self, qscore=self.quickstart_qscore, mmf=self.quickstart_mmf, similarity=self.quickstart_similarity)         # local variable, dont think need to be stored as an instance variable (i.e. self.dialog = ...)
+        dialog.preprocessing_options.connect(self.handle_preprocessing_dialog_data)
+        dialog.show()
+    
+    def handle_preprocessing_dialog_data(self, data):
+        # print(f"Data from dialog:{data}")
+        self.quickstart_qscore = data["qscore"]
+        self.quickstart_mmf = data["mmf"]
+        self.quickstart_similarity = data["similarity"]
+    
+    # Labels: uses same functions as the normal version. Some new functions for handling dialog window
+    # TODO: new function here (similar to preprocessing dialog)
+
+    # Run: run all the backend functions sequentially. Runs the whole pipeline.
+    # TODO: new function here
+
+
     #! rewrite for better usuability, pass in self.step1_results_path as a parameter, also need to pass in the widgets to display too, etc. dif for each step
     #& so like def handle_result(self, result, storage_var)
     #~ general helper fxn
@@ -578,7 +613,7 @@ class MainWindow(qtw.QMainWindow):    # Make sure the root widget/class is the r
 
         query = self.userInputQuery.text()    # change this to the custom widget like in gen_dataset_quick()
         #processedstring = stringutil.process_string(query)   # TODO, concatenate array of keywords into a string (not sure how to implement and and or logic with keywords)
-        processed_query = query     # placeholder
+        processed_query = query     # placeholder   #! no need to process/validate/sanitize anymore
         # print(processed_query)
         save_path = self.save_location
         #TODO: put a try block here or some if statements to catch if btn is clicked with no parameters set

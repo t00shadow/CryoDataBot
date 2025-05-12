@@ -56,7 +56,8 @@ Run ```main_gui_DEV3.py``` (or ```main_gui_DEV3_alt.py``` for page buttons on th
 
 
 
-# FOR BUILDING EXE
+# BUILDING EXECUTABLES
+## Windows version (.exe)
 delete the empty __init__.py file in the root directory of the main gui file.
 
 run this command in powershell (windows version of pyinstaller gives exe, linux version of pyinstaller gives linix executable): ```pyinstaller.exe --onefile --windowed --paths="C:\\Users\\noelu\\CryoDataBot\\.venv\\Lib\\site-packages" --name "CryoDataBot" --icon "C:\\Users\\noelu\\Python Projects\\PyQt GUI practice\\QtDesigner_practice\\dataset_gen_tool_GUI\\app_icon2.ico" .\main_gui_DEV4.py```
@@ -65,5 +66,48 @@ Once you run it once, you'll have .spec file. So can use the .spec file for futu
 
 The app icon .ico files are from PyQt GUI practice folder. Feel free to change the icon. Just download a new one or make one.
 
-# linux version (linux executable)
+## Linux version (linux executable)
 ```pyinstaller --onefile --windowed --paths="C:\\Users\\noelu\\CryoDataBot\\.venv\\Lib\\site-packages" --name "CryoDataBot_LINUX" --icon "C:\\Users\\noelu\\Python Projects\\PyQt GUI practice\\QtDesigner_practice\\dataset_gen_tool_GUI\\app_icon2.ico" main_gui_DEV4.py```
+
+
+
+
+
+
+
+
+
+
+# Aside: proof that Jaccard index (GOF, VOF, wtv u wanna rename it) and Dice* are not independent
+$$
+\text{Jaccard (GOF, VOF, doesnt matter what you call intersect/union)} = \frac{|A \cap B|}{|A \cup B|} \\
+\text{Dice*} = \frac{|A \cap B|}{|A| + |B|} \\
+\text{(*actual Dice has a scaling factor of 2)} \\
+
+\text{Dice*} = \frac{|A \cap B|}{|A| + |B|} = \frac{|A \cap B|}{|A \cup B| + |A \cap B|} \\
+\frac{1}{\text{Jaccard}} = \frac{|A \cup B|}{|A \cap B|} = \frac{|A \cup B|}{|A \cap B|} + 1 - 1 = \frac{|A \cup B|}{|A \cap B|} + \frac{|A \cap B|}{|A \cap B|} - 1 = \frac{|A \cup B| + |A \cap B|}{|A \cap B|} - 1 = \frac{1}{\text{Dice*}} - 1 \\
+\frac{1}{\text{Jaccard}} = \frac{1}{\text{Dice*}} - 1 \\
+$$
+
+<br>
+
+$$
+\text{Jaccard} = \frac{\text{Dice*}}{1 - \text{Dice*}} \\
+$$
+
+<br>
+
+$$
+\text{Dice*} = \frac{\text{Jaccard}}{1 + \text{Jaccard}} \\
+$$
+
+
+
+
+
+Example) For some fixed A and B. Say A = 100 and B = 100.
+| Overlap % | Dice   | IoU     |
+| --------- | ------ | ------- |
+| 10%       | \~0.18 | \~0.095 |
+| 50%       | \~0.67 | \~0.33  |
+| 90%       | \~0.95 | \~0.82  |

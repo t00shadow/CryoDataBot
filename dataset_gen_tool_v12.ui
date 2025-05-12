@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>1384</width>
-    <height>908</height>
+    <width>1382</width>
+    <height>901</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -496,7 +496,7 @@ QPushButton:checked {
 }</string>
        </property>
        <property name="currentIndex">
-        <number>2</number>
+        <number>3</number>
        </property>
        <widget class="QWidget" name="stackedWidgetPage0">
         <layout class="QVBoxLayout" name="verticalLayout_26">
@@ -542,8 +542,8 @@ QPushButton:checked {
              <rect>
               <x>0</x>
               <y>0</y>
-              <width>372</width>
-              <height>368</height>
+              <width>786</width>
+              <height>814</height>
              </rect>
             </property>
             <layout class="QVBoxLayout" name="verticalLayout_31">
@@ -801,8 +801,8 @@ filling space</string>
              <rect>
               <x>0</x>
               <y>0</y>
-              <width>787</width>
-              <height>821</height>
+              <width>786</width>
+              <height>814</height>
              </rect>
             </property>
             <layout class="QVBoxLayout" name="verticalLayout_30">
@@ -1581,8 +1581,8 @@ QProgressBar::chunk {
              <rect>
               <x>0</x>
               <y>0</y>
-              <width>787</width>
-              <height>821</height>
+              <width>786</width>
+              <height>814</height>
              </rect>
             </property>
             <layout class="QVBoxLayout" name="verticalLayout_29">
@@ -2494,8 +2494,8 @@ QProgressBar::chunk {
              <rect>
               <x>0</x>
               <y>0</y>
-              <width>439</width>
-              <height>449</height>
+              <width>786</width>
+              <height>814</height>
              </rect>
             </property>
             <layout class="QVBoxLayout" name="verticalLayout_28">
@@ -2997,7 +2997,7 @@ border-radius: 4;</string>
                             <item>
                              <widget class="QLabel" name="qScoreLabel">
                               <property name="text">
-                               <string>Map Model Fitness (Q score cutoff)</string>
+                               <string>Q-Score Threshold:</string>
                               </property>
                              </widget>
                             </item>
@@ -3112,7 +3112,7 @@ border-radius: 4;</string>
                             <item>
                              <widget class="QLabel" name="mapModelFitnessLabel">
                               <property name="text">
-                               <string>Map Model Fitness (our calculated metric)</string>
+                               <string>Map Model Fitness Threshold:</string>
                               </property>
                              </widget>
                             </item>
@@ -3167,7 +3167,7 @@ border-radius: 4;</string>
                             <item>
                              <widget class="QLabel" name="similarityLabel">
                               <property name="text">
-                               <string>Similarity threshold:</string>
+                               <string>Similarity Threshold:</string>
                               </property>
                              </widget>
                             </item>
@@ -3376,7 +3376,7 @@ QPushButton:pressed {
              <rect>
               <x>0</x>
               <y>0</y>
-              <width>635</width>
+              <width>786</width>
               <height>926</height>
              </rect>
             </property>
@@ -5593,7 +5593,7 @@ p, li { white-space: pre-wrap; }
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>1384</width>
+     <width>1382</width>
      <height>22</height>
     </rect>
    </property>
