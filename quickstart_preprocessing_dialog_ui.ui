@@ -208,38 +208,7 @@ border-radius: 4;</string>
               </property>
              </widget>
             </item>
-            <item row="0" column="1">
-             <widget class="QDoubleSpinBox" name="qScoreDoubleSpinBox_2">
-              <property name="accelerated">
-               <bool>true</bool>
-              </property>
-              <property name="maximum">
-               <double>1.000000000000000</double>
-              </property>
-              <property name="singleStep">
-               <double>0.010000000000000</double>
-              </property>
-             </widget>
-            </item>
-            <item row="2" column="2">
-             <widget class="QPushButton" name="clearSim_btn_2">
-              <property name="cursor">
-               <cursorShape>PointingHandCursor</cursorShape>
-              </property>
-              <property name="styleSheet">
-               <string notr="true">background-color: white;
-border-radius: 4;</string>
-              </property>
-              <property name="text">
-               <string/>
-              </property>
-              <property name="icon">
-               <iconset>
-                <normaloff>:/icons/refresh-cw-alt-3-svgrepo-com.svg</normaloff>:/icons/refresh-cw-alt-3-svgrepo-com.svg</iconset>
-              </property>
-             </widget>
-            </item>
-            <item row="1" column="0">
+            <item row="2" column="0">
              <widget class="QWidget" name="widget_14" native="true">
               <layout class="QHBoxLayout" name="horizontalLayout_26">
                <property name="spacing">
@@ -294,23 +263,25 @@ border-radius: 4;</string>
               </layout>
              </widget>
             </item>
-            <item row="2" column="1">
-             <widget class="QSpinBox" name="similaritySpinBox_2">
-              <property name="accelerated">
-               <bool>true</bool>
+            <item row="2" column="2">
+             <widget class="QPushButton" name="clearMMF_btn_2">
+              <property name="cursor">
+               <cursorShape>PointingHandCursor</cursorShape>
               </property>
-              <property name="suffix">
-               <string>%</string>
+              <property name="styleSheet">
+               <string notr="true">background-color: white;
+border-radius: 4;</string>
               </property>
-              <property name="maximum">
-               <number>100</number>
+              <property name="text">
+               <string/>
               </property>
-              <property name="value">
-               <number>100</number>
+              <property name="icon">
+               <iconset>
+                <normaloff>:/icons/refresh-cw-alt-3-svgrepo-com.svg</normaloff>:/icons/refresh-cw-alt-3-svgrepo-com.svg</iconset>
               </property>
              </widget>
             </item>
-            <item row="2" column="0">
+            <item row="1" column="0">
              <widget class="QWidget" name="widget_15" native="true">
               <layout class="QHBoxLayout" name="horizontalLayout_27">
                <property name="spacing">
@@ -420,8 +391,50 @@ border-radius: 4;</string>
               </layout>
              </widget>
             </item>
+            <item row="0" column="1">
+             <widget class="QDoubleSpinBox" name="qScoreDoubleSpinBox_2">
+              <property name="accelerated">
+               <bool>true</bool>
+              </property>
+              <property name="maximum">
+               <double>1.000000000000000</double>
+              </property>
+              <property name="singleStep">
+               <double>0.010000000000000</double>
+              </property>
+             </widget>
+            </item>
+            <item row="2" column="1">
+             <widget class="QSpinBox" name="mapModelFitnessSpinBox_2">
+              <property name="accelerated">
+               <bool>true</bool>
+              </property>
+              <property name="suffix">
+               <string>%</string>
+              </property>
+              <property name="maximum">
+               <number>100</number>
+              </property>
+             </widget>
+            </item>
+            <item row="1" column="1">
+             <widget class="QSpinBox" name="similaritySpinBox_2">
+              <property name="accelerated">
+               <bool>true</bool>
+              </property>
+              <property name="suffix">
+               <string>%</string>
+              </property>
+              <property name="maximum">
+               <number>100</number>
+              </property>
+              <property name="value">
+               <number>100</number>
+              </property>
+             </widget>
+            </item>
             <item row="1" column="2">
-             <widget class="QPushButton" name="clearMMF_btn_2">
+             <widget class="QPushButton" name="clearSim_btn_2">
               <property name="cursor">
                <cursorShape>PointingHandCursor</cursorShape>
               </property>
@@ -435,19 +448,6 @@ border-radius: 4;</string>
               <property name="icon">
                <iconset>
                 <normaloff>:/icons/refresh-cw-alt-3-svgrepo-com.svg</normaloff>:/icons/refresh-cw-alt-3-svgrepo-com.svg</iconset>
-              </property>
-             </widget>
-            </item>
-            <item row="1" column="1">
-             <widget class="QSpinBox" name="mapModelFitnessSpinBox_2">
-              <property name="accelerated">
-               <bool>true</bool>
-              </property>
-              <property name="suffix">
-               <string>%</string>
-              </property>
-              <property name="maximum">
-               <number>100</number>
               </property>
              </widget>
             </item>

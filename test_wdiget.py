@@ -148,7 +148,7 @@ class CustomDialog(QDialog):
         data = {
             "qscore": self.ui.qScoreDoubleSpinBox_2.value(),
             "mmf": self.ui.mapModelFitnessSpinBox_2.value(),
-            "similarity": self.ui.similaritySpinBox_2.value()
+            "similarity": self.ui.similaritySpinBox_2.value(),
         }
         self.preprocessing_options.emit(data)              # could checkif any values changed, but not necessary
 
@@ -182,10 +182,20 @@ class MainWindow(QMainWindow):
     #         self.popup.raise_()
     #         self.popup.activateWindow()
 
-    def open_popup(self):
-        dialog = CustomDialog(self, qscore=self.quickstart_qscore, mmf=self.quickstart_mmf, similarity=self.quickstart_similarity)
-        dialog.preprocessing_options.connect(self.handle_dialog_data)
-        dialog.show()
+    # def open_popup(self):
+    #     dialog = CustomDialog(self, qscore=self.quickstart_qscore, mmf=self.quickstart_mmf, similarity=self.quickstart_similarity)
+    #     dialog.preprocessing_options.connect(self.handle_dialog_data)
+    #     dialog.show()
+    
+    #! note: does NOT remember the last position. intentional cuz its kinda annoying sometimes. could be added if desired.
+    def open_popup(self):        # prevents multiple popups
+        if self.popup is None or not self.popup.isVisible():     # need the not isVisible check or else cant reopen popup.
+            self.popup = CustomDialog(self, qscore=self.quickstart_qscore, mmf=self.quickstart_mmf, similarity=self.quickstart_similarity)
+            self.popup.preprocessing_options.connect(self.handle_dialog_data)
+            self.popup.show()
+        else:
+            self.popup.raise_()
+            self.popup.activateWindow()
     
     def handle_dialog_data(self, data):
         print(f"Data from dialog:{data}")

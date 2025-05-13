@@ -1,11 +1,7 @@
 # GUI TODO: 1) multithreading, 2) some ui/ux polish (previewing query), 2.5) finish missing functionalities (see #7), 3) organizing code better (clean up & organize these imports holy shit), 4) writings tests..., 5) progress bars (add them for all long steps, even downloading the csv), 6) splashscreen, 7) custom widgets (tagging, labeling widgets)
 # semi-important TODO: CHECK EDGE CASES (empty search queries, either disallow or properly handle)
-# NOTE: to understand the names of widgets, open the .ui file (oops forgot to copy it to this directory)
-#       ^ maybeee means should name things better...
 # TODO: rename the gui skin file to gui_skin_DEV and main gui to gui_main_DEV
-# NOTE: dont worry abt writing "perfect" code rn, just get some dirty messy functioning code out and then revise after
 # TODO: add typehints
-# TODO: SIZEPOLICIES holy shit such a pain
 # TODO: link resources correctly (check saved stack posts)
 
 import sys
@@ -48,6 +44,7 @@ from src.frontend_gui_assets.threading.test1_v2 import Worker
 
 # dialog classes for quickstart page
 import quickstart_preprocessing_dialog as qs_prepro_dialog
+import quickstart_labels_dialog as qs_labels_dialog
 
 
 class NoEditDelegate(qtw.QStyledItemDelegate):    # only import stuff i need (change this at end of development)
@@ -80,17 +77,36 @@ class MainWindow(qtw.QMainWindow):    # Make sure the root widget/class is the r
         self.setWindowTitle('CryoDataBot')
         # self.resize(1000, 700)        # HOTFIX, functionally same as changing the size in the pyuic5 generated .py file but you aren't meant to edit that (can also just change size in designer, butttt it looks fine in designer). prob should involve screensize or smth, vanilla size is different than qt designer preview. prob cuz of screen resolution and/or dpi settings or smth. high dpi scaling can affect how pixels are rendered
 
-        # ======== VARIABLES ========
+
+        # ======== VARIABLES ========    #! move these to their respective sections in INITIALIZE
         self.save_location = Path.cwd().as_posix()      # default
         self.labels = [[]]     # list of list of dicts, initialize as list of empty list
         self.label_dict_template = {'secondary_type': '', 'residue_type': '', 'atom_type': '', 'label': ''}
         self.main_dir_path = ""
         self.leftpanel_buttons = {}    # key, value = QPushButton, text().  Alternatively just use two lists
 
-        # Intialize Quickstart page instance variables
-        self.quickstart_qscore = 0
-        self.quickstart_mmf = 0
-        self.quickstart_similarity = 100
+
+        # ======== INITIALIZE ========
+        #? Step 2: Preprocessing
+        # Default values
+        self.preprocesing_default_values = {        # these are for restoring the default values. Used by both normal page and quickstart
+            "qscore": 0,        # 0 - 1
+            "similarity": 0,    # 0 - 100%
+            "mmf": 0,           # 0 - 100%
+        }
+        self.ui.qScoreDoubleSpinBox.setValue(self.preprocesing_default_values["qscore"])
+        self.ui.similaritySpinBox.setValue(self.preprocesing_default_values["similarity"])
+        self.ui.mapModelFitnessSpinBox.setValue(self.preprocesing_default_values["mmf"])
+        # Tweaks
+        self.ui.qScoreDoubleSpinBox.setDecimals(3)
+        self.ui.qScoreDoubleSpinBox.setMinimum(-1.0)   # qscores < 0 are bad, but giving users more flexibility in case they have some usecase
+        self.ui.qScoreDoubleSpinBox.setSingleStep(0.001)
+
+        #? Quickstart (implemented last so goes here, also reuses some of the variables above)
+        self.prepro_dialog = None
+        self.labels_dialog = None
+        self.quickstart_preprocesing_current_values = self.preprocesing_default_values.copy()     # these get overwritten
+
 
         #& QoL feature: stores results of each step. Use case: selected a different file but want to restore the filepath of the results of your current sesion. Relevant buttons: self.ui.resetDefaultVal_btn and self.ui.resetDefaultVal_btn_2. Note: these variables are only relevant for these buttons.
         #! might delete this functionality tho. EDIT: found out abt selectAll() and then insert() which preserves undo/redo history unlike selectText(). so might actually delete this in the next commit
@@ -99,7 +115,7 @@ class MainWindow(qtw.QMainWindow):    # Make sure the root widget/class is the r
         self.step3_results_path = None
         self.step4_results_path = None     # THIS one is currently unused. Would only be used by a summary page/message.
 
-        #! Aliases for widgets
+        #! Aliases for widgets (do it page by page in the new initialize section above)
         #TODO: ...
         
         # ======== SIGNALS AND SLOTS ========
@@ -144,8 +160,8 @@ class MainWindow(qtw.QMainWindow):    # Make sure the root widget/class is the r
         
         # make these tool tips in designer in rich text on a testpage, and then copy paste them from the generated ui code, and then delete the test page at runtime
         self.ui.qScoreInfo_btn.clicked.connect(lambda: self.show_tooltip_on_click("QScore: \ndescrip... *consider using richtext (if possible) to have colors and bold, italics, etc"))
-        self.ui.mmfInfo_btn.clicked.connect(lambda: self.show_tooltip_on_click("Our calculated metric: ...what this means..."))
         self.ui.simInfo_btn.clicked.connect(lambda: self.show_tooltip_on_click("Similarity: a measure of how similar _ are. 100 is most similar, 0 is least similar"))
+        self.ui.mmfInfo_btn.clicked.connect(lambda: self.show_tooltip_on_click("Our calculated metric: ...what this means..."))
         # rename these info buttons in designer. Use rich text if possible
         self.ui.qScoreInfo_btn_2.clicked.connect(lambda: self.show_tooltip_on_click("This step fetches metadata from EMDB. If you already have a .csv file with the columns: emdb_id, resolution, fitted_pdbs, you can skip this step."))
         self.ui.qScoreInfo_btn_3.clicked.connect(lambda: self.show_tooltip_on_click("This step preprocesses... NOTE: Maps and models are downloaded in this step."))
@@ -153,9 +169,9 @@ class MainWindow(qtw.QMainWindow):    # Make sure the root widget/class is the r
         self.ui.qScoreInfo_btn_5.clicked.connect(lambda: self.show_tooltip_on_click("Quickly generate datasets."))
 
 
-        self.ui.clearQScore_btn.clicked.connect(lambda: self.ui.qScoreDoubleSpinBox.setValue(0))  # make these global vars above?, since may be used in 2 dif places
-        self.ui.clearMMF_btn.clicked.connect(lambda: self.ui.mapModelFitnessSpinBox.setValue(0))
-        self.ui.clearSim_btn.clicked.connect(lambda: self.ui.similaritySpinBox.setValue(0))
+        self.ui.clearQScore_btn.clicked.connect(lambda: self.ui.qScoreDoubleSpinBox.setValue(self.preprocesing_default_values["qscore"]))
+        self.ui.clearSim_btn.clicked.connect(lambda: self.ui.similaritySpinBox.setValue(self.preprocesing_default_values["similarity"]))
+        self.ui.clearMMF_btn.clicked.connect(lambda: self.ui.mapModelFitnessSpinBox.setValue(self.preprocesing_default_values["mmf"]))
         # Generate Datasets (page 4)
         self.ui.pushButton_p4_2.clicked.connect(self.gen_ds)
 
@@ -291,16 +307,12 @@ class MainWindow(qtw.QMainWindow):    # Make sure the root widget/class is the r
         self.ui.pushButton_6.setIcon(qtg.QIcon(r"GUI_custom_widgets/svgs/copy-svgrepo-com.svg"))
         self.ui.pushButton_3.setIcon(qtg.QIcon(r"GUI_custom_widgets/svgs/copy-svgrepo-com.svg"))
 
-        self.ui.qScoreDoubleSpinBox.setDecimals(3)   #figured this out my making a new form in qtdesigner with just 2 spinboxes (one w/ the default 2 decimal places and one changed to 3, then looked at Form > View python code)
-        # ...setMaximum(...) was done in the guiskin file, hence why it's not here
-        self.ui.qScoreDoubleSpinBox.setMinimum(-1.0)   # qscores < 0 are bad, but giving users more flexibility in case they have some usecase
-        self.ui.qScoreDoubleSpinBox.setSingleStep(0.001)
-        self.ui.similaritySpinBox.setValue(0)    # new default value, equivalent to changing it in qt designer
         self.ui.training_spinBox.setValue(80)
         self.ui.testing_spinBox.setValue(10)
         self.ui.validation_spinBox.setValue(10)
 
         # hide progress bars initially
+        self.ui.progressBar.hide()         #   <--- quickstart page
         self.ui.progressBar_p4_2.hide()    # name's backwards. This one is unnecessary in most cases, even long metadata queries take just a few seconds. Could delete it.     <-- fetch metadata page
         # add a progressbar to the preprocess page since will move downloading maps and models to that page
         self.ui.progressBar_p4.hide()      #   <--- gen dataset page
@@ -567,18 +579,28 @@ class MainWindow(qtw.QMainWindow):    # Make sure the root widget/class is the r
 
     # Preprocessing
     def open_preprocessing_dialog(self):
-        dialog = qs_prepro_dialog.Quickstart_Preprocessing_Dialog(self, qscore=self.quickstart_qscore, mmf=self.quickstart_mmf, similarity=self.quickstart_similarity)         # local variable, dont think need to be stored as an instance variable (i.e. self.dialog = ...)
-        dialog.preprocessing_options.connect(self.handle_preprocessing_dialog_data)
-        dialog.show()
+        if self.prepro_dialog is None or not self.prepro_dialog.isVisible():
+            self.prepro_dialog = qs_prepro_dialog.Quickstart_Preprocessing_Dialog(self, current_values=self.quickstart_preprocesing_current_values, default_values=self.preprocesing_default_values)         # local variable, dont think need to be stored as an instance variable (i.e. self.dialog = ...)
+            self.prepro_dialog.preprocessing_options.connect(self.handle_preprocessing_dialog_data)
+            self.prepro_dialog.show()
+        else:
+            self.prepro_dialog.raise_()
+            self.prepro_dialog.activateWindow()
     
     def handle_preprocessing_dialog_data(self, data):
         # print(f"Data from dialog:{data}")
-        self.quickstart_qscore = data["qscore"]
-        self.quickstart_mmf = data["mmf"]
-        self.quickstart_similarity = data["similarity"]
+        self.quickstart_preprocesing_current_values = data
     
     # Labels: uses same functions as the normal version. Some new functions for handling dialog window
-    # TODO: new function here (similar to preprocessing dialog)
+    def open_labels_dialog(self):
+        dialog = qs_labels_dialog.Quickstart_Labels_Dialog(self)         # local variable, dont think need to be stored as an instance variable (i.e. self.dialog = ...)
+        dialog.preprocessing_options.connect(self.handle_labels_dialog_data)
+        dialog.show()
+    
+    def handle_labels_dialog_data(self, data):
+        # print(f"Data from dialog:{data}")
+        # self.someinstancevariable...
+        pass
 
     # Run: run all the backend functions sequentially. Runs the whole pipeline.
     # TODO: new function here
@@ -1194,4 +1216,5 @@ if __name__ == '__main__':
     # app.setStyle(qtw.QStyleFactory.create("Fusion"))
     w = MainWindow()
     # w.showFullScreen()   # no top bar
+    w.showMaximized()   # still has title bar and close button
     sys.exit(app.exec_())
