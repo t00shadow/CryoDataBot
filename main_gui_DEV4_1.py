@@ -22,13 +22,13 @@ codec = QTextCodec.codecForName("UTF-8")
 from frontend.ui_files.guiskin_DEV3_1 import Ui_MainWindow
 #from guiskin import Ui_MainWindow                 # will become this eventually after renaming stuff
 
-import GUI_custom_widgets.z_Tag_main_alt_allcode_v2 as TTEwidget2
-from GUI_custom_widgets.LabelComboBox import LabelComboBox
-from GUI_custom_widgets.LabelComboBox_v2 import LabelComboBox_v2
-import GUI_custom_widgets.commaLineEdit as LabelLineEdit
-from GUI_custom_widgets.animated_toggle import AnimatedToggle
-from GUI_custom_widgets.popupDialog_alt import PopupDialog
-from GUI_custom_widgets.easyCloseDialog import EasyCloseDialog
+import frontend.custom_widgets.z_Tag_main_alt_allcode_v2 as TTEwidget2
+from frontend.custom_widgets.LabelComboBox import LabelComboBox
+from frontend.custom_widgets.LabelComboBox_v2 import LabelComboBox_v2
+import frontend.custom_widgets.commaLineEdit as LabelLineEdit
+from frontend.custom_widgets.animated_toggle import AnimatedToggle
+from frontend.custom_widgets.popupDialog_alt import PopupDialog
+from frontend.custom_widgets.easyCloseDialog import EasyCloseDialog
 from frontend.custom_widgets.my_logger import Handler
 
 
@@ -308,10 +308,10 @@ class MainWindow(qtw.QMainWindow):    # Make sure the root widget/class is the r
         font.setPointSize(12)
         self.ui.label_p2.setFont(font)
 
-        # self.ui.lineEdit_p1_2.findChild(qtw.QToolButton).setIcon(qtg.QIcon(r"GUI_custom_widgets/svgs/clear_small-svgrepo-com.svg"))
-        self.ui.lineEdit_p3_2.findChild(qtw.QToolButton).setIcon(qtg.QIcon(r"GUI_custom_widgets/svgs/clear_small-svgrepo-com.svg"))
-        self.ui.pushButton_6.setIcon(qtg.QIcon(r"GUI_custom_widgets/svgs/copy-svgrepo-com.svg"))
-        self.ui.pushButton_3.setIcon(qtg.QIcon(r"GUI_custom_widgets/svgs/copy-svgrepo-com.svg"))
+        # self.ui.lineEdit_p1_2.findChild(qtw.QToolButton).setIcon(qtg.QIcon(r"frontend/svgs/clear_small-svgrepo-com.svg"))
+        self.ui.lineEdit_p3_2.findChild(qtw.QToolButton).setIcon(qtg.QIcon(r"frontend/svgs/clear_small-svgrepo-com.svg"))
+        self.ui.pushButton_6.setIcon(qtg.QIcon(r"frontend/svgs/copy-svgrepo-com.svg"))
+        self.ui.pushButton_3.setIcon(qtg.QIcon(r"frontend/svgs/copy-svgrepo-com.svg"))
 
         self.ui.training_spinBox.setValue(80)
         self.ui.testing_spinBox.setValue(10)
@@ -890,8 +890,8 @@ class MainWindow(qtw.QMainWindow):    # Make sure the root widget/class is the r
         # Automatically select the newly added group
         self.ui.treeWidget_p4.setCurrentItem(group_item)
         group_delbtn = qtw.QPushButton()
-        # group_delbtn.setIcon(qtg.QIcon(r"GUI_custom_widgets/svgs/browsefilesicon.png"))
-        group_delbtn.setIcon(qtg.QIcon(r"GUI_custom_widgets/svgs/clear_inverse-svgrepo-com.svg"))
+        # group_delbtn.setIcon(qtg.QIcon(r"frontend/svgs/browsefilesicon.png"))
+        group_delbtn.setIcon(qtg.QIcon(r"frontend/svgs/clear_inverse-svgrepo-com.svg"))
         group_delbtn.setFixedWidth(16)
         group_delbtn.setFixedHeight(16)
         group_delbtn.setStyleSheet("QPushButton {\n"
@@ -988,7 +988,7 @@ class MainWindow(qtw.QMainWindow):    # Make sure the root widget/class is the r
         atoms_lineedit.setPlaceholderText("Type in atoms")    # TODO: consider adding this to the customlineedit constructor
         self.ui.treeWidget_p4.setItemWidget(label_item, 3, atoms_lineedit)
         label_delbtn = qtw.QPushButton()
-        label_delbtn.setIcon(qtg.QIcon(r"GUI_custom_widgets/svgs/clear_inverse-svgrepo-com.svg"))
+        label_delbtn.setIcon(qtg.QIcon(r"frontend/svgs/clear_inverse-svgrepo-com.svg"))
         label_delbtn.setFixedWidth(16)
         label_delbtn.setFixedHeight(16)
         label_delbtn.setStyleSheet("QPushButton {\n"
