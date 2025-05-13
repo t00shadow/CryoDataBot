@@ -542,8 +542,8 @@ QPushButton:checked {
              <rect>
               <x>0</x>
               <y>0</y>
-              <width>372</width>
-              <height>368</height>
+              <width>371</width>
+              <height>379</height>
              </rect>
             </property>
             <layout class="QVBoxLayout" name="verticalLayout_31">
@@ -582,7 +582,6 @@ QPushButton:checked {
                      <property name="font">
                       <font>
                        <pointsize>24</pointsize>
-                       <weight>75</weight>
                        <bold>true</bold>
                       </font>
                      </property>
@@ -801,7 +800,7 @@ filling space</string>
              <rect>
               <x>0</x>
               <y>0</y>
-              <width>786</width>
+              <width>841</width>
               <height>814</height>
              </rect>
             </property>
@@ -880,7 +879,6 @@ QGroupBox {
                      <property name="font">
                       <font>
                        <pointsize>24</pointsize>
-                       <weight>75</weight>
                        <bold>true</bold>
                       </font>
                      </property>
@@ -988,7 +986,7 @@ QGroupBox {
                      <property name="minimumSize">
                       <size>
                        <width>0</width>
-                       <height>200</height>
+                       <height>150</height>
                       </size>
                      </property>
                      <property name="maximumSize">
@@ -1035,16 +1033,19 @@ QTextBrowser:focus {
                         </property>
                         <property name="html">
                          <string>&lt;!DOCTYPE HTML PUBLIC &quot;-//W3C//DTD HTML 4.0//EN&quot; &quot;http://www.w3.org/TR/REC-html40/strict.dtd&quot;&gt;
-&lt;html&gt;&lt;head&gt;&lt;meta name=&quot;qrichtext&quot; content=&quot;1&quot; /&gt;&lt;style type=&quot;text/css&quot;&gt;
+&lt;html&gt;&lt;head&gt;&lt;meta name=&quot;qrichtext&quot; content=&quot;1&quot; /&gt;&lt;meta charset=&quot;utf-8&quot; /&gt;&lt;style type=&quot;text/css&quot;&gt;
 p, li { white-space: pre-wrap; }
-&lt;/style&gt;&lt;/head&gt;&lt;body style=&quot; font-family:'MS Shell Dlg 2'; font-size:8pt; font-weight:400; font-style:normal;&quot;&gt;
-&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:'Segoe UI'; font-size:9pt; color:#000000;&quot;&gt;Enter a search term&lt;/span&gt;&lt;span style=&quot; font-family:'Segoe UI'; font-size:9pt; font-weight:600; color:#ff6969;&quot;&gt;*&lt;/span&gt;&lt;span style=&quot; font-family:'Segoe UI'; font-size:9pt; color:#000000;&quot;&gt; followed by optional keywords. &lt;/span&gt;&lt;/p&gt;
-&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:'Segoe UI'; font-size:6pt; color:#ff6969;&quot;&gt;    &lt;/span&gt;&lt;span style=&quot; font-family:'Segoe UI'; font-size:6pt; font-weight:600; color:#ff6969;&quot;&gt;*required&lt;/span&gt;&lt;/p&gt;
-&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:'Segoe UI'; font-size:9pt; color:#000000;&quot;&gt;Keywords are connected by boolean operators (AND, OR, NOT). Default is AND.&lt;/span&gt;&lt;/p&gt;
-&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;a href=&quot;https://www.ebi.ac.uk/emdb/documentation/search&quot;&gt;&lt;span style=&quot; text-decoration: underline; color:#0000ff;&quot;&gt;Query follows EMDB search format.&lt;/span&gt;&lt;/a&gt;&lt;/p&gt;
-&lt;p style=&quot;-qt-paragraph-type:empty; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px; font-family:'Segoe UI'; font-size:9pt; color:#000000;&quot;&gt;&lt;br /&gt;&lt;/p&gt;
-&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:'Segoe UI'; font-size:9pt; color:#000000;&quot;&gt;ex.&lt;/span&gt;&lt;span style=&quot; font-family:'Segoe UI'; font-size:9pt; color:#007c82;&quot;&gt;  &lt;/span&gt;&lt;span style=&quot; font-family:'Segoe UI'; font-size:9pt; color:#00007f;&quot;&gt;spliceosome AND resolution:[2 TO 4]&lt;/span&gt;&lt;/p&gt;
-&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:'Segoe UI'; font-size:9pt; color:#000000;&quot;&gt;ex.  &lt;/span&gt;&lt;span style=&quot; font-family:'Segoe UI'; font-size:9pt; color:#00007f;&quot;&gt;(spliceosome OR ribonucleoprotein) AND NOT human AND xref_UNIPROTKB:[* TO *]&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+hr { height: 1px; border-width: 0; }
+li.unchecked::marker { content: &quot;\2610&quot;; }
+li.checked::marker { content: &quot;\2612&quot;; }
+&lt;/style&gt;&lt;/head&gt;&lt;body style=&quot; font-family:'Segoe UI'; font-size:9pt; font-weight:400; font-style:normal;&quot;&gt;
+&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; color:#000000;&quot;&gt;Enter a search term&lt;/span&gt;&lt;span style=&quot; font-weight:600; color:#ff6969;&quot;&gt;*&lt;/span&gt;&lt;span style=&quot; color:#000000;&quot;&gt; followed by optional keywords. &lt;/span&gt;&lt;/p&gt;
+&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-size:6pt; color:#ff6969;&quot;&gt;    &lt;/span&gt;&lt;span style=&quot; font-size:6pt; font-weight:600; color:#ff6969;&quot;&gt;*required&lt;/span&gt;&lt;/p&gt;
+&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; color:#000000;&quot;&gt;Keywords are connected by boolean operators (AND, OR, NOT). Default is AND.&lt;/span&gt;&lt;/p&gt;
+&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;a href=&quot;https://www.ebi.ac.uk/emdb/documentation/search&quot;&gt;&lt;span style=&quot; font-family:'MS Shell Dlg 2'; font-size:8pt; text-decoration: underline; color:#0000ff;&quot;&gt;Query follows EMDB search format.&lt;/span&gt;&lt;/a&gt;&lt;/p&gt;
+&lt;p style=&quot;-qt-paragraph-type:empty; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px; color:#000000;&quot;&gt;&lt;br /&gt;&lt;/p&gt;
+&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; color:#000000;&quot;&gt;ex.&lt;/span&gt;&lt;span style=&quot; color:#007c82;&quot;&gt;  &lt;/span&gt;&lt;span style=&quot; color:#00007f;&quot;&gt;spliceosome AND resolution:[2 TO 4]&lt;/span&gt;&lt;/p&gt;
+&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; color:#000000;&quot;&gt;ex.  &lt;/span&gt;&lt;span style=&quot; color:#00007f;&quot;&gt;(spliceosome OR ribonucleoprotein) AND NOT human AND xref_UNIPROTKB:[* TO *]&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
                         </property>
                         <property name="textInteractionFlags">
                          <set>Qt::LinksAccessibleByKeyboard|Qt::LinksAccessibleByMouse|Qt::TextBrowserInteraction|Qt::TextSelectableByKeyboard|Qt::TextSelectableByMouse</set>
@@ -1062,7 +1063,6 @@ p, li { white-space: pre-wrap; }
                      <property name="font">
                       <font>
                        <pointsize>8</pointsize>
-                       <weight>75</weight>
                        <bold>true</bold>
                       </font>
                      </property>
@@ -1199,11 +1199,33 @@ QPushButton:pressed {
                        <number>0</number>
                       </property>
                       <item>
+                       <widget class="QTextEdit" name="textEdit_3">
+                        <property name="maximumSize">
+                         <size>
+                          <width>16777215</width>
+                          <height>100</height>
+                         </size>
+                        </property>
+                       </widget>
+                      </item>
+                      <item>
+                       <spacer name="verticalSpacer_4">
+                        <property name="orientation">
+                         <enum>Qt::Vertical</enum>
+                        </property>
+                        <property name="sizeHint" stdset="0">
+                         <size>
+                          <width>20</width>
+                          <height>10</height>
+                         </size>
+                        </property>
+                       </spacer>
+                      </item>
+                      <item>
                        <widget class="QLabel" name="label_5">
                         <property name="font">
                          <font>
                           <pointsize>8</pointsize>
-                          <weight>75</weight>
                           <bold>true</bold>
                          </font>
                         </property>
@@ -1244,12 +1266,12 @@ QPushButton:pressed {
 }
 
 QPushButton:hover {
-	background-color: #ddd1c6;
+	background-color: rgba(193, 211, 239, 200);
     border-color: darkgrey;
 }
 
 QPushButton:pressed {
-    background-color: #bfb5ab;
+    background-color: rgba(193, 211, 239, 120);
     border-color: darkgrey;
 }
 </string>
@@ -1302,7 +1324,6 @@ QPushButton:pressed {
                         <property name="font">
                          <font>
                           <pointsize>8</pointsize>
-                          <weight>75</weight>
                           <bold>true</bold>
                          </font>
                         </property>
@@ -1346,12 +1367,12 @@ QPushButton:pressed {
 }
 
 QPushButton:hover {
-	background-color: #ddd1c6;
+	background-color: rgba(193, 211, 239, 200);
     border-color: darkgrey;
 }
 
 QPushButton:pressed {
-    background-color: #bfb5ab;
+    background-color: rgba(193, 211, 239, 120);
     border-color: darkgrey;
 }
 </string>
@@ -1428,7 +1449,6 @@ QGroupBox{
                      <property name="font">
                       <font>
                        <pointsize>11</pointsize>
-                       <weight>75</weight>
                        <bold>true</bold>
                       </font>
                      </property>
@@ -1581,7 +1601,7 @@ QProgressBar::chunk {
              <rect>
               <x>0</x>
               <y>0</y>
-              <width>786</width>
+              <width>841</width>
               <height>814</height>
              </rect>
             </property>
@@ -1644,7 +1664,6 @@ QProgressBar::chunk {
                      <property name="font">
                       <font>
                        <pointsize>24</pointsize>
-                       <weight>75</weight>
                        <bold>true</bold>
                       </font>
                      </property>
@@ -1930,13 +1949,16 @@ QTextBrowser:focus {
                         </property>
                         <property name="html">
                          <string>&lt;!DOCTYPE HTML PUBLIC &quot;-//W3C//DTD HTML 4.0//EN&quot; &quot;http://www.w3.org/TR/REC-html40/strict.dtd&quot;&gt;
-&lt;html&gt;&lt;head&gt;&lt;meta name=&quot;qrichtext&quot; content=&quot;1&quot; /&gt;&lt;style type=&quot;text/css&quot;&gt;
+&lt;html&gt;&lt;head&gt;&lt;meta name=&quot;qrichtext&quot; content=&quot;1&quot; /&gt;&lt;meta charset=&quot;utf-8&quot; /&gt;&lt;style type=&quot;text/css&quot;&gt;
 p, li { white-space: pre-wrap; }
-&lt;/style&gt;&lt;/head&gt;&lt;body style=&quot; font-family:'MS Shell Dlg 2'; font-size:8pt; font-weight:400; font-style:normal;&quot;&gt;
-&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:'Segoe UI'; font-size:9pt; color:#000000;&quot;&gt;Enter a search term&lt;/span&gt;&lt;span style=&quot; font-family:'Segoe UI'; font-size:9pt; font-weight:600; color:#ff6969;&quot;&gt;*&lt;/span&gt;&lt;span style=&quot; font-family:'Segoe UI'; font-size:9pt; color:#000000;&quot;&gt; followed by optional keywords. &lt;/span&gt;&lt;/p&gt;
-&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:'Segoe UI'; font-size:6pt; color:#ff6969;&quot;&gt;    &lt;/span&gt;&lt;span style=&quot; font-family:'Segoe UI'; font-size:6pt; font-weight:600; color:#ff6969;&quot;&gt;*required&lt;/span&gt;&lt;/p&gt;
-&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:'Segoe UI'; font-size:9pt; color:#000000;&quot;&gt;Keywords are connected by boolean operators (AND, OR, NOT).&lt;/span&gt;&lt;/p&gt;
-&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;a href=&quot;https://www.ebi.ac.uk/emdb/documentation/search&quot;&gt;&lt;span style=&quot; text-decoration: underline; color:#0000ff;&quot;&gt;Query follows EMDB search format.&lt;/span&gt;&lt;/a&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+hr { height: 1px; border-width: 0; }
+li.unchecked::marker { content: &quot;\2610&quot;; }
+li.checked::marker { content: &quot;\2612&quot;; }
+&lt;/style&gt;&lt;/head&gt;&lt;body style=&quot; font-family:'Segoe UI'; font-size:9pt; font-weight:400; font-style:normal;&quot;&gt;
+&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; color:#000000;&quot;&gt;Enter a search term&lt;/span&gt;&lt;span style=&quot; font-weight:600; color:#ff6969;&quot;&gt;*&lt;/span&gt;&lt;span style=&quot; color:#000000;&quot;&gt; followed by optional keywords. &lt;/span&gt;&lt;/p&gt;
+&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-size:6pt; color:#ff6969;&quot;&gt;    &lt;/span&gt;&lt;span style=&quot; font-size:6pt; font-weight:600; color:#ff6969;&quot;&gt;*required&lt;/span&gt;&lt;/p&gt;
+&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; color:#000000;&quot;&gt;Keywords are connected by boolean operators (AND, OR, NOT).&lt;/span&gt;&lt;/p&gt;
+&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;a href=&quot;https://www.ebi.ac.uk/emdb/documentation/search&quot;&gt;&lt;span style=&quot; font-family:'MS Shell Dlg 2'; font-size:8pt; text-decoration: underline; color:#0000ff;&quot;&gt;Query follows EMDB search format.&lt;/span&gt;&lt;/a&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
                         </property>
                         <property name="textInteractionFlags">
                          <set>Qt::LinksAccessibleByKeyboard|Qt::LinksAccessibleByMouse|Qt::TextBrowserInteraction|Qt::TextSelectableByKeyboard|Qt::TextSelectableByMouse</set>
@@ -1988,10 +2010,13 @@ QTextEdit:focus {
                             </property>
                             <property name="html">
                              <string>&lt;!DOCTYPE HTML PUBLIC &quot;-//W3C//DTD HTML 4.0//EN&quot; &quot;http://www.w3.org/TR/REC-html40/strict.dtd&quot;&gt;
-&lt;html&gt;&lt;head&gt;&lt;meta name=&quot;qrichtext&quot; content=&quot;1&quot; /&gt;&lt;style type=&quot;text/css&quot;&gt;
+&lt;html&gt;&lt;head&gt;&lt;meta name=&quot;qrichtext&quot; content=&quot;1&quot; /&gt;&lt;meta charset=&quot;utf-8&quot; /&gt;&lt;style type=&quot;text/css&quot;&gt;
 p, li { white-space: pre-wrap; }
-&lt;/style&gt;&lt;/head&gt;&lt;body style=&quot; font-family:'MS Shell Dlg 2'; font-size:8pt; font-weight:400; font-style:normal;&quot;&gt;
-&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:'Segoe UI'; font-size:9pt; color:#000000;&quot;&gt;ex.&lt;/span&gt;&lt;span style=&quot; font-family:'Segoe UI'; font-size:9pt; color:#007c82;&quot;&gt;  &lt;/span&gt;&lt;span style=&quot; font-family:'Segoe UI'; font-size:9pt; color:#00007f;&quot;&gt;spliceosome AND resolution:[2 TO 4]&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+hr { height: 1px; border-width: 0; }
+li.unchecked::marker { content: &quot;\2610&quot;; }
+li.checked::marker { content: &quot;\2612&quot;; }
+&lt;/style&gt;&lt;/head&gt;&lt;body style=&quot; font-family:'Segoe UI'; font-size:9pt; font-weight:400; font-style:normal;&quot;&gt;
+&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; color:#000000;&quot;&gt;ex.&lt;/span&gt;&lt;span style=&quot; color:#007c82;&quot;&gt;  &lt;/span&gt;&lt;span style=&quot; color:#00007f;&quot;&gt;spliceosome AND resolution:[2 TO 4]&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
                             </property>
                             <property name="textInteractionFlags">
                              <set>Qt::TextSelectableByKeyboard|Qt::TextSelectableByMouse</set>
@@ -2057,10 +2082,13 @@ QTextEdit:focus {
                             </property>
                             <property name="html">
                              <string>&lt;!DOCTYPE HTML PUBLIC &quot;-//W3C//DTD HTML 4.0//EN&quot; &quot;http://www.w3.org/TR/REC-html40/strict.dtd&quot;&gt;
-&lt;html&gt;&lt;head&gt;&lt;meta name=&quot;qrichtext&quot; content=&quot;1&quot; /&gt;&lt;style type=&quot;text/css&quot;&gt;
+&lt;html&gt;&lt;head&gt;&lt;meta name=&quot;qrichtext&quot; content=&quot;1&quot; /&gt;&lt;meta charset=&quot;utf-8&quot; /&gt;&lt;style type=&quot;text/css&quot;&gt;
 p, li { white-space: pre-wrap; }
-&lt;/style&gt;&lt;/head&gt;&lt;body style=&quot; font-family:'MS Shell Dlg 2'; font-size:8pt; font-weight:400; font-style:normal;&quot;&gt;
-&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:'Segoe UI'; font-size:9pt; color:#000000;&quot;&gt;ex.  &lt;/span&gt;&lt;span style=&quot; font-family:'Segoe UI'; font-size:9pt; color:#00007f;&quot;&gt;(spliceosome OR ribonucleoprotein) AND NOT human AND xref_UNIPROTKB:[* TO *]&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+hr { height: 1px; border-width: 0; }
+li.unchecked::marker { content: &quot;\2610&quot;; }
+li.checked::marker { content: &quot;\2612&quot;; }
+&lt;/style&gt;&lt;/head&gt;&lt;body style=&quot; font-family:'Segoe UI'; font-size:9pt; font-weight:400; font-style:normal;&quot;&gt;
+&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; color:#000000;&quot;&gt;ex.  &lt;/span&gt;&lt;span style=&quot; color:#00007f;&quot;&gt;(spliceosome OR ribonucleoprotein) AND NOT human AND xref_UNIPROTKB:[* TO *]&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
                             </property>
                             <property name="textInteractionFlags">
                              <set>Qt::TextSelectableByKeyboard|Qt::TextSelectableByMouse</set>
@@ -2130,7 +2158,6 @@ QGroupBox::title {
                        <widget class="QLabel" name="label_p2">
                         <property name="font">
                          <font>
-                          <weight>75</weight>
                           <bold>true</bold>
                          </font>
                         </property>
@@ -2338,7 +2365,6 @@ QPushButton:pressed {
                      <property name="font">
                       <font>
                        <pointsize>11</pointsize>
-                       <weight>75</weight>
                        <bold>true</bold>
                       </font>
                      </property>
@@ -2494,7 +2520,7 @@ QProgressBar::chunk {
              <rect>
               <x>0</x>
               <y>0</y>
-              <width>786</width>
+              <width>841</width>
               <height>814</height>
              </rect>
             </property>
@@ -2557,7 +2583,6 @@ QProgressBar::chunk {
                      <property name="font">
                       <font>
                        <pointsize>24</pointsize>
-                       <weight>75</weight>
                        <bold>true</bold>
                       </font>
                      </property>
@@ -3267,7 +3292,6 @@ QGroupBox{
                      <property name="font">
                       <font>
                        <pointsize>11</pointsize>
-                       <weight>75</weight>
                        <bold>true</bold>
                       </font>
                      </property>
@@ -3376,8 +3400,8 @@ QPushButton:pressed {
              <rect>
               <x>0</x>
               <y>0</y>
-              <width>635</width>
-              <height>926</height>
+              <width>841</width>
+              <height>966</height>
              </rect>
             </property>
             <layout class="QVBoxLayout" name="verticalLayout_27">
@@ -3439,7 +3463,6 @@ QPushButton:pressed {
                      <property name="font">
                       <font>
                        <pointsize>24</pointsize>
-                       <weight>75</weight>
                        <bold>true</bold>
                       </font>
                      </property>
@@ -3489,6 +3512,22 @@ QPushButton:pressed {
                    </item>
                   </layout>
                  </widget>
+                </item>
+                <item>
+                 <spacer name="verticalSpacer_2">
+                  <property name="orientation">
+                   <enum>Qt::Vertical</enum>
+                  </property>
+                  <property name="sizeType">
+                   <enum>QSizePolicy::Fixed</enum>
+                  </property>
+                  <property name="sizeHint" stdset="0">
+                   <size>
+                    <width>20</width>
+                    <height>20</height>
+                   </size>
+                  </property>
+                 </spacer>
                 </item>
                 <item>
                  <widget class="QGroupBox" name="A_chooseCSV_2">
@@ -3973,7 +4012,6 @@ QTreeWidget::item:selected {
                         <property name="font">
                          <font>
                           <pointsize>11</pointsize>
-                          <weight>75</weight>
                           <bold>true</bold>
                          </font>
                         </property>
@@ -4339,7 +4377,6 @@ QDoubleSpinBox::up-arrow
                         <property name="font">
                          <font>
                           <pointsize>11</pointsize>
-                          <weight>75</weight>
                           <bold>true</bold>
                          </font>
                         </property>
@@ -4399,7 +4436,6 @@ QDoubleSpinBox::up-arrow
                      <property name="font">
                       <font>
                        <pointsize>11</pointsize>
-                       <weight>75</weight>
                        <bold>true</bold>
                       </font>
                      </property>
@@ -5265,7 +5301,7 @@ QPushButton:pressed {
           <rect>
            <x>290</x>
            <y>570</y>
-           <width>101</width>
+           <width>119</width>
            <height>22</height>
           </rect>
          </property>
@@ -5414,11 +5450,14 @@ border: transparent;</string>
             </property>
             <property name="html">
              <string>&lt;!DOCTYPE HTML PUBLIC &quot;-//W3C//DTD HTML 4.0//EN&quot; &quot;http://www.w3.org/TR/REC-html40/strict.dtd&quot;&gt;
-&lt;html&gt;&lt;head&gt;&lt;meta name=&quot;qrichtext&quot; content=&quot;1&quot; /&gt;&lt;style type=&quot;text/css&quot;&gt;
+&lt;html&gt;&lt;head&gt;&lt;meta name=&quot;qrichtext&quot; content=&quot;1&quot; /&gt;&lt;meta charset=&quot;utf-8&quot; /&gt;&lt;style type=&quot;text/css&quot;&gt;
 p, li { white-space: pre-wrap; }
-&lt;/style&gt;&lt;/head&gt;&lt;body style=&quot; font-family:'MS Shell Dlg 2'; font-size:8pt; font-weight:400; font-style:normal;&quot;&gt;
-&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:'Segoe UI'; font-size:9pt; font-weight:696; color:#616161;&quot;&gt;This step fetches metadata from EMDB. If you already have a .csv file with the columns: &lt;/span&gt;&lt;span style=&quot; font-family:'Segoe UI'; font-size:9pt; color:#616161;&quot;&gt;emdb_id, resolution, fitted_pdbs,&lt;/span&gt;&lt;span style=&quot; font-family:'Segoe UI'; font-size:9pt; font-weight:696; color:#616161;&quot;&gt; you can &lt;/span&gt;&lt;span style=&quot; font-family:'Segoe UI'; font-size:9pt; font-weight:696; color:#0000ff;&quot;&gt;skip&lt;/span&gt;&lt;span style=&quot; font-family:'Segoe UI'; font-size:9pt; font-weight:696; color:#616161;&quot;&gt; this step.&lt;/span&gt;&lt;/p&gt;
-&lt;p style=&quot;-qt-paragraph-type:empty; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px; font-family:'Segoe UI'; font-size:9pt;&quot;&gt;&lt;br /&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+hr { height: 1px; border-width: 0; }
+li.unchecked::marker { content: &quot;\2610&quot;; }
+li.checked::marker { content: &quot;\2612&quot;; }
+&lt;/style&gt;&lt;/head&gt;&lt;body style=&quot; font-family:'Segoe UI'; font-size:9pt; font-weight:400; font-style:normal;&quot;&gt;
+&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-weight:696; color:#616161;&quot;&gt;This step fetches metadata from EMDB. If you already have a .csv file with the columns: &lt;/span&gt;&lt;span style=&quot; color:#616161;&quot;&gt;emdb_id, resolution, fitted_pdbs,&lt;/span&gt;&lt;span style=&quot; font-weight:696; color:#616161;&quot;&gt; you can &lt;/span&gt;&lt;span style=&quot; font-weight:696; color:#0000ff;&quot;&gt;skip&lt;/span&gt;&lt;span style=&quot; font-weight:696; color:#616161;&quot;&gt; this step.&lt;/span&gt;&lt;/p&gt;
+&lt;p style=&quot;-qt-paragraph-type:empty; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;br /&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
             </property>
             <property name="openExternalLinks">
              <bool>true</bool>

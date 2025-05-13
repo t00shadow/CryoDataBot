@@ -130,7 +130,8 @@ class MainWindow(qtw.QMainWindow):    # Make sure the root widget/class is the r
         # self.ui.lineEdit_p1.setText(r"C:\Users\noelu\CryoDataBot\JUNK_TEST_FOLDER")
         self.ui.lineEdit_12.setPlaceholderText("[sample] AND [range_keyword: x TO y] AND [keyword]")
         self.ui.lineEdit_12.setText("")
-        self.ui.lineEdit_12.returnPressed.connect(self.preview_search)
+        self.ui.lineEdit_12.returnPressed.connect(lambda: self.preview_search(version="normal"))     # Fetch Metadata page
+        self.ui.lineEdit_15.returnPressed.connect(lambda: self.preview_search(version="quickstart"))     # Quickstart page
         self.ui.lineEdit_p2.setText(self.save_location)     # default save location for the whole thing
         # TODO: enable elide for all filepath text fields
 
@@ -139,6 +140,7 @@ class MainWindow(qtw.QMainWindow):    # Make sure the root widget/class is the r
         self.ui.main_save_path_btn.clicked.connect(lambda: self.browse_folder(page="home"))
         #? Quickstart (page 1)
         self.ui.pushButton_2.clicked.connect(self.open_preprocessing_dialog)
+        self.ui.pushButton.clicked.connect(self.open_labels_dialog)
         # self.ui.pushButton_p1.clicked.connect(lambda: self.browse_folder(page="quick"))
         # self.ui.pushButton_p1_2.clicked.connect(lambda: self.ui.statusbar.showMessage("query (preview): " + self.parseQuery(page="quick")))    # intentionally didnt add time limit for this message so users can take their time to read it
         self.ui.pushButton_p1_3.clicked.connect(self.gen_dataset_quick)
@@ -147,7 +149,9 @@ class MainWindow(qtw.QMainWindow):    # Make sure the root widget/class is the r
         self.ui.pushButton_6.clicked.connect(self.copy_example_1)
         self.ui.pushButton_3.clicked.connect(self.copy_example_2)
         self.previewQueryBtn = self.ui.pushButton_16                       #TODO: move this alias to the top
-        self.previewQueryBtn.clicked.connect(self.preview_search)
+        self.previewQueryBtn.clicked.connect(lambda: self.preview_search(version="normal"))
+        self.quickstart_previewQueryBtn = self.ui.pushButton_19                       #TODO: move this alias to the top
+        self.quickstart_previewQueryBtn.clicked.connect(lambda: self.preview_search(version="quickstart"))
         self.ui.pushButton_p2_2.clicked.connect(self.fetch_sample_info)
         #? Download and Preprocess (page 3) - Step 2 (step 3 abstracted away)
         self.ui.pushButton_p3.clicked.connect(lambda: self.browse_folder(page="step2"))
@@ -269,8 +273,10 @@ class MainWindow(qtw.QMainWindow):    # Make sure the root widget/class is the r
 
         ### COSMETIC TWEAKS (some can be done in designer, some are code only, like setCursorWidth, and some are just easier to do here)
         # =====================================================
+        self.ui.rename_everything.hide()
+
         self.ui.label_18.setText("")
-        self.ui.plainTextEdit_2.setPlainText("\nThis page is still a work in progress. Migrating some stuff here.\nLikely will add old sessions here (similar to ChimeraX)")
+        self.ui.plainTextEdit_2.setPlainText("")
         self.ui.plainTextEdit_2.setStyleSheet("border:none")
         self.ui.textEdit.setText("Query Preview")
         self.ui.textEdit.setReadOnly(True)
@@ -368,6 +374,7 @@ class MainWindow(qtw.QMainWindow):    # Make sure the root widget/class is the r
         # self.ui.sidebtn_6.setFont(qtg.QFont("Times", 20))
         # self.ui.leftpanel.setMaximumWidth(180)
 
+        #! could use dictionaries and for loops to make this cleaner
         self.ui.sidebtn_0.clicked.connect(lambda: self.ui.stackedWidget.setCurrentIndex(0))
         self.ui.sidebtn_1.clicked.connect(lambda: self.ui.stackedWidget.setCurrentIndex(1))
         self.ui.sidebtn_2.clicked.connect(lambda: self.ui.stackedWidget.setCurrentIndex(2))
@@ -545,20 +552,27 @@ class MainWindow(qtw.QMainWindow):    # Make sure the root widget/class is the r
 
 
     #& THIS is a better way to disable/enable buttons, use the sender() method instead of hardcoding buttons. Slowly refactor the other functions. Do one at a time and test them.
-    def preview_search(self):
+    def preview_search(self, version="normal"):
         # no need to check if query is valid b4 hand, the preview function will just say 0 results found
         sender = self.sender()       # sender is a QPushButton
         # print(f"Clicked: {repr(sender)}")
         sender.setDisabled(True)
         # preview_search.preview_emdb(self.userInputQuery.text())  # unthreaded version, bricks the gui for a second or two, it's noticeable
-        query = self.userInputQuery.text()
+        if version == "normal":
+            query = self.userInputQuery.text()
+        elif version == "quickstart":
+            query = self.ui.lineEdit_15.text()
+        if query == "":
+            self.ui.statusbar.showMessage(f"Error: empty query.", msecs=2000)
+            sender.setEnabled(True)
+            return
         self.worker = Worker(preview_search.preview_emdb, query)
-        self.worker.result_signal.connect(lambda preview_result: self.handle_preview_result(result=preview_result, sender=sender))
+        self.worker.result_signal.connect(lambda preview_result: self.handle_preview_result(result=preview_result, sender=sender, version=version))
         self.worker.start()
         self.ui.statusbar.showMessage(f"Search preview started.")
 
     # Helper fxn
-    def handle_preview_result(self, result, sender):
+    def handle_preview_result(self, result, sender, version):
         self.ui.statusbar.showMessage(f"Search preview finished.")
         sender.setEnabled(True)
         result_string = ""
@@ -571,16 +585,19 @@ class MainWindow(qtw.QMainWindow):    # Make sure the root widget/class is the r
                 f"{entry['emdb_id']}: {entry['title']}, resolution: {entry['resolution']}<br>"
                 )
         # print(result_string)
-        self.ui.textEdit.setHtml(result_string)
+        if version == "normal":
+            self.ui.textEdit.setHtml(result_string)
+        elif version == "quickstart":
+            self.ui.textEdit_3.setHtml(result_string)
 
 
     #~ Quickstart page
-    # Query: uses same functions as the normal version. Nothing needs to be done here.
+    # Query: uses same functions as the normal version. Just modify it to send in a string telling which page it's from.
 
     # Preprocessing
     def open_preprocessing_dialog(self):
         if self.prepro_dialog is None or not self.prepro_dialog.isVisible():
-            self.prepro_dialog = qs_prepro_dialog.Quickstart_Preprocessing_Dialog(self, current_values=self.quickstart_preprocesing_current_values, default_values=self.preprocesing_default_values)         # local variable, dont think need to be stored as an instance variable (i.e. self.dialog = ...)
+            self.prepro_dialog = qs_prepro_dialog.Quickstart_Preprocessing_Dialog(self, current_values=self.quickstart_preprocesing_current_values, default_values=self.preprocesing_default_values)
             self.prepro_dialog.preprocessing_options.connect(self.handle_preprocessing_dialog_data)
             self.prepro_dialog.show()
         else:
@@ -593,9 +610,14 @@ class MainWindow(qtw.QMainWindow):    # Make sure the root widget/class is the r
     
     # Labels: uses same functions as the normal version. Some new functions for handling dialog window
     def open_labels_dialog(self):
-        dialog = qs_labels_dialog.Quickstart_Labels_Dialog(self)         # local variable, dont think need to be stored as an instance variable (i.e. self.dialog = ...)
-        dialog.preprocessing_options.connect(self.handle_labels_dialog_data)
-        dialog.show()
+        if self.labels_dialog is None or not self.labels_dialog.isVisible():
+            self.labels_dialog = qs_labels_dialog.Quickstart_Labels_Dialog(self)
+            self.labels_dialog.labels.connect(self.handle_preprocessing_dialog_data)
+            self.labels_dialog.setWindowTitle("Label Manager")
+            self.labels_dialog.show()
+        else:
+            self.labels_dialog.raise_()
+            self.labels_dialog.activateWindow()
     
     def handle_labels_dialog_data(self, data):
         # print(f"Data from dialog:{data}")
@@ -603,7 +625,7 @@ class MainWindow(qtw.QMainWindow):    # Make sure the root widget/class is the r
         pass
 
     # Run: run all the backend functions sequentially. Runs the whole pipeline.
-    # TODO: new function here
+    # TODO: new function here. Either combine the backend functions into a massive function, like in that main.py file, and put it on a single worker. or do each sequentially in their own workers.
 
 
     #! rewrite for better usuability, pass in self.step1_results_path as a parameter, also need to pass in the widgets to display too, etc. dif for each step
@@ -626,14 +648,20 @@ class MainWindow(qtw.QMainWindow):    # Make sure the root widget/class is the r
         
         # if the save location is empty, do nothing
         #^ changed from self.ui.lineEdit_p2.text() to self.save_location to migrate closer to MVC design pattern
-        if not self.save_location or not self.userInputQuery.text():    # technically empty search query is a valid query, but that's the whole database. kinda annoying when u accidently download the whole database
-            print("nothing happens")
+        #! note this wont get triggered since there's a default save location
+        if not self.save_location:
+            print("nothing happens, no save location")
+            self.ui.statusbar.showMessage(f"Error: no save location. Go to home page to select one.", msecs=2000)
             return
 
         # make the dir only when you decide to download anything. might need to move this elsewhere
         self.make_main_dir(self.main_dir_path)
 
         query = self.userInputQuery.text()    # change this to the custom widget like in gen_dataset_quick()
+        if query == "":
+            print("nothing happens, empty query")
+            self.ui.statusbar.showMessage(f"Error: empty query.", msecs=2000)
+            return
         #processedstring = stringutil.process_string(query)   # TODO, concatenate array of keywords into a string (not sure how to implement and and or logic with keywords)
         processed_query = query     # placeholder   #! no need to process/validate/sanitize anymore
         # print(processed_query)
