@@ -1,8 +1,0 @@
-this will be written to message.log
->>> qscore_extractor.py runtimes <<<
-function: get_emdb_validation_data
-elapsed time (s): 18.951242099981755
-function: get_average_qscore
-elapsed time (s): 26.156644999980927
-oops get_average_qscore calls get_emdb_validation so its run time is mostly get_emdb_validation data. so it's extra runtime is just the difference btwn those 2 numbers
-average_qscore 0.427
