@@ -17,9 +17,9 @@ from tqdm.contrib.logging import logging_redirect_tqdm
 
 import sys
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), os.pardir)))
-from backend_helpers.helper_funcs import calculate_title_padding, csv_col_reader, read_csv_info
-from backend_core.redundancy_filter import map_model_filter
-from backend_helpers.file_utils import has_entries
+from helper.helper_funcs import calculate_title_padding, csv_col_reader, read_csv_info
+from core.redundancy_filter import map_model_filter
+from helper.file_utils import has_entries
 
 
 # main function

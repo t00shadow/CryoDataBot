@@ -1,6 +1,6 @@
 from PyQt5.QtWidgets import QDialog
 from PyQt5.QtCore import pyqtSignal
-from quickstart_labels_dialog_ui import Ui_Dialog   # Auto-generated class from .ui file
+from frontend.ui_files.quickstart_labels_dialog_ui import Ui_Dialog   # Auto-generated class from .ui file
 
 class Quickstart_Labels_Dialog(QDialog):
     labels = pyqtSignal(dict)

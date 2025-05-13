@@ -19,7 +19,7 @@ codec = QTextCodec.codecForName("UTF-8")
 # from guiskin_DEV2_alt import Ui_MainWindow    # need the "Ui_" prefix
 # from guiskin_DEV2_alt_TEMP_DEMO_VERSION import Ui_MainWindow
 # from guiskin_DEV3 import Ui_MainWindow           #! last used on 5/5/25 before 4:52 am. This version is STABLE. Use this if run into issues
-from guiskin_DEV3_1 import Ui_MainWindow
+from frontend.ui_files.guiskin_DEV3_1 import Ui_MainWindow
 #from guiskin import Ui_MainWindow                 # will become this eventually after renaming stuff
 
 import GUI_custom_widgets.z_Tag_main_alt_allcode_v2 as TTEwidget2
@@ -29,22 +29,22 @@ import GUI_custom_widgets.commaLineEdit as LabelLineEdit
 from GUI_custom_widgets.animated_toggle import AnimatedToggle
 from GUI_custom_widgets.popupDialog_alt import PopupDialog
 from GUI_custom_widgets.easyCloseDialog import EasyCloseDialog
-from my_logger import Handler
+from frontend.custom_widgets.my_logger import Handler
 
 
 # from backend_core import fetch_sample_info, redundancy_filter, downloading_and_preprocessing, downloading_and_preprocessing_NO_GPU, generate_dataset
-from backend_core import fetch_sample_info, redundancy_filter, downloading_and_preprocessing_NO_GPU2, generate_dataset   #! deleted cupy, actually works
+from backend.core import fetch_sample_info, redundancy_filter, downloading_and_preprocessing_NO_GPU2, generate_dataset   #! deleted cupy, actually works
 # from backend_core import fetch_sample_info, redundancy_filter, downloading_and_preprocessing_NO_GPU, generate_dataset
 # from backend_core import fetch_sample_info, redundancy_filter, downloading_and_preprocessing_NO_GPU_newversion, generate_dataset    #ignore the naming scheme between ..._newversion and ...2
 
-from backend_core import preview_search
+from backend.helper import preview_search
 
 from src.frontend_gui_assets.threading.test1_v2 import Worker
 # from src.frontend_gui_assets.threading.test2_v2 import Worker
 
 # dialog classes for quickstart page
-import quickstart_preprocessing_dialog as qs_prepro_dialog
-import quickstart_labels_dialog as qs_labels_dialog
+import frontend.custom_widgets.quickstart_preprocessing_dialog as qs_prepro_dialog
+import frontend.custom_widgets.quickstart_labels_dialog as qs_labels_dialog
 
 
 class NoEditDelegate(qtw.QStyledItemDelegate):    # only import stuff i need (change this at end of development)

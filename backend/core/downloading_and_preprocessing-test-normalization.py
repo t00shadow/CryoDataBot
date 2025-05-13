@@ -17,8 +17,8 @@ from tqdm.contrib.logging import logging_redirect_tqdm
 
 import sys
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), os.pardir)))
-from backend_helpers.helper_funcs import calculate_title_padding, csv_col_reader, read_csv_info
-from backend_core.redundancy_filter import map_model_filter
+from helper.helper_funcs import calculate_title_padding, csv_col_reader, read_csv_info
+from core.redundancy_filter import map_model_filter
 
 
 # main function
@@ -524,28 +524,18 @@ def map_normalizing(raw_map_path, recl=0.0):
             value_bottom = np.percentile(map_data, bottom_value_percentile)
         map_data -= max(value_bottom, 0)
 
-        # # Normalize map values to the range (0.0, 1.0)
-        # data_99_9 = np.percentile(map_data, 99.9)
-        # if data_99_9 == 0.:
-        #     raise ValueError('Empty map (99.9th percentile of map data is zero)')
-        # map_data /= data_99_9
-        # map_data = np.clip(map_data, 0., 1.)
-
         # Normalize map values to the range (0.0, 1.0)
-        positive_data = map_data
-        positive_data = positive_data[positive_data >= 0]
-        positive_data_99 = cp.percentile(positive_data, 99)
-        if positive_data_99 == 0.:
+        data_99_9 = np.percentile(map_data, 99.9)
+        if data_99_9 == 0.:
             raise ValueError('Empty map (99.9th percentile of map data is zero)')
-        map_data = map_data / positive_data_99
-        map_data = cp.clip(map_data, 0., 1.)
+        map_data /= data_99_9
+        map_data = np.clip(map_data, 0., 1.)
 
         map_orientation = np.array([mrc.header.mapc-1, mrc.header.mapr-1, mrc.header.maps-1], dtype=np.int32)
         map_data = cp.transpose(map_data, map_orientation)
 
     return map_data
-
-
+    
 
 # Step3.1.2: generate .mrc file
 def map_output(input_map, map_data, output_map, is_model=False):
@@ -553,7 +543,7 @@ def map_output(input_map, map_data, output_map, is_model=False):
         os.remove(output_map)
 
     shutil.copyfile(input_map, output_map)
-    with mrcfile.open(output_map, mode='r+') as mrc:
+    with mrcfile.mmap(output_map, mode='r+') as mrc:
         if is_model:
             map_data = map_data.astype(np.int8)
         else:
@@ -603,20 +593,21 @@ def map_from_cif(cif_path: str, MAP_BOUNDARY, PROTEIN_TAG_DIST):
         return protein_tag
 
 
-def main():
+if __name__ == '__main__':
     # from config file read default values
-    downloading_and_preprocessing_config = ConfigParser(default_section='downloading_and_preprocessing')
-    downloading_and_preprocessing_config.read('CryoDataBotConfig.ini')
-    overwrite = downloading_and_preprocessing_config.getboolean('user_settings', 'overwrite')
-    give_map = downloading_and_preprocessing_config.getboolean('user_settings', 'give_map')
-    protein_tag_dist = downloading_and_preprocessing_config.getint('user_settings', 'protein_tag_dist')
-    map_threashold = downloading_and_preprocessing_config.getfloat('user_settings', 'map_threashold')
-    vof_threashold = downloading_and_preprocessing_config.getfloat('user_settings', 'vof_threashold')
-    dice_threashold = downloading_and_preprocessing_config.getfloat('user_settings', 'dice_threashold')
+    # downloading_and_preprocessing_config = ConfigParser(default_section='downloading_and_preprocessing')
+    # downloading_and_preprocessing_config.read('CryoDataBotConfig.ini')
+    overwrite = False # downloading_and_preprocessing_config.getboolean('user_settings', 'overwrite')
+    give_map = True # downloading_and_preprocessing_config.getboolean('user_settings', 'give_map')
+    protein_tag_dist = 1 # downloading_and_preprocessing_config.getint('user_settings', 'protein_tag_dist')
+    map_threashold = 0.15 # downloading_and_preprocessing_config.getfloat('user_settings', 'map_threashold')
+    vof_threashold = 1 # downloading_and_preprocessing_config.getfloat('user_settings', 'vof_threashold')
+    dice_threashold = 1 # downloading_and_preprocessing_config.getfloat('user_settings', 'dice_threashold')
 
     # matadata_path = 'CryoDataBot_Data/Metadata/ribosome_res_1-4_001/ribosome_res_1-4_001_Final.csv'
-    matadata_path = r'C:\Users\noelu\CryoDataBot\CryoDataBot_Data\Metadata\ribosome_res_1-4_001\ribosome_res_1-4_001_Final.csv'
-    raw_dir = 'CryoDataBot_Data/Raw'
+    matadata_path = '/home/qiboxu/Database/CryoDataBot_Data/Metadata/ribosome_res_3-4_1st_dataset/more-test.csv'
+
+    raw_dir = '/home/qiboxu/Database/CryoDataBot_Data/Raw'
     downloading_and_preprocessing(matadata_path, 
                                   raw_dir, 
                                   overwrite,
@@ -626,7 +617,3 @@ def main():
                                   vof_threashold,
                                   dice_threashold,
                                   )
-
-
-if __name__ == '__main__':
-    main()

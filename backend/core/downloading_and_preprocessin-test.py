@@ -6,29 +6,19 @@ import urllib.request
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from configparser import ConfigParser
 
-import cupy as xp
+import cupy as cp
 import gemmi
 import mrcfile
 import numpy as np
 import pandas as pd
-try:
-    if xp.cuda.runtime.getDeviceCount() > 0:
-        print("NVIDIA GPU detected. Using CuPy and cupyx.scipy.ndimage")
-        from cupyx.scipy.ndimage import binary_dilation, zoom
-    else:
-        raise RuntimeError("No GPU available.")
-except (ImportError, RuntimeError) as e:
-    # Fallback to NumPy if CuPy is unavailable or no GPU is detected
-    print("Falling back to NumPy and regular scipy.ndimage due to:", e)
-    xp = np
-    from scipy.ndimage import binary_dilation, zoom
+from cupyx.scipy.ndimage import binary_dilation, zoom
 from tqdm import tqdm
 from tqdm.contrib.logging import logging_redirect_tqdm
 
 import sys
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), os.pardir)))
-from backend_helpers.helper_funcs import calculate_title_padding, csv_col_reader, read_csv_info
-from backend_core.redundancy_filter import map_model_filter
+from helper.helper_funcs import calculate_title_padding, csv_col_reader, read_csv_info
+from core.redundancy_filter import map_model_filter
 
 
 # main function
@@ -80,12 +70,12 @@ def downloading_and_preprocessing(metadata_path,
     read_csv_info_with_recl = csv_col_reader('recommended_contour_level')(read_csv_info)
     csv_info, path_info = read_csv_info_with_recl(metadata_path, raw_dir)
 
-    # # Step2: download maps and models using multithreasing
-    logger.info(calculate_title_padding('Downloading Map & PDB Files'))
-    logger.info(f'MetaData Path: "{os.path.abspath(metadata_path)}"')
-    fetch_map_model(csv_info, path_info, overwrite)
-    logger.info(calculate_title_padding('Downloading Completed'))
-    logger.info('')
+    # # # Step2: download maps and models using multithreasing
+    # logger.info(calculate_title_padding('Downloading Map & PDB Files'))
+    # logger.info(f'MetaData Path: "{os.path.abspath(metadata_path)}"')
+    # fetch_map_model(csv_info, path_info, overwrite)
+    # logger.info(calculate_title_padding('Downloading Completed'))
+    # logger.info('')
 
     # Step3: preprocess maps using multithreasing (Resample and normalize map files)
     logger.info(calculate_title_padding('Preprocessing Maps'))
@@ -234,7 +224,11 @@ def preprocess_maps(csv_info,
     logger = logging.getLogger('Downloading_and_Preprocessing_Logger')
 
     _, _, _, recls = csv_info
-    raw_map_paths, model_paths, _ = path_info
+    raw_map_paths, model_paths, normalized_map_paths = path_info
+
+    ## calculate with nomalized maps - down ##
+    raw_map_paths = normalized_map_paths
+    ## calculate with nomalized maps - up   ##
 
     results = []
     failed: list[str] = []
@@ -276,7 +270,7 @@ def preprocess_maps(csv_info,
     print(f'Please Check Failed Entries at:\n"{os.path.abspath(failed_df_path)}"')
     logger.info('')
 
-    # save VOF/Dice            
+    # save VOF/Dice
     result_df = pd.DataFrame(results, columns=['emdb_id', 'vof', 'dice_coefficient'])
     metadata_df = metadata_df.merge(result_df, on='emdb_id', how='left')
 
@@ -356,11 +350,21 @@ def preprocess_one_map(recl: float, raw_map_path: str, model_path: str, give_map
     # Load the map
     try:
         logger.info('  Normalizing Map')
-        map_F = map_normalizing(raw_map_path, recl)
-        
+        # map_F = map_normalizing(raw_map_path, recl)
+
+#   Generate vof from normalized maps DOWN  ##
+        with mrcfile.mmap(raw_map_path, 'r+') as mrc:
+        # Load map data
+            map_F = cp.array(mrc.data, dtype=np.float32)
+            map_orientation = np.array([mrc.header.mapc, mrc.header.mapr, mrc.header.maps], dtype=np.float32)
+            map_orientation = np.array([mrc.header.mapc-1, mrc.header.mapr-1, mrc.header.maps-1], dtype=np.int32)
+            map_F = cp.transpose(map_F, map_orientation)
+#   Generate vof from normalized maps UP    ##
+
+
         if give_map:
             map_path = f"{raw_map_path.split('.map')[0]}_normalized.mrc"
-            map_output(raw_map_path, xp.asnumpy(map_F), map_path, is_model=False)
+            map_output(raw_map_path, cp.asnumpy(map_F), map_path, is_model=False)
             logger.info(f'  Normalized Map Saved as "{map_path}"')
     except FileNotFoundError as e:
         logger.warning(f'  Error Loading Map: {e}')
@@ -388,12 +392,12 @@ def preprocess_one_map(recl: float, raw_map_path: str, model_path: str, give_map
         
 
         # Apply the map threshold
-        map_F = xp.where(map_F > 0.15, 1, 0)
-        protein_tag = xp.array(protein_tag)
+        map_F = cp.where(map_F > 0.15, 1, 0)
+        protein_tag = cp.array(protein_tag)
         vof, dice = planes_map(map_F, protein_tag)
         
-        map_path = f"{model_path.split('.cif')[0]}_simulated.mrc"
-        map_output(raw_map_path, xp.asnumpy(protein_tag), map_path, is_model=True)
+        # map_path = f"{model_path.split('.cif')[0]}_simulated.mrc"
+        # map_output(raw_map_path, cp.asnumpy(protein_tag), map_path, is_model=True)
             
     except Exception as e:
             logger.warning(f'  Error Calculating Map to Model Fitness: {e}')
@@ -423,13 +427,13 @@ def preprocess_one_map(recl: float, raw_map_path: str, model_path: str, give_map
 def planes_map(map_F, protein_tag):
 
     def helper_diag_gof(map_diag, cifmap_diag,all_top_gof,all_top_dc):
-        map_diag = xp.where(map_diag>=1,1,0)
-        cifmap_diag = xp.where(cifmap_diag>=1,1,0)
-        overlap_count = xp.sum(xp.logical_and(map_diag, cifmap_diag))
-        overlap = xp.where((xp.logical_and(map_diag, cifmap_diag)>0),1,0)
-        union = xp.where((xp.logical_or(map_diag, cifmap_diag)>0),1,0)
-        top_gof = xp.sum(overlap)/xp.sum(union)
-        top_dc = overlap_count/(xp.sum(map_diag) + xp.sum(cifmap_diag))
+        map_diag = cp.where(map_diag>=1,1,0)
+        cifmap_diag = cp.where(cifmap_diag>=1,1,0)
+        overlap_count = cp.sum(cp.logical_and(map_diag, cifmap_diag))
+        overlap = cp.where((cp.logical_and(map_diag, cifmap_diag)>0),1,0)
+        union = cp.where((cp.logical_or(map_diag, cifmap_diag)>0),1,0)
+        top_gof = cp.sum(overlap)/cp.sum(union)
+        top_dc = overlap_count/(cp.sum(map_diag) + cp.sum(cifmap_diag))
         all_top_gof.append(float(top_gof))
         all_top_dc.append(float(top_dc))
         return
@@ -438,14 +442,14 @@ def planes_map(map_F, protein_tag):
     all_top_gof = []
     all_top_dc = []
     for i in range(3):
-        map_fx = xp.sum(map_F,axis=i)
-        cifmap_fx = xp.sum(protein_tag,axis=i)
+        map_fx = cp.sum(map_F,axis=i)
+        cifmap_fx = cp.sum(protein_tag,axis=i)
         helper_diag_gof(map_fx, cifmap_fx, all_top_gof, all_top_dc)
        
 
     for i in range(3):
-        map_diag = xp.zeros((map_F.shape[0],map_F.shape[1]))
-        cifmap_diag = xp.zeros((protein_tag.shape[0],protein_tag.shape[1]))
+        map_diag = cp.zeros((map_F.shape[0],map_F.shape[1]))
+        cifmap_diag = cp.zeros((protein_tag.shape[0],protein_tag.shape[1]))
         if i==0:
             for j in range(map_F.shape[1]):
                 map_diag += map_F[:,j,:]
@@ -475,9 +479,9 @@ def planes_map(map_F, protein_tag):
             helper_diag_gof(map_diag,cifmap_diag, all_top_gof, all_top_dc)
               
     
-    all_top_gof = xp.array(all_top_gof)
-    all_top_gof = (xp.array(all_top_gof[all_top_gof != all_top_gof.max()])).mean()
-    all_top_dc = xp.mean(xp.array(all_top_dc))
+    all_top_gof = cp.array(all_top_gof)
+    all_top_gof = (cp.array(all_top_gof[all_top_gof != all_top_gof.max()])).mean()
+    all_top_dc = cp.mean(cp.array(all_top_dc))
 
     return all_top_gof, all_top_dc
 
@@ -509,16 +513,13 @@ def map_normalizing(raw_map_path, recl=0.0):
         recl = 0.0
     with mrcfile.mmap(raw_map_path, 'r+') as mrc:
         # Load map data
-        map_data = xp.array(mrc.data, dtype=np.float32)
+        map_data = cp.array(mrc.data, dtype=np.float32)
         map_origin = np.array([mrc.header.nxstart, mrc.header.nystart, mrc.header.nzstart], dtype=np.int8)
         map_orientation = np.array([mrc.header.mapc, mrc.header.mapr, mrc.header.maps], dtype=np.float32)
 
         # Resample map to 1.0A*1.0A*1.0A grid size
         zoom_factors = [mrc.voxel_size.z, mrc.voxel_size.y, mrc.voxel_size.x]
-        if xp == np:
-            map_data = zoom(map_data, zoom_factors)
-        else:
-            map_data = xp.asnumpy(zoom(map_data, zoom_factors))
+        map_data = zoom(map_data, zoom_factors)
 
         # remove noisy values that are too small
         count_good = np.sum(map_data > max(0, recl))
@@ -537,28 +538,18 @@ def map_normalizing(raw_map_path, recl=0.0):
             value_bottom = np.percentile(map_data, bottom_value_percentile)
         map_data -= max(value_bottom, 0)
 
-        # # Normalize map values to the range (0.0, 1.0)
-        # data_99_9 = np.percentile(map_data, 99.9)
-        # if data_99_9 == 0.:
-        #     raise ValueError('Empty map (99.9th percentile of map data is zero)')
-        # map_data /= data_99_9
-        # map_data = np.clip(map_data, 0., 1.)
-
         # Normalize map values to the range (0.0, 1.0)
-        positive_data = map_data
-        positive_data = positive_data[positive_data >= 0]
-        positive_data_99 = xp.percentile(positive_data, 99)
-        if positive_data_99 == 0.:
+        data_99_9 = np.percentile(map_data, 99.9)
+        if data_99_9 == 0.:
             raise ValueError('Empty map (99.9th percentile of map data is zero)')
-        map_data = map_data / positive_data_99
-        map_data = xp.clip(map_data, 0., 1.)
+        map_data /= data_99_9
+        map_data = np.clip(map_data, 0., 1.)
 
         map_orientation = np.array([mrc.header.mapc-1, mrc.header.mapr-1, mrc.header.maps-1], dtype=np.int32)
-        map_data = xp.transpose(map_data, map_orientation)
+        map_data = cp.transpose(map_data, map_orientation)
 
     return map_data
-
-
+    
 
 # Step3.1.2: generate .mrc file
 def map_output(input_map, map_data, output_map, is_model=False):
@@ -566,7 +557,7 @@ def map_output(input_map, map_data, output_map, is_model=False):
         os.remove(output_map)
 
     shutil.copyfile(input_map, output_map)
-    with mrcfile.open(output_map, mode='r+') as mrc:
+    with mrcfile.mmap(output_map, mode='r+') as mrc:
         if is_model:
             map_data = map_data.astype(np.int8)
         else:
@@ -588,7 +579,7 @@ def map_from_cif(cif_path: str, MAP_BOUNDARY, PROTEIN_TAG_DIST):
                 structure (Structure): Parsed structure file.
 
             Returns:
-                xp.ndarray: Array of atomic coordinates on GPU.
+                cp.ndarray: Array of atomic coordinates on GPU.
             """
             coords = []
             for model in structure:
@@ -598,41 +589,39 @@ def map_from_cif(cif_path: str, MAP_BOUNDARY, PROTEIN_TAG_DIST):
                             coords.append((int(round(atom.pos.z)), int(round(atom.pos.y)), int(round(atom.pos.x))))
 
             
-            return xp.array(coords)
+            return cp.array(coords)
             
         protein_coords = atom_coord_cif(gemmi.read_structure(cif_path))    
-        origin_info = xp.array([0,0,0])
+        origin_info = cp.array([0,0,0])
         
         # Create binary map for protein coordinates
         MAP_BOUNDARY1 = ((int(MAP_BOUNDARY[0])),int((MAP_BOUNDARY[1])),int(MAP_BOUNDARY[2]))
-        protein_tag = xp.zeros(shape=tuple(MAP_BOUNDARY1))
+        protein_tag = cp.zeros(shape=tuple(MAP_BOUNDARY1))
         protein_coords = np.round(protein_coords).astype(int)
         protein_tag[protein_coords[:, 0], protein_coords[:, 1], protein_coords[:, 2]] = 1
 
         # Binary dilation using GPU
-        structure = xp.ones((PROTEIN_TAG_DIST * 2 + 1,) * 3, dtype=xp.int8)
-        if xp == np:     # this fxn is NOT called by normalize, BUT I just preemptively updated this line (406) too
-            protein_tag = binary_dilation(protein_tag, structure=structure).astype(np.int8)
-        else:
-            protein_tag = xp.asnumpy(binary_dilation(protein_tag, structure=structure).astype(np.int8))
+        structure = cp.ones((PROTEIN_TAG_DIST * 2 + 1,) * 3, dtype=cp.int8)
+        protein_tag = binary_dilation(protein_tag, structure=structure).astype(cp.int8)
 
         return protein_tag
 
 
-def main():
+if __name__ == '__main__':
     # from config file read default values
-    downloading_and_preprocessing_config = ConfigParser(default_section='downloading_and_preprocessing')
-    downloading_and_preprocessing_config.read('CryoDataBotConfig.ini')
-    overwrite = downloading_and_preprocessing_config.getboolean('user_settings', 'overwrite')
-    give_map = downloading_and_preprocessing_config.getboolean('user_settings', 'give_map')
-    protein_tag_dist = downloading_and_preprocessing_config.getint('user_settings', 'protein_tag_dist')
-    map_threashold = downloading_and_preprocessing_config.getfloat('user_settings', 'map_threashold')
-    vof_threashold = downloading_and_preprocessing_config.getfloat('user_settings', 'vof_threashold')
-    dice_threashold = downloading_and_preprocessing_config.getfloat('user_settings', 'dice_threashold')
+    # downloading_and_preprocessing_config = ConfigParser(default_section='downloading_and_preprocessing')
+    # downloading_and_preprocessing_config.read('CryoDataBotConfig.ini')
+    overwrite = False # downloading_and_preprocessing_config.getboolean('user_settings', 'overwrite')
+    give_map = False # downloading_and_preprocessing_config.getboolean('user_settings', 'give_map')
+    protein_tag_dist = 1 # downloading_and_preprocessing_config.getint('user_settings', 'protein_tag_dist')
+    map_threashold = 0.15 # downloading_and_preprocessing_config.getfloat('user_settings', 'map_threashold')
+    vof_threashold = 1 # downloading_and_preprocessing_config.getfloat('user_settings', 'vof_threashold')
+    dice_threashold = 1 # downloading_and_preprocessing_config.getfloat('user_settings', 'dice_threashold')
 
     # matadata_path = 'CryoDataBot_Data/Metadata/ribosome_res_1-4_001/ribosome_res_1-4_001_Final.csv'
-    matadata_path = r'C:\Users\noelu\CryoDataBot\CryoDataBot_Data\Metadata\ribosome_res_1-4_001\ribosome_res_1-4_001_Final.csv'
-    raw_dir = 'CryoDataBot_Data/Raw'
+    matadata_path = '/home/qiboxu/Database/CryoDataBot_Data/Metadata/ribosome_res_3-4_1st_dataset/more-test.csv'
+
+    raw_dir = '/home/qiboxu/Database/CryoDataBot_Data/Raw'
     downloading_and_preprocessing(matadata_path, 
                                   raw_dir, 
                                   overwrite,
@@ -642,7 +631,3 @@ def main():
                                   vof_threashold,
                                   dice_threashold,
                                   )
-
-
-if __name__ == '__main__':
-    main()

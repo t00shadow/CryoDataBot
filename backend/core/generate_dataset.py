@@ -17,8 +17,8 @@ from tqdm.contrib.logging import logging_redirect_tqdm
 
 import sys
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), os.pardir)))
-from backend_helpers.atom_in_models import residues_protein
-from backend_helpers.helper_funcs import calculate_title_padding, move_log_file, read_csv_info
+from helper.atom_in_models import residues_protein
+from helper.helper_funcs import calculate_title_padding, move_log_file, read_csv_info
 
 
 def data_to_npy(label_groups: list,
@@ -811,7 +811,7 @@ def main():
 
     csv_path = 'CryoDataBot_Data/Metadata/ribosome_res_1-4_001/ribosome_res_1-4_001_Final.csv'
     group_names = ['secondary_strctures', 'residue_types', 'key_atoms']
-    from backend_helpers.atom_in_models import atoms_sugar_ring, residues_RNA
+    from helper.atom_in_models import atoms_sugar_ring, residues_RNA
     label_groups = [
                    [{'secondary_type': 'Helix', 'residue_type': '', 'atom_type': '', 'element_type': '', 'metal_type': '', 'label': 1},
                     {'secondary_type': 'Sheet', 'residue_type': '', 'atom_type': '', 'element_type': '', 'metal_type': '', 'label': 2},
