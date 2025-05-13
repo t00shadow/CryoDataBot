@@ -19,32 +19,32 @@ codec = QTextCodec.codecForName("UTF-8")
 # from guiskin_DEV2_alt import Ui_MainWindow    # need the "Ui_" prefix
 # from guiskin_DEV2_alt_TEMP_DEMO_VERSION import Ui_MainWindow
 # from guiskin_DEV3 import Ui_MainWindow           #! last used on 5/5/25 before 4:52 am. This version is STABLE. Use this if run into issues
-from frontend.ui_files.guiskin_DEV3_1 import Ui_MainWindow
+from src.frontend.ui_files.guiskin_DEV3_1 import Ui_MainWindow
 #from guiskin import Ui_MainWindow                 # will become this eventually after renaming stuff
 
-import frontend.custom_widgets.z_Tag_main_alt_allcode_v2 as TTEwidget2
-from frontend.custom_widgets.LabelComboBox import LabelComboBox
-from frontend.custom_widgets.LabelComboBox_v2 import LabelComboBox_v2
-import frontend.custom_widgets.commaLineEdit as LabelLineEdit
-from frontend.custom_widgets.animated_toggle import AnimatedToggle
-from frontend.custom_widgets.popupDialog_alt import PopupDialog
-from frontend.custom_widgets.easyCloseDialog import EasyCloseDialog
-from frontend.custom_widgets.my_logger import Handler
+import src.frontend.custom_widgets.z_Tag_main_alt_allcode_v2 as TTEwidget2
+from src.frontend.custom_widgets.LabelComboBox import LabelComboBox
+from src.frontend.custom_widgets.LabelComboBox_v2 import LabelComboBox_v2
+import src.frontend.custom_widgets.commaLineEdit as LabelLineEdit
+from src.frontend.custom_widgets.animated_toggle import AnimatedToggle
+from src.frontend.custom_widgets.popupDialog_alt import PopupDialog
+from src.frontend.custom_widgets.easyCloseDialog import EasyCloseDialog
+from src.frontend.custom_widgets.my_logger import Handler
 
 
 # from backend_core import fetch_sample_info, redundancy_filter, downloading_and_preprocessing, downloading_and_preprocessing_NO_GPU, generate_dataset
-from backend.core import fetch_sample_info, redundancy_filter, downloading_and_preprocessing_NO_GPU2, generate_dataset   #! deleted cupy, actually works
+from src.backend.core import fetch_sample_info, redundancy_filter, downloading_and_preprocessing_NO_GPU2, generate_dataset   #! deleted cupy, actually works
 # from backend_core import fetch_sample_info, redundancy_filter, downloading_and_preprocessing_NO_GPU, generate_dataset
 # from backend_core import fetch_sample_info, redundancy_filter, downloading_and_preprocessing_NO_GPU_newversion, generate_dataset    #ignore the naming scheme between ..._newversion and ...2
 
-from backend.helper import preview_search
+from src.backend.helper import preview_search
 
-from src.frontend_gui_assets.threading.test1_v2 import Worker
+from src.frontend.custom_widgets.threading.test1_v2 import Worker
 # from src.frontend_gui_assets.threading.test2_v2 import Worker
 
 # dialog classes for quickstart page
-import frontend.custom_widgets.quickstart_preprocessing_dialog as qs_prepro_dialog
-import frontend.custom_widgets.quickstart_labels_dialog as qs_labels_dialog
+import src.frontend.custom_widgets.dialog_windows.quickstart_preprocessing_dialog as qs_prepro_dialog
+import src.frontend.custom_widgets.dialog_windows.quickstart_labels_dialog as qs_labels_dialog
 
 
 class NoEditDelegate(qtw.QStyledItemDelegate):    # only import stuff i need (change this at end of development)
@@ -308,10 +308,10 @@ class MainWindow(qtw.QMainWindow):    # Make sure the root widget/class is the r
         font.setPointSize(12)
         self.ui.label_p2.setFont(font)
 
-        # self.ui.lineEdit_p1_2.findChild(qtw.QToolButton).setIcon(qtg.QIcon(r"frontend/svgs/clear_small-svgrepo-com.svg"))
-        self.ui.lineEdit_p3_2.findChild(qtw.QToolButton).setIcon(qtg.QIcon(r"frontend/svgs/clear_small-svgrepo-com.svg"))
-        self.ui.pushButton_6.setIcon(qtg.QIcon(r"frontend/svgs/copy-svgrepo-com.svg"))
-        self.ui.pushButton_3.setIcon(qtg.QIcon(r"frontend/svgs/copy-svgrepo-com.svg"))
+        # self.ui.lineEdit_p1_2.findChild(qtw.QToolButton).setIcon(qtg.QIcon(r"src/frontend/svgs/clear_small-svgrepo-com.svg"))
+        self.ui.lineEdit_p3_2.findChild(qtw.QToolButton).setIcon(qtg.QIcon(r"src/frontend/svgs/clear_small-svgrepo-com.svg"))
+        self.ui.pushButton_6.setIcon(qtg.QIcon(r"src/frontend/svgs/copy-svgrepo-com.svg"))
+        self.ui.pushButton_3.setIcon(qtg.QIcon(r"src/frontend/svgs/copy-svgrepo-com.svg"))
 
         self.ui.training_spinBox.setValue(80)
         self.ui.testing_spinBox.setValue(10)
@@ -890,8 +890,8 @@ class MainWindow(qtw.QMainWindow):    # Make sure the root widget/class is the r
         # Automatically select the newly added group
         self.ui.treeWidget_p4.setCurrentItem(group_item)
         group_delbtn = qtw.QPushButton()
-        # group_delbtn.setIcon(qtg.QIcon(r"frontend/svgs/browsefilesicon.png"))
-        group_delbtn.setIcon(qtg.QIcon(r"frontend/svgs/clear_inverse-svgrepo-com.svg"))
+        # group_delbtn.setIcon(qtg.QIcon(r"src/frontend/svgs/browsefilesicon.png"))
+        group_delbtn.setIcon(qtg.QIcon(r"src/frontend/svgs/clear_inverse-svgrepo-com.svg"))
         group_delbtn.setFixedWidth(16)
         group_delbtn.setFixedHeight(16)
         group_delbtn.setStyleSheet("QPushButton {\n"
@@ -988,7 +988,7 @@ class MainWindow(qtw.QMainWindow):    # Make sure the root widget/class is the r
         atoms_lineedit.setPlaceholderText("Type in atoms")    # TODO: consider adding this to the customlineedit constructor
         self.ui.treeWidget_p4.setItemWidget(label_item, 3, atoms_lineedit)
         label_delbtn = qtw.QPushButton()
-        label_delbtn.setIcon(qtg.QIcon(r"frontend/svgs/clear_inverse-svgrepo-com.svg"))
+        label_delbtn.setIcon(qtg.QIcon(r"src/frontend/svgs/clear_inverse-svgrepo-com.svg"))
         label_delbtn.setFixedWidth(16)
         label_delbtn.setFixedHeight(16)
         label_delbtn.setStyleSheet("QPushButton {\n"

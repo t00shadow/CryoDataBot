@@ -1,6 +1,6 @@
 from PyQt5.QtWidgets import QDialog
 from PyQt5.QtCore import pyqtSignal
-from frontend.ui_files.quickstart_preprocessing_dialog_ui import Ui_Dialog   # Auto-generated class from .ui file
+from src.frontend.ui_files.quickstart_preprocessing_dialog_ui import Ui_Dialog   # Auto-generated class from .ui file
 
 class Quickstart_Preprocessing_Dialog(QDialog):
     preprocessing_options = pyqtSignal(dict)

@@ -4,7 +4,7 @@
 
 from PyQt5.QtCore import QEvent
 from PyQt5.QtWidgets import QApplication, QDialog, QPushButton, QVBoxLayout, QLabel, QHBoxLayout, QWidget
-from frontend.custom_widgets.easyCloseDialog import EasyCloseDialog
+from src.frontend.custom_widgets.easyCloseDialog import EasyCloseDialog
 
 
 class PopupDialog(EasyCloseDialog):
