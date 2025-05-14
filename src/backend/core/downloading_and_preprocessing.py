@@ -473,7 +473,7 @@ def planes_map(map_F, protein_tag):
 
 
 # Step3.1.1: normalize one map - make the grid size 1A and make the density range [0,1]
-def map_normalizing(raw_map_path, recl=0.0):
+def map_normalizing(raw_map_path, recl=0.0, target_voxel_size=1.0):
     """
     Normalizes a map file by resampling and scaling its values.
 
@@ -503,9 +503,10 @@ def map_normalizing(raw_map_path, recl=0.0):
         map_origin = np.array([mrc.header.nxstart, mrc.header.nystart, mrc.header.nzstart], dtype=np.int8)
         map_orientation = np.array([mrc.header.mapc, mrc.header.mapr, mrc.header.maps], dtype=np.float32)
 
-        # Resample map to 1.0A*1.0A*1.0A grid size
-        zoom_factors = [mrc.voxel_size.z, mrc.voxel_size.y, mrc.voxel_size.x]
+        # Resample map to target_voxel_size grid size (default:1.0A*1.0A*1.0A)
+        zoom_factors = [mrc.voxel_size.z, mrc.voxel_size.y, mrc.voxel_size.x] / target_voxel_size
         map_data = zoom(map_data, zoom_factors)
+
 
         # remove noisy values that are too small
         count_good = np.sum(map_data > max(0, recl))
