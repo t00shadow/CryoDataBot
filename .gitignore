@@ -28,3 +28,5 @@ cryodatabot.egg-info/
 /TEST_FILES_noncode
 /zzzzz_TEST
 JUNK_DONT_COMMIT.py
+
+/cleanvenv

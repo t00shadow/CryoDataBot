@@ -66,6 +66,9 @@ Once you run it once, you'll have .spec file. So can use the .spec file for futu
 
 The app icon .ico files are from PyQt GUI practice folder. Feel free to change the icon. Just download a new one or make one.
 
+### Edit: making a clean venv
+pip install all the necessary packages and run the main gui file after importing one at a time. also check sys.modules.keys() or this approach: https://stackoverflow.com/questions/4858100/how-to-list-imported-modules
+
 ## Linux version (linux executable)
 ```pyinstaller --onefile --windowed --paths="C:\\Users\\noelu\\CryoDataBot\\.venv\\Lib\\site-packages" --name "CryoDataBot_LINUX" --icon "C:\\Users\\noelu\\Python Projects\\PyQt GUI practice\\QtDesigner_practice\\dataset_gen_tool_GUI\\app_icon2.ico" main_gui_DEV4.py```
 

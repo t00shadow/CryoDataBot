@@ -46,6 +46,8 @@ from src.frontend.custom_widgets.threading.test1_v2 import Worker
 import src.frontend.custom_widgets.dialog_windows.quickstart_preprocessing_dialog as qs_prepro_dialog
 import src.frontend.custom_widgets.dialog_windows.quickstart_labels_dialog as qs_labels_dialog
 
+# print(sys.modules.keys())    # checking neccesary imports
+# print(sys.version)
 
 class NoEditDelegate(qtw.QStyledItemDelegate):    # only import stuff i need (change this at end of development)
     def __init__(self, parent=None):
