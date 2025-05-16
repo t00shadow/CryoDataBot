@@ -9,7 +9,7 @@ from PyQt5 import QtGui as qtg
 from PyQt5.QtCore import QTextCodec
 codec = QTextCodec.codecForName("UTF-8")
 
-from guiskin_DEV import Ui_MainWindow    # need the "Ui_" prefix
+from guiskin import Ui_MainWindow    # need the "Ui_" prefix
 #from guiskin import Ui_MainWindow
 
 
