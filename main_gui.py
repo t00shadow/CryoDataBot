@@ -1230,7 +1230,7 @@ class MainWindow(qtw.QMainWindow):    # Make sure the root widget/class is the r
 
 
 
-if __name__ == '__main__':
+def main():
     # os.environ["QT_AUTO_SCREEN_SCALE_FACTOR"] = "1"                          # choose one
     # os.environ["QT_SCREEN_SCALE_FACTORS"] = "1.2"    # can set individual scale factors for each screen (not sure how to implement into gui for users to choose, like can u change at runtime? test later and also with a 2nd monitor hooked up)
     os.environ["QT_SCALE_FACTOR"] = "1"
@@ -1248,3 +1248,6 @@ if __name__ == '__main__':
     # w.showFullScreen()   # no top bar
     w.showMaximized()   # still has title bar and close button
     sys.exit(app.exec_())
+
+if __name__ == '__main__':
+    main()
