@@ -13,8 +13,12 @@ setup(
         'numpy',
         'scipy',
         'pandas',
-        'matplotlib',
-        'PyQt5'
+        'PyQt5',
+        'gemmi',
+        'mrcfile',
+        'requests',
+        'split-folders',
+        'tqdm'
     ],
     entry_points={
         'console_scripts': [
