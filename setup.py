@@ -18,7 +18,8 @@ setup(
     ],
     entry_points={
         'console_scripts': [
-           'cryodatabot=__main__:main'
+        #    'cryodatabot=__main__:main'
+           'cryodatabot=cryodatabot.main_gui:main'
         ],
     },
     classifiers=[
