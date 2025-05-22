@@ -275,6 +275,8 @@ class MainWindow(qtw.QMainWindow):    # Make sure the root widget/class is the r
 
         ### COSMETIC TWEAKS (some can be done in designer, some are code only, like setCursorWidth, and some are just easier to do here)
         # =====================================================
+        # self.ui.A_datasetOptions.setFixedHeight(400)       # for figure making
+
         self.ui.rename_everything.hide()
 
         self.ui.label_18.setText("")
