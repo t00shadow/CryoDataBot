@@ -15,7 +15,7 @@ CryoDataBot is a Python package designed for ...
 
 To install CryoDataBot:
 ```bash
-pip install git+https://github.com/t00shadow/CryoDataBot.git@main
+git clone --branch temp https://github.com/t00shadow/CryoDataBot.git & cd CryoDataBot & pip install -r requirements.txt
 ```
 
 
