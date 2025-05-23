@@ -17,8 +17,8 @@ from tqdm.contrib.logging import logging_redirect_tqdm
 
 import sys
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), os.pardir)))
-from helper.atom_in_models import residues_protein
-from helper.helper_funcs import calculate_title_padding, move_log_file, read_csv_info
+from cryodatabot.src.backend.helper.atom_in_models import residues_protein
+from cryodatabot.src.backend.helper.helper_funcs import calculate_title_padding, move_log_file, read_csv_info
 
 
 def data_to_npy(label_groups: list,

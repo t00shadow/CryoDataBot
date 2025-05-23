@@ -10,8 +10,8 @@ from tqdm import tqdm
 
 import sys
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), os.pardir)))
-from helper.helper_funcs import calculate_title_padding
-from helper.file_utils import has_entries
+from cryodatabot.src.backend.helper.helper_funcs import calculate_title_padding
+from cryodatabot.src.backend.helper.file_utils import has_entries
 
 
 def filter_csv(input_csv, q_threshold: float = 0.0, uni_threshold: float = 1.0):

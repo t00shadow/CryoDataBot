@@ -17,9 +17,9 @@ from tqdm.contrib.logging import logging_redirect_tqdm
 
 import sys
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), os.pardir)))
-from helper.helper_funcs import calculate_title_padding, csv_col_reader, read_csv_info
-from core.redundancy_filter import map_model_filter
-from helper.file_utils import has_entries
+from cryodatabot.src.backend.helper.helper_funcs import calculate_title_padding, csv_col_reader, read_csv_info
+from cryodatabot.src.backend.core.redundancy_filter import map_model_filter
+from cryodatabot.src.backend.helper.file_utils import has_entries
 
 
 # main function

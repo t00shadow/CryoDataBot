@@ -13,7 +13,7 @@ from urllib3.util.retry import Retry
 
 import sys
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), os.pardir)))
-from helper.helper_funcs import calculate_title_padding
+from cryodatabot.src.backend.helper.helper_funcs import calculate_title_padding
 
 
 def search_emdb(

@@ -60,7 +60,12 @@ Run ```main_gui_DEV3.py``` (or ```main_gui_DEV3_alt.py``` for page buttons on th
 ## Windows version (.exe)
 delete the empty __init__.py file in the root directory of the main gui file.
 
-run this command in powershell (windows version of pyinstaller gives exe, linux version of pyinstaller gives linix executable): ```pyinstaller.exe --onefile --windowed --paths="C:\\Users\\noelu\\CryoDataBot\\.venv\\Lib\\site-packages" --name "CryoDataBot" --icon "C:\\Users\\noelu\\Python Projects\\PyQt GUI practice\\QtDesigner_practice\\dataset_gen_tool_GUI\\app_icon2.ico" .\main_gui_DEV4.py```
+new command (run in powershell): 
+```
+pyinstaller.exe --onefile --windowed --name "CryoDataBot" .\run_gui.py
+```
+
+(OLD) run this command in powershell (windows version of pyinstaller gives exe, linux version of pyinstaller gives linix executable): ```pyinstaller.exe --onefile --windowed --paths="C:\\Users\\noelu\\CryoDataBot\\.venv\\Lib\\site-packages" --name "CryoDataBot" --icon "C:\\Users\\noelu\\Python Projects\\PyQt GUI practice\\QtDesigner_practice\\dataset_gen_tool_GUI\\app_icon2.ico" .\main_gui_DEV4.py```
 
 Once you run it once, you'll have .spec file. So can use the .spec file for future builds.
 
