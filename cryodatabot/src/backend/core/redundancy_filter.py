@@ -49,10 +49,14 @@ def filter_csv(input_csv, q_threshold: float = 0.0, uni_threshold: float = 1.0):
     # Q-Score filter
     logger.info(f'Going Through Q-Score Filter - Removing Entries with Q-score Less Than or Equal to {q_threshold}')
     q_score_kept_path, q_score_filter_kept_num_entries, q_score_filter_removed_num_entries = q_score_filter(input_csv, archive_path, q_threshold)
-    logger.info(f'Entries Kept After Q-Score Filter: {q_score_filter_kept_num_entries} Entries')
-    logger.info(f'Entries Removed After Q-Score Filter: {q_score_filter_removed_num_entries} Entries')
-    logger.info(f'File Saved at {os.path.abspath(q_score_kept_path)}')
-    logger.info('')
+    if q_score_kept_path == input_csv:
+        logger.warning("'Q-score' column not found. Skipping Q-score filtering.")
+        logger.info('')
+    else:
+        logger.info(f'Entries Kept After Q-Score Filter: {q_score_filter_kept_num_entries} Entries')
+        logger.info(f'Entries Removed After Q-Score Filter: {q_score_filter_removed_num_entries} Entries')
+        logger.info(f'File Saved at {os.path.abspath(q_score_kept_path)}')
+        logger.info('')
 
     # Manual Check Filter
     logger.info('Going Through Manual Check Filter- Identifying Entries Without UNIPROT or ALPHAFOLD IDs')
@@ -384,6 +388,11 @@ def first_filter(input_csv_path: str, output_dir:str):
 def q_score_filter(input_csv_path:str, archive_path:str, threshold:float):
     # Sort the DataFrame by 'q_score'
     df = fixDataFrame(input_csv_path)
+
+    # Check for Q-score column (not guaranteed to have)
+    if 'Q-score' not in df.columns:
+        return input_csv_path, 0, 0     # no changes made, so return input file
+
     df_sorted = df.sort_values(by='Q-score')
 
     # Split the DataFrame into 'removed' and 'kept'
@@ -433,7 +442,8 @@ def main():
     redundancy_filter_config.read('CryoDataBotConfig.ini')
     q_threshold = redundancy_filter_config.getfloat('user_settings', 'q_threshold')
     uni_threshold = redundancy_filter_config.getfloat('user_settings', 'uni_threshold')
-    metadata_path = 'JUNKSTUFF/test/download_file_005/download_file_005_full.csv'
+    metadata_path = 'dist\download_file_001\download_file_001.csv'
+    # metadata_path = 'dist\download_file_002\download_file_002.csv'
 
     filter_csv(input_csv=metadata_path, 
                q_threshold=q_threshold, 
