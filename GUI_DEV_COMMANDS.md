@@ -57,6 +57,7 @@ Run ```main_gui_DEV3.py``` (or ```main_gui_DEV3_alt.py``` for page buttons on th
 
 
 # BUILDING EXECUTABLES
+(use a venv with only the necessary python modules. see requirements.txt. only need those 9)
 ## Windows version (.exe)
 delete the empty __init__.py file in the root directory of the main gui file.
 
