@@ -59,35 +59,52 @@ Run ```main_gui_DEV3.py``` (or ```main_gui_DEV3_alt.py``` for page buttons on th
 # BUILDING EXECUTABLES
 (use a venv with only the necessary python modules. see requirements.txt. only need those 9)
 ## Windows version (.exe)
-delete the empty __init__.py file in the root directory of the main gui file.
+delete the empty __init__.py file in the root directory of the main gui file. Edit: nvm that wasn't the issue. Try adding __init__.py files back to every directory (besides the non code ones).
 
-new command (run in powershell): 
+New command (run in powershell. INSIDE THE "cleanvenv" VIRTUAL ENVIRONMENT): 
 ```
-pyinstaller.exe --onefile --windowed --name "CryoDataBot" .\run_gui.py
+pyinstaller.exe --onefile --windowed --name "CryoDataBot" --add-data="cryodatabot/src/frontend/svgs/*;cryodatabot/src/frontend/svgs/" .\run_gui.py
 ```
+Pyinstaller only packs code files by default i think, so need to explicitly tell it to add the svg files.
 
-(OLD) run this command in powershell (windows version of pyinstaller gives exe, linux version of pyinstaller gives linix executable): ```pyinstaller.exe --onefile --windowed --paths="C:\\Users\\noelu\\CryoDataBot\\.venv\\Lib\\site-packages" --name "CryoDataBot" --icon "C:\\Users\\noelu\\Python Projects\\PyQt GUI practice\\QtDesigner_practice\\dataset_gen_tool_GUI\\app_icon2.ico" .\main_gui_DEV4.py```
+[//]: # (Comment syntax, can replace parens with double quotes)
+[//]: # (Same thing but with console. THe --windowed option disables console.)
+[//]: # (pyinstaller.exe --onefile --name "CryoDataBot" --add-data="cryodatabot/src/frontend/svgs/*;cryodatabot/src/frontend/svgs/" .\run_gui.py)
 
-Once you run it once, you'll have .spec file. So can use the .spec file for future builds.
 
-The app icon .ico files are from PyQt GUI practice folder. Feel free to change the icon. Just download a new one or make one.
+[//]: # (This one's outdated, --add-data works while those other spec file hacks dont)
+[//]: # (pyinstaller.exe --onefile --windowed --name "CryoDataBot" .\run_gui.py)
+
+
+<!-- Other comment style, html comments -->
+<!-- (rlyyyy OLD) run this command in powershell (windows version of pyinstaller gives exe, linux version of pyinstaller gives linix executable): ```pyinstaller.exe --onefile --windowed --paths="C:\\Users\\noelu\\CryoDataBot\\.venv\\Lib\\site-packages" --name "CryoDataBot" --icon "C:\\Users\\noelu\\Python Projects\\PyQt GUI practice\\QtDesigner_practice\\dataset_gen_tool_GUI\\app_icon2.ico" .\main_gui_DEV4.py``` -->
+
+Once you run it once, you'll have .spec file. So can use the .spec file for future builds. Can also edit the .spec file and build from it instead. Make sure to backup the spec file if you manually edit it tho. Running the pyinstaller command while targeting a python file will overwrite the existing spec file.
+
+The app icon .ico files are from PyQt GUI practice folder. Feel free to change the icon. Just download a new one or make one. Add the --icon option to the pyinstaller command.
 
 ### Edit: making a clean venv
 pip install all the necessary packages and run the main gui file after importing one at a time. also check sys.modules.keys() or this approach: https://stackoverflow.com/questions/4858100/how-to-list-imported-modules
 
 ## Linux version (linux executable)
-```pyinstaller --onefile --windowed --paths="C:\\Users\\noelu\\CryoDataBot\\.venv\\Lib\\site-packages" --name "CryoDataBot_LINUX" --icon "C:\\Users\\noelu\\Python Projects\\PyQt GUI practice\\QtDesigner_practice\\dataset_gen_tool_GUI\\app_icon2.ico" main_gui_DEV4.py```
+New command (run in wsl terminal. INSIDE THE "cleanvenv_linux" VIRTUAL ENVIRONMENT. ALSO, pip install pyinstaller in the venv. 
+
+(My global pyinstaller version is only 6.11.1 and it uses my global python which is only 3.8.10. The venv is 3.10.16 and pyinstaller in the venv is 6.13.0. For the windows venv, i can just use the same pyinstaller.exe everywhere; it's version 6.13.0 too, but my windows python venv is 3.10.11)
+```
+pyinstaller --onefile --windowed --name "CryoDataBot" --add-data "cryodatabot/src/frontend/svgs/*:cryodatabot/src/frontend/svgs/" run_gui.py
+```
+Differences vs the windows version: 1) run in wsl terminal instead of powershell, 2) change pyinstaller.exe to pyinstaller, 3) change semi-colon to colon, 4) drop the .\ at the front of the file name
+
+<!-- (rly OLD) ```pyinstaller --onefile --windowed --paths="C:\\Users\\noelu\\CryoDataBot\\.venv\\Lib\\site-packages" --name "CryoDataBot_LINUX" --icon "C:\\Users\\noelu\\Python Projects\\PyQt GUI practice\\QtDesigner_practice\\dataset_gen_tool_GUI\\app_icon2.ico" main_gui_DEV4.py``` -->
+
+## Mac version (uhh TODO)
 
 
 
 
 
 
-
-
-
-
-# Aside: proof that Jaccard index (GOF, VOF, wtv u wanna rename it) and Dice* are not independent
+<!-- # Aside: proof that Jaccard index (GOF, VOF, wtv u wanna rename it) and Dice* are not independent
 $$
 \text{Jaccard (GOF, VOF, doesnt matter what you call intersect/union)} = \frac{|A \cap B|}{|A \cup B|} \\
 \text{Dice*} = \frac{|A \cap B|}{|A| + |B|} \\
@@ -119,4 +136,4 @@ Example) For some fixed A and B. Say A = 100 and B = 100.
 | --------- | ------ | ------- |
 | 10%       | \~0.18 | \~0.095 |
 | 50%       | \~0.67 | \~0.33  |
-| 90%       | \~0.95 | \~0.82  |
+| 90%       | \~0.95 | \~0.82  | -->
