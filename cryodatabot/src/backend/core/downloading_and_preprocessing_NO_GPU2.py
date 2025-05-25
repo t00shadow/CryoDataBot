@@ -10,7 +10,7 @@ import gemmi
 import mrcfile
 import numpy as np
 import pandas as pd
-xp = np
+xp = np    # no cupy right now
 from scipy.ndimage import binary_dilation, zoom
 from tqdm import tqdm
 from tqdm.contrib.logging import logging_redirect_tqdm
@@ -21,6 +21,11 @@ from cryodatabot.src.backend.helper.helper_funcs import calculate_title_padding,
 from cryodatabot.src.backend.core.redundancy_filter import map_model_filter
 from cryodatabot.src.backend.helper.file_utils import has_entries
 
+# helper function to switch btwn numpy and cupy
+def to_numpy(array):
+    if xp.__name__ == "cupy":
+        return xp.asnumpy(array)
+    return array  # already a NumPy array
 
 # main function
 def downloading_and_preprocessing(metadata_path, 
@@ -176,19 +181,20 @@ def download_one_map(emdb_id, pdb, raw_map_path, model_path, overwrite=False):
     emdb_fetch_link = f"https://ftp.ebi.ac.uk/pub/databases/emdb/structures/EMD-{emdb_id}/map/emd_{emdb_id}.map.gz"
     pdb_fetch_link = f"http://files.rcsb.org/download/{pdb}.cif"
 
-    raw_map_path = f"{raw_map_path}.gz"
+    raw_map_gz_path = f"{raw_map_path}.gz"
 
     if not os.path.exists(raw_map_path) or overwrite:
         try:
-            urllib.request.urlretrieve(emdb_fetch_link, raw_map_path)
-            with gzip.open(raw_map_path, 'rb') as f_in:
-                with open(raw_map_path.split('.gz')[0], 'wb') as f_out:
-                    shutil.copyfileobj(f_in, f_out)
-                    os.remove(raw_map_path)
+            urllib.request.urlretrieve(emdb_fetch_link, raw_map_gz_path)
+            logger.info(f"Downloaded: emd_{emdb_id}.map.gz")
+
+            with gzip.open(raw_map_gz_path, 'rb') as f_in, open(raw_map_path, 'wb') as f_out:
+                shutil.copyfileobj(f_in, f_out)
+            os.remove(raw_map_gz_path)
+
+            logger.info(f"Unzipped {raw_map_gz_path} into {raw_map_path}")
         except Exception as e:
-            logger.warning(f"Error Downloading EMD_{emdb_id} Map File: {e}")
-        else:
-            logger.info(f"Downloaded: emd_{emdb_id}.map")
+            logger.warning(f"Error downloading or unzipping EMD_{emdb_id} Map File: {e}")
 
     if not os.path.exists(model_path) or overwrite:
         try:
@@ -236,6 +242,9 @@ def preprocess_maps(csv_info,
     results = []
     failed: list[str] = []
     with logging_redirect_tqdm([logger]):
+        print(f"raw_map_paths: {type(raw_map_paths)}")
+        print(f"model_paths: {type(model_paths)}")
+        print(f"recls: {type(recls)}")
         for raw_map_path, model_path, recl in tqdm(zip(raw_map_paths, model_paths, recls), total=len(raw_map_paths), desc='Preprocessing Maps'):
             try:
                 vof, dice = preprocess_one_map(recl, raw_map_path, model_path, give_map, protein_tag_dist, map_threashold)
@@ -357,7 +366,7 @@ def preprocess_one_map(recl: float, raw_map_path: str, model_path: str, give_map
         
         if give_map:
             map_path = f"{raw_map_path.split('.map')[0]}_normalized.mrc"
-            map_output(raw_map_path, xp.asnumpy(map_F), map_path, is_model=False)
+            map_output(raw_map_path, to_numpy(map_F), map_path, is_model=False)
             logger.info(f'  Normalized Map Saved as "{map_path}"')
     except FileNotFoundError as e:
         logger.warning(f'  Error Loading Map: {e}')
@@ -385,12 +394,12 @@ def preprocess_one_map(recl: float, raw_map_path: str, model_path: str, give_map
         
 
         # Apply the map threshold
-        map_F = xp.where(map_F > 0.15, 1, 0)
+        map_F = xp.where(map_F > map_threshold, 1, 0)
         protein_tag = xp.array(protein_tag)
         vof, dice = planes_map(map_F, protein_tag)
         
         map_path = f"{model_path.split('.cif')[0]}_simulated.mrc"
-        map_output(raw_map_path, xp.asnumpy(protein_tag), map_path, is_model=True)
+        map_output(raw_map_path, to_numpy(protein_tag), map_path, is_model=True)
             
     except Exception as e:
             logger.warning(f'  Error Calculating Map to Model Fitness: {e}')
@@ -502,7 +511,7 @@ def map_normalizing(raw_map_path, recl=0.0):
        - Raises a ValueError if the 99.9th percentile is zero.
     5. Checks if the start of the axis is zero and raises a ValueError if not.
     """
-    if recl == '':
+    if recl is None or recl == '':
         recl = 0.0
     with mrcfile.mmap(raw_map_path, 'r+') as mrc:
         # Load map data
@@ -515,7 +524,7 @@ def map_normalizing(raw_map_path, recl=0.0):
         if xp == np:
             map_data = zoom(map_data, zoom_factors)
         else:
-            map_data = xp.asnumpy(zoom(map_data, zoom_factors))
+            map_data = to_numpy(zoom(map_data, zoom_factors))
 
         # remove noisy values that are too small
         count_good = np.sum(map_data > max(0, recl))
@@ -611,7 +620,7 @@ def map_from_cif(cif_path: str, MAP_BOUNDARY, PROTEIN_TAG_DIST):
         if xp == np:     # this fxn is NOT called by normalize, BUT I just preemptively updated this line (406) too
             protein_tag = binary_dilation(protein_tag, structure=structure).astype(np.int8)
         else:
-            protein_tag = xp.asnumpy(binary_dilation(protein_tag, structure=structure).astype(np.int8))
+            protein_tag = to_numpy(binary_dilation(protein_tag, structure=structure).astype(np.int8))
 
         return protein_tag
 
@@ -628,7 +637,8 @@ def main():
     dice_threashold = downloading_and_preprocessing_config.getfloat('user_settings', 'dice_threashold')
 
     # matadata_path = 'CryoDataBot_Data/Metadata/ribosome_res_1-4_001/ribosome_res_1-4_001_Final.csv'
-    matadata_path = r'C:\Users\noelu\CryoDataBot\JUNKSTUFF\CryoDataBot\download_file_044\download_file_044_Final.csv'
+    # matadata_path = r'C:\Users\noelu\CryoDataBot\JUNKSTUFF\CryoDataBot\download_file_044\download_file_044_Final.csv'
+    matadata_path = r'C:\Users\noelu\CryoDataBot\dist\download_file_001\download_file_001_Final.csv'
     raw_dir = 'CryoDataBot_Data/Raw'
     downloading_and_preprocessing(matadata_path, 
                                   raw_dir, 

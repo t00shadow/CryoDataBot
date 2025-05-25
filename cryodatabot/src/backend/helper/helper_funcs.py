@@ -1,7 +1,7 @@
 import os
 from shutil import move as shutil_move
 
-from pandas import read_csv
+from pandas import read_csv, Series
 
 
 # helper functions
@@ -26,7 +26,8 @@ def csv_col_reader(*cols: str):
         def wrapper(metadata_path: str, raw_dir: str):
             if len(cols) != 0:
                 df = read_csv(metadata_path)
-                added_info: list = [df[col] for col in cols]
+                added_info: list = [df.get(col) for col in cols]    # .get() can handle cases where the column doesnt exist
+                added_info: list = [df[col] if col in df.columns else Series([None] * len(df)) for col in cols]     # return an iterable version of None if None
                 csv_info, path_info = func(metadata_path, raw_dir)
                 emdb_ids, pdbs, resolutions = csv_info
                 csv_info_with_added_cols = (emdb_ids, pdbs, resolutions, *added_info)
