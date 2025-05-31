@@ -1,6 +1,6 @@
 # CryoDataBot
 
-CryoDataBot is a Python package designed for ...
+CryoDataBot is a Python package designed for curating high-quality cryoEM datasets for AI-driven structural biology.
 
 ## Table of Contents
 
