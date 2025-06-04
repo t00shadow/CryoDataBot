@@ -36,6 +36,7 @@ def downloading_and_preprocessing(metadata_path,
                                   map_threshold=0.01,
                                   vof_threashold: float=0.25, 
                                   dice_threashold: float=0.4,
+                                  target_voxel_size: float=0.1
                                   ):
     """
     Reads metadata, downloads map and model files, and preprocesses the map files.
@@ -96,7 +97,8 @@ def downloading_and_preprocessing(metadata_path,
                     protein_tag_dist, 
                     map_threshold,
                     vof_threashold, 
-                    dice_threashold
+                    dice_threashold,
+                    target_voxel_size
                     )
     logger.info(calculate_title_padding('Preprocessing Completed'))
     logger.info('')
@@ -213,7 +215,8 @@ def preprocess_maps(csv_info,
                     protein_tag_dist: int=1, 
                     map_threashold: float=0.15,
                     vof_threashold: float=0.25, 
-                    dice_threashold: float=0.4
+                    dice_threashold: float=0.4,
+                    target_voxel_size: float=0.1
                     ):
     """
     Preprocesses multiple map files by normalizing them and calculating their fitness with models.
@@ -223,6 +226,7 @@ def preprocess_maps(csv_info,
     give_map (bool): If True, saves the normalized maps and binary maps.
     protein_tag_dist (int): Theoretical atomic radii for map to model fitness calculation.
     map_threashold (float): Normalized map density cutoff.
+    target_voxel_size (float): Target voxel size after resampling.
 
     Steps:
     1. Extracts map paths and CIF paths from path_info.
@@ -247,7 +251,7 @@ def preprocess_maps(csv_info,
         print(f"recls: {type(recls)}")
         for raw_map_path, model_path, recl in tqdm(zip(raw_map_paths, model_paths, recls), total=len(raw_map_paths), desc='Preprocessing Maps'):
             try:
-                vof, dice = preprocess_one_map(recl, raw_map_path, model_path, give_map, protein_tag_dist, map_threashold)
+                vof, dice = preprocess_one_map(recl, raw_map_path, model_path, give_map, protein_tag_dist, map_threashold, target_voxel_size)
                 results.append(('EMD-'+os.path.basename(raw_map_path).split(".")[0].split('_')[1], vof, dice))
             except ValueError as e:
                 logger.warning(f'  Error Preprocessing Map: {e}')
@@ -303,7 +307,7 @@ def preprocess_maps(csv_info,
 
 
 # Step3.1: preprocess the map of one entry
-def preprocess_one_map(recl: float, raw_map_path: str, model_path: str, give_map: bool=True, protein_tag_dist: int=2, map_threshold=0.01):
+def preprocess_one_map(recl: float, raw_map_path: str, model_path: str, give_map: bool=True, protein_tag_dist: int=2, map_threshold=0.01, target_voxel_size=0.1):
     """
     Preprocesses a map file by normalizing it and calculating its fitness with a model.
 
@@ -313,6 +317,7 @@ def preprocess_one_map(recl: float, raw_map_path: str, model_path: str, give_map
     give_map (bool): If True, saves the normalized map and binary map.
     protein_tag_dist (int): Theoretical atomic radii for map to model fitness calculation.
     map_threashold (float): Normalized map density cutoff.
+    target_voxel_size (float): Target voxel size after resampling.
 
     Returns:
     tuple:
@@ -362,7 +367,7 @@ def preprocess_one_map(recl: float, raw_map_path: str, model_path: str, give_map
     # Load the map
     try:
         logger.info('  Normalizing Map')
-        map_F = map_normalizing(raw_map_path, recl)
+        map_F = map_normalizing(raw_map_path, recl, target_voxel_size)
         
         if give_map:
             map_path = f"{raw_map_path.split('.map')[0]}_normalized.mrc"
@@ -489,7 +494,7 @@ def planes_map(map_F, protein_tag):
 
 
 # Step3.1.1: normalize one map - make the grid size 1A and make the density range [0,1]
-def map_normalizing(raw_map_path, recl=0.0):
+def map_normalizing(raw_map_path, recl=0.0, target_voxel_size=1.0):
     """
     Normalizes a map file by resampling and scaling its values.
 
@@ -519,8 +524,8 @@ def map_normalizing(raw_map_path, recl=0.0):
         map_origin = np.array([mrc.header.nxstart, mrc.header.nystart, mrc.header.nzstart], dtype=np.int8)
         map_orientation = np.array([mrc.header.mapc, mrc.header.mapr, mrc.header.maps], dtype=np.float32)
 
-        # Resample map to 1.0A*1.0A*1.0A grid size
-        zoom_factors = [mrc.voxel_size.z, mrc.voxel_size.y, mrc.voxel_size.x]
+        # Resample map to target_voxel_size grid size (default:1.0A*1.0A*1.0A)Add commentMore actions
+        zoom_factors = [mrc.voxel_size.z, mrc.voxel_size.y, mrc.voxel_size.x] / target_voxel_size
         if xp == np:
             map_data = zoom(map_data, zoom_factors)
         else:
@@ -635,7 +640,8 @@ def main():
     map_threashold = downloading_and_preprocessing_config.getfloat('user_settings', 'map_threashold')
     vof_threashold = downloading_and_preprocessing_config.getfloat('user_settings', 'vof_threashold')
     dice_threashold = downloading_and_preprocessing_config.getfloat('user_settings', 'dice_threashold')
-
+    target_voxel_size = 0.1
+    
     # matadata_path = 'CryoDataBot_Data/Metadata/ribosome_res_1-4_001/ribosome_res_1-4_001_Final.csv'
     # matadata_path = r'C:\Users\noelu\CryoDataBot\JUNKSTUFF\CryoDataBot\download_file_044\download_file_044_Final.csv'
     matadata_path = r'C:\Users\noelu\CryoDataBot\dist\download_file_001\download_file_001_Final.csv'
@@ -648,6 +654,7 @@ def main():
                                   map_threashold,
                                   vof_threashold,
                                   dice_threashold,
+                                  target_voxel_size
                                   )
 
 
