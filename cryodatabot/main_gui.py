@@ -136,7 +136,7 @@ class MainWindow(qtw.QMainWindow):    # Make sure the root widget/class is the r
         self.ui.lineEdit_12.setText("")
         self.ui.lineEdit_12.returnPressed.connect(lambda: self.preview_search(version="normal"))     # Fetch Metadata page
         self.ui.lineEdit_15.returnPressed.connect(lambda: self.preview_search(version="quickstart"))     # Quickstart page
-        self.ui.lineEdit_p2.setText(self.save_location)     # default save location for the whole thing
+        # self.ui.lineEdit_p2.setText(self.save_location)     #! REMOVED THIS WIDGET, check old commits to see what it was in the .ui file
         # TODO: enable elide for all filepath text fields
 
         ### buttons
@@ -149,7 +149,7 @@ class MainWindow(qtw.QMainWindow):    # Make sure the root widget/class is the r
         # self.ui.pushButton_p1_2.clicked.connect(lambda: self.ui.statusbar.showMessage("query (preview): " + self.parseQuery(page="quick")))    # intentionally didnt add time limit for this message so users can take their time to read it
         self.ui.pushButton_p1_3.clicked.connect(self.gen_dataset_quick)
         #? Fetch Metadata (page 2) - Step 1
-        self.ui.pushButton_p2.clicked.connect(lambda: self.browse_folder(page="step1"))
+        # self.ui.pushButton_p2.clicked.connect(lambda: self.browse_folder(page="step1"))    #! REMOVED THIS WIDGET, check old commits to see what it was in the .ui file
         self.ui.pushButton_6.clicked.connect(self.copy_example_1)
         self.ui.pushButton_3.clicked.connect(self.copy_example_2)
         self.previewQueryBtn = self.ui.pushButton_16                       #TODO: move this alias to the top
@@ -211,7 +211,10 @@ class MainWindow(qtw.QMainWindow):    # Make sure the root widget/class is the r
         self.ui.spinBox_2.valueChanged.connect(self.on_spin_box2_changed)
         self.ui.spinBox_3.valueChanged.connect(self.on_spin_box3_changed)
 
-
+        for spinbox in self.findChildren(qtw.QDoubleSpinBox):
+            self.clamp_spinbox(spinbox)       # allows users to type values above spinbox max, and then caps the value at max
+            print(spinbox.minimum())
+            print(spinbox.maximum())
 
         ### custom query TextEdit widget
         # # page 1
@@ -231,7 +234,7 @@ class MainWindow(qtw.QMainWindow):    # Make sure the root widget/class is the r
         #self.ui.lineEdit_p1.textEdited.connect(self.ui.statusbar.showMessage)     # works without the ['QString'], look into why
         #self.querywidget.tagTextEdited.connect(print)
         # page 2
-        self.ui.lineEdit_p2.textEdited['QString'].connect(self.ui.statusbar.showMessage)
+        # self.ui.lineEdit_p2.textEdited['QString'].connect(self.ui.statusbar.showMessage)    #! REMOVED THIS WIDGET, check old commits to see what it was in the .ui file
         self.querywidget2.tagTextEdited.connect(self.ui.statusbar.showMessage)
         # self.userInputQuery = self.ui.lineEdit_2       # alias for easier swtching btwn dif search bars
         self.userInputQuery = self.ui.lineEdit_12
@@ -277,9 +280,9 @@ class MainWindow(qtw.QMainWindow):    # Make sure the root widget/class is the r
 
         ### COSMETIC TWEAKS (some can be done in designer, some are code only, like setCursorWidth, and some are just easier to do here)
         # =====================================================
-        # self.ui.A_datasetOptions.setFixedHeight(400)       # for figure making
+        self.ui.A1_featureLabels.setFixedHeight(250)       # for figure making
 
-        self.ui.rename_everything.hide()
+        # self.ui.rename_everything.hide()    #! REMOVED THIS WIDGET, check old commits to see what it was in the .ui file
 
         self.ui.label_18.setText("")
         self.ui.plainTextEdit_2.setPlainText("")
@@ -299,8 +302,8 @@ class MainWindow(qtw.QMainWindow):    # Make sure the root widget/class is the r
         self.querywidget2 = None
         # self.ui.baseLayer_3.setTitle("Preprocessing")
         self.ui.B_refineCSV.setTitle("Filters")
-        self.ui.pushButton_p3_4.setText("Preprocess")
-        self.ui.pushButton_p2_2.setText("Download")
+        # self.ui.pushButton_p3_4.setText("Preprocess")
+        # self.ui.pushButton_p2_2.setText("Download")
         self.ui.statusbar.showMessage("example status bar message")
 
         # hide cursors (setting text selectable by keyboard flag makes the cursor show up, so hide it)
@@ -310,9 +313,10 @@ class MainWindow(qtw.QMainWindow):    # Make sure the root widget/class is the r
         self.ui.textEdit_6.setCursorWidth(0)
         
         # change font. slightly better than qstylesheet approach since setStyleSheet would overwrite existing style sheet. tho could fetch existing one and append to it i guess
-        font = self.ui.label_p2.font()
-        font.setPointSize(12)
-        self.ui.label_p2.setFont(font)
+        #! deleted this Qlabel in qt designer
+        # font = self.ui.label_p2.font()
+        # font.setPointSize(12)
+        # self.ui.label_p2.setFont(font)
 
         # self.ui.lineEdit_p1_2.findChild(qtw.QToolButton).setIcon(qtg.QIcon(resource_path("cryodatabot/src/frontend/svgs/clear_small-svgrepo-com.svg")))
         self.ui.lineEdit_p3_2.findChild(qtw.QToolButton).setIcon(qtg.QIcon(resource_path("cryodatabot/src/frontend/svgs/clear_small-svgrepo-com.svg")))
@@ -494,7 +498,7 @@ class MainWindow(qtw.QMainWindow):    # Make sure the root widget/class is the r
             self.ui.main_save_path_lineedit.setText(filepath)     # gui visual update
             self.save_location = filepath                            # store the value
             # reflect the change on the other page
-            self.ui.lineEdit_p2.setText(filepath)        # should maybe update gui values differently, like listen for changes. Look at how MVC design pattern does it
+            # self.ui.lineEdit_p2.setText(filepath)        #! REMOVED THIS WIDGET, check old commits to see what it was in the .ui file
         elif page == "quick":
             filepath = qtw.QFileDialog.getExistingDirectory(self, caption='Select Folder')
             if not filepath:
@@ -506,7 +510,7 @@ class MainWindow(qtw.QMainWindow):    # Make sure the root widget/class is the r
             if not filepath:
                 print("no directory selected")
                 return
-            self.ui.lineEdit_p2.setText(filepath)     # gui visual update
+            # self.ui.lineEdit_p2.setText(filepath)     #! REMOVED THIS WIDGET, check old commits to see what it was in the .ui file
             self.save_location = filepath                # store the value
             # reflect the change on the other page
             self.ui.main_save_path_lineedit.setText(filepath)     # should maybe update gui values differently, like listen for changes. Look at how MVC design pattern does it
@@ -653,7 +657,7 @@ class MainWindow(qtw.QMainWindow):    # Make sure the root widget/class is the r
         """
         
         # if the save location is empty, do nothing
-        #^ changed from self.ui.lineEdit_p2.text() to self.save_location to migrate closer to MVC design pattern
+        #^ changed from self.ui.lineEdit_p2.text() to self.save_location to migrate closer to MVC design pattern  (BTW removed self.ui.lineEdit_p2, check old commits to see what it was in the .ui file)
         #! note this wont get triggered since there's a default save location
         if not self.save_location:
             print("nothing happens, no save location")
@@ -1192,6 +1196,23 @@ class MainWindow(qtw.QMainWindow):    # Make sure the root widget/class is the r
         self.spin_box_changed_generic(value, [self.ui.spinBox, self.ui.spinBox_2])      # 3, 1, 2
 
 
+    def clamp_spinbox(self, spinbox):
+        def on_editing_finished():
+            print("editing finished")
+            value = float(spinbox.lineEdit().text())
+            print("value =", value)
+            print(spinbox.value())
+            if value < spinbox.minimum():
+                spinbox.setValue(spinbox.minimum())
+                print("Spinbox min:", spinbox.minimum())      # Debugging
+            elif value > spinbox.maximum():
+                spinbox.setValue(spinbox.maximum())
+                print("Spinbox max:", spinbox.maximum())      # Debugging
+
+        spinbox.lineEdit().setValidator(None)  # Disable built-in validator that blocks input
+        spinbox.editingFinished.connect(on_editing_finished)
+
+
     #^ REFACTORIZATION 2: more readable code. ideally the same performance as refactorization 1. potentially slightly more responsive and more prone to unexpected changes in value. worse loose coupling. Rly only an issue IF the value of the spinbox changes unexpectedly after the signal is emitted (maybe value changed super fast, like with an infinite scroll scrollwheel?).
     # # When spinbox 1 changes, update spinbox 2 and 3 accordingly
     # def spin_box_changed_generic(self, order):
@@ -1237,7 +1258,7 @@ class MainWindow(qtw.QMainWindow):    # Make sure the root widget/class is the r
 def main():
     # os.environ["QT_AUTO_SCREEN_SCALE_FACTOR"] = "1"                          # choose one
     # os.environ["QT_SCREEN_SCALE_FACTORS"] = "1.2"    # can set individual scale factors for each screen (not sure how to implement into gui for users to choose, like can u change at runtime? test later and also with a 2nd monitor hooked up)
-    os.environ["QT_SCALE_FACTOR"] = "1"
+    os.environ["QT_SCALE_FACTOR"] = "0.8"
     if hasattr(qtc.Qt, 'AA_EnableHighDpiScaling'):     #https://stackoverflow.com/a/47723454,   not sure if need if guards, since gonna package my version of qt with the executable, but might as well keep it cuz it doesnt break anything
         qtw.QApplication.setAttribute(qtc.Qt.AA_EnableHighDpiScaling, True)
 

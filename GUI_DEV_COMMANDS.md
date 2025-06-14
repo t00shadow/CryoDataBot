@@ -35,6 +35,10 @@ even more updated command:
 ```
 pyuic5 -x "/mnt/c/Users/noelu/CryoDataBot/dataset_gen_tool_v12.ui" -o guiskin_DEV3_1.py
 ```
+even even more updated command:
+```
+pyuic5 -x "/mnt/c/Users/noelu/CryoDataBot/cryodatabot/src/frontend/ui_files/dataset_gen_tool_v12.ui" -o "/mnt/c/Users/noelu/CryoDataBot/cryodatabot/src/frontend/ui_files/guiskin_DEV3_1.py"
+```
 
 # resources:
 ```
