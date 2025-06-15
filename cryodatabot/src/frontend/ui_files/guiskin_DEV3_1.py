@@ -15,7 +15,19 @@ class Ui_MainWindow(object):
     def setupUi(self, MainWindow):
         MainWindow.setObjectName("MainWindow")
         MainWindow.resize(1382, 901)
-        MainWindow.setStyleSheet("")
+        MainWindow.setStyleSheet("QPushButton {\n"
+"    background-color: white;\n"
+"    border-radius: 4;\n"
+"}\n"
+"\n"
+"QPushButton:hover {    \n"
+"    background-color: rgba(255, 255, 255, 200);\n"
+"}\n"
+"\n"
+"QPushButton:pressed {    \n"
+"    background-color: rgba(255, 255, 255, 150);\n"
+"    border: 2px solid transparent;\n"
+"}")
         self.centralwidget = QtWidgets.QWidget(MainWindow)
         self.centralwidget.setObjectName("centralwidget")
         self.gridLayout = QtWidgets.QGridLayout(self.centralwidget)
@@ -191,6 +203,7 @@ class Ui_MainWindow(object):
         sizePolicy.setHeightForWidth(self.stackedWidget.sizePolicy().hasHeightForWidth())
         self.stackedWidget.setSizePolicy(sizePolicy)
         self.stackedWidget.setMinimumSize(QtCore.QSize(0, 0))
+        self.stackedWidget.setCursor(QtGui.QCursor(QtCore.Qt.PointingHandCursor))
         self.stackedWidget.setStyleSheet("QStackedWidget {\n"
 "    background-color: white;\n"
 "    border-top-left-radius: 8px;\n"
@@ -267,10 +280,19 @@ class Ui_MainWindow(object):
         self.label_18.setObjectName("label_18")
         self.verticalLayout_24.addWidget(self.label_18)
         self.path_container = QtWidgets.QGroupBox(self.main_save_path_container_2)
-        self.path_container.setStyleSheet("border: 0px;\n"
-"border-radius: 8px;\n"
-"background-color: #d5d7ff;\n"
-"background-color: #6668ad;")
+        self.path_container.setStyleSheet("QGroupBox{\n"
+"    border: 0px;\n"
+"    border-radius: 8px;\n"
+"    background-color: #d5d7ff;\n"
+"    background-color: #6668ad;\n"
+"}\n"
+"\n"
+"QLineEdit{\n"
+"    border-radius: 8px;\n"
+"    background-color: white;\n"
+"    padding-left: 4px;\n"
+"    padding-bottom: 2px;\n"
+"}")
         self.path_container.setTitle("")
         self.path_container.setObjectName("path_container")
         self.horizontalLayout_41 = QtWidgets.QHBoxLayout(self.path_container)
@@ -279,9 +301,7 @@ class Ui_MainWindow(object):
         self.main_save_path_lineedit = QtWidgets.QLineEdit(self.path_container)
         self.main_save_path_lineedit.setEnabled(False)
         self.main_save_path_lineedit.setMinimumSize(QtCore.QSize(200, 0))
-        self.main_save_path_lineedit.setStyleSheet("background-color: white;\n"
-"padding-left: 4px;\n"
-"padding-bottom: 2px;")
+        self.main_save_path_lineedit.setStyleSheet("")
         self.main_save_path_lineedit.setText("")
         self.main_save_path_lineedit.setDragEnabled(False)
         self.main_save_path_lineedit.setClearButtonEnabled(False)
@@ -289,8 +309,7 @@ class Ui_MainWindow(object):
         self.horizontalLayout_41.addWidget(self.main_save_path_lineedit)
         self.main_save_path_btn = QtWidgets.QPushButton(self.path_container)
         self.main_save_path_btn.setCursor(QtGui.QCursor(QtCore.Qt.PointingHandCursor))
-        self.main_save_path_btn.setStyleSheet("background-color: white;\n"
-"border-radius: 4;")
+        self.main_save_path_btn.setStyleSheet("")
         self.main_save_path_btn.setText("")
         icon5 = QtGui.QIcon()
         icon5.addPixmap(QtGui.QPixmap(":/icons/browsefilesicon_zoomed.png"), QtGui.QIcon.Normal, QtGui.QIcon.Off)
@@ -419,9 +438,10 @@ class Ui_MainWindow(object):
 "    background-color: rgba(102, 104, 173, 50);\n"
 "    font-size: 14pt;\n"
 "    font-weight: bold;\n"
-"    /*padding-top: 30px;*/\n"
+"    /*padding-top: 30px;\n"
 "    padding-left: 20px;\n"
-"    padding-right: 20px;\n"
+"    padding-right: 20px;*/\n"
+"    padding: 0% 15% 0%;\n"
 "}\n"
 "\n"
 "QGroupBox::title {\n"
@@ -440,26 +460,46 @@ class Ui_MainWindow(object):
         self.A_quickStart.setObjectName("A_quickStart")
         self.verticalLayout_2 = QtWidgets.QVBoxLayout(self.A_quickStart)
         self.verticalLayout_2.setObjectName("verticalLayout_2")
-        self.A1_instructions = QtWidgets.QGroupBox(self.A_quickStart)
-        self.A1_instructions.setMinimumSize(QtCore.QSize(0, 150))
-        self.A1_instructions.setMaximumSize(QtCore.QSize(16777215, 250))
-        self.A1_instructions.setStyleSheet("\n"
+        self.label_container = QtWidgets.QWidget(self.A_quickStart)
+        self.label_container.setObjectName("label_container")
+        self.verticalLayout_35 = QtWidgets.QVBoxLayout(self.label_container)
+        self.verticalLayout_35.setContentsMargins(0, 10, 0, 0)
+        self.verticalLayout_35.setObjectName("verticalLayout_35")
+        self.label = QtWidgets.QLabel(self.label_container)
+        font = QtGui.QFont()
+        font.setPointSize(8)
+        font.setBold(True)
+        font.setWeight(75)
+        self.label.setFont(font)
+        self.label.setObjectName("label")
+        self.verticalLayout_35.addWidget(self.label)
+        self.verticalLayout_2.addWidget(self.label_container)
+        self.instructions_container = QtWidgets.QGroupBox(self.A_quickStart)
+        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Preferred, QtWidgets.QSizePolicy.Preferred)
+        sizePolicy.setHorizontalStretch(0)
+        sizePolicy.setVerticalStretch(0)
+        sizePolicy.setHeightForWidth(self.instructions_container.sizePolicy().hasHeightForWidth())
+        self.instructions_container.setSizePolicy(sizePolicy)
+        self.instructions_container.setMinimumSize(QtCore.QSize(0, 100))
+        self.instructions_container.setMaximumSize(QtCore.QSize(16777215, 150))
+        self.instructions_container.setStyleSheet("\n"
 "QGroupBox{\n"
 "    background: transparent;\n"
 "    border: transparent;\n"
 "}\n"
 "")
-        self.A1_instructions.setTitle("")
-        self.A1_instructions.setObjectName("A1_instructions")
-        self.horizontalLayout_11 = QtWidgets.QHBoxLayout(self.A1_instructions)
-        self.horizontalLayout_11.setObjectName("horizontalLayout_11")
-        self.textBrowser_p1 = QtWidgets.QTextBrowser(self.A1_instructions)
-        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Ignored, QtWidgets.QSizePolicy.Ignored)
+        self.instructions_container.setTitle("")
+        self.instructions_container.setObjectName("instructions_container")
+        self.verticalLayout_32 = QtWidgets.QVBoxLayout(self.instructions_container)
+        self.verticalLayout_32.setContentsMargins(0, -1, 0, 0)
+        self.verticalLayout_32.setObjectName("verticalLayout_32")
+        self.textBrowser_p1 = QtWidgets.QTextBrowser(self.instructions_container)
+        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Maximum)
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)
         sizePolicy.setHeightForWidth(self.textBrowser_p1.sizePolicy().hasHeightForWidth())
         self.textBrowser_p1.setSizePolicy(sizePolicy)
-        self.textBrowser_p1.setMaximumSize(QtCore.QSize(16777215, 400))
+        self.textBrowser_p1.setMaximumSize(QtCore.QSize(16777215, 20))
         self.textBrowser_p1.setStyleSheet("QTextBrowser {\n"
 "    background-color: transparent;\n"
 "    border: transparent;\n"
@@ -468,19 +508,81 @@ class Ui_MainWindow(object):
 "QTextBrowser:focus {\n"
 "    selection-background-color: #3875d6;\n"
 "}")
+        self.textBrowser_p1.setVerticalScrollBarPolicy(QtCore.Qt.ScrollBarAlwaysOff)
+        self.textBrowser_p1.setSizeAdjustPolicy(QtWidgets.QAbstractScrollArea.AdjustToContentsOnFirstShow)
         self.textBrowser_p1.setTextInteractionFlags(QtCore.Qt.LinksAccessibleByKeyboard|QtCore.Qt.LinksAccessibleByMouse|QtCore.Qt.TextBrowserInteraction|QtCore.Qt.TextSelectableByKeyboard|QtCore.Qt.TextSelectableByMouse)
         self.textBrowser_p1.setOpenExternalLinks(True)
         self.textBrowser_p1.setObjectName("textBrowser_p1")
-        self.horizontalLayout_11.addWidget(self.textBrowser_p1)
-        self.verticalLayout_2.addWidget(self.A1_instructions)
-        self.label = QtWidgets.QLabel(self.A_quickStart)
-        font = QtGui.QFont()
-        font.setPointSize(8)
-        font.setBold(True)
-        font.setWeight(75)
-        self.label.setFont(font)
-        self.label.setObjectName("label")
-        self.verticalLayout_2.addWidget(self.label)
+        self.verticalLayout_32.addWidget(self.textBrowser_p1)
+        self.verticalLayout_34 = QtWidgets.QVBoxLayout()
+        self.verticalLayout_34.setSpacing(0)
+        self.verticalLayout_34.setObjectName("verticalLayout_34")
+        self.horizontalLayout_18 = QtWidgets.QHBoxLayout()
+        self.horizontalLayout_18.setObjectName("horizontalLayout_18")
+        self.qs_example1_text = QtWidgets.QTextEdit(self.instructions_container)
+        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Fixed)
+        sizePolicy.setHorizontalStretch(0)
+        sizePolicy.setVerticalStretch(0)
+        sizePolicy.setHeightForWidth(self.qs_example1_text.sizePolicy().hasHeightForWidth())
+        self.qs_example1_text.setSizePolicy(sizePolicy)
+        self.qs_example1_text.setMaximumSize(QtCore.QSize(16777215, 24))
+        self.qs_example1_text.setStyleSheet("QTextEdit {\n"
+"    background-color: transparent;\n"
+"    border: transparent;\n"
+"    selection-background-color: transparent;\n"
+"}\n"
+"QTextEdit:focus {\n"
+"    selection-background-color: #3875d6;\n"
+"}")
+        self.qs_example1_text.setFrameShape(QtWidgets.QFrame.NoFrame)
+        self.qs_example1_text.setFrameShadow(QtWidgets.QFrame.Plain)
+        self.qs_example1_text.setReadOnly(True)
+        self.qs_example1_text.setTextInteractionFlags(QtCore.Qt.TextSelectableByKeyboard|QtCore.Qt.TextSelectableByMouse)
+        self.qs_example1_text.setObjectName("qs_example1_text")
+        self.horizontalLayout_18.addWidget(self.qs_example1_text)
+        self.qs_example1_btn = QtWidgets.QPushButton(self.instructions_container)
+        self.qs_example1_btn.setMaximumSize(QtCore.QSize(22, 22))
+        self.qs_example1_btn.setCursor(QtGui.QCursor(QtCore.Qt.PointingHandCursor))
+        self.qs_example1_btn.setStyleSheet("")
+        self.qs_example1_btn.setText("")
+        self.qs_example1_btn.setObjectName("qs_example1_btn")
+        self.horizontalLayout_18.addWidget(self.qs_example1_btn)
+        self.verticalLayout_34.addLayout(self.horizontalLayout_18)
+        self.horizontalLayout_43 = QtWidgets.QHBoxLayout()
+        self.horizontalLayout_43.setObjectName("horizontalLayout_43")
+        self.qs_example2_text = QtWidgets.QTextEdit(self.instructions_container)
+        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Fixed)
+        sizePolicy.setHorizontalStretch(0)
+        sizePolicy.setVerticalStretch(0)
+        sizePolicy.setHeightForWidth(self.qs_example2_text.sizePolicy().hasHeightForWidth())
+        self.qs_example2_text.setSizePolicy(sizePolicy)
+        self.qs_example2_text.setMaximumSize(QtCore.QSize(16777215, 24))
+        self.qs_example2_text.setStyleSheet("QTextEdit {\n"
+"    background-color: transparent;\n"
+"    border: transparent;\n"
+"    selection-background-color: transparent;\n"
+"}\n"
+"QTextEdit:focus {\n"
+"    selection-background-color: #3875d6;\n"
+"}")
+        self.qs_example2_text.setFrameShape(QtWidgets.QFrame.NoFrame)
+        self.qs_example2_text.setFrameShadow(QtWidgets.QFrame.Plain)
+        self.qs_example2_text.setReadOnly(True)
+        self.qs_example2_text.setTextInteractionFlags(QtCore.Qt.TextSelectableByKeyboard|QtCore.Qt.TextSelectableByMouse)
+        self.qs_example2_text.setObjectName("qs_example2_text")
+        self.horizontalLayout_43.addWidget(self.qs_example2_text)
+        self.qs_example2_btn = QtWidgets.QPushButton(self.instructions_container)
+        self.qs_example2_btn.setMaximumSize(QtCore.QSize(22, 22))
+        self.qs_example2_btn.setCursor(QtGui.QCursor(QtCore.Qt.PointingHandCursor))
+        self.qs_example2_btn.setStyleSheet("")
+        self.qs_example2_btn.setText("")
+        self.qs_example2_btn.setObjectName("qs_example2_btn")
+        self.horizontalLayout_43.addWidget(self.qs_example2_btn)
+        self.verticalLayout_34.addLayout(self.horizontalLayout_43)
+        self.verticalLayout_34.setStretch(0, 1)
+        self.verticalLayout_34.setStretch(1, 1)
+        self.verticalLayout_32.addLayout(self.verticalLayout_34)
+        self.verticalLayout_2.addWidget(self.instructions_container)
         self.fancySearchBar_2 = QtWidgets.QWidget(self.A_quickStart)
         self.fancySearchBar_2.setStyleSheet("#fancySearchBar_2 {\n"
 "    background-color: black;\n"
@@ -539,19 +641,17 @@ class Ui_MainWindow(object):
         self.pushButton_19.setObjectName("pushButton_19")
         self.horizontalLayout_60.addWidget(self.pushButton_19)
         self.verticalLayout_2.addWidget(self.fancySearchBar_2)
-        self.quick_refine_container = QtWidgets.QWidget(self.A_quickStart)
-        self.quick_refine_container.setObjectName("quick_refine_container")
-        self.verticalLayout_23 = QtWidgets.QVBoxLayout(self.quick_refine_container)
-        self.verticalLayout_23.setContentsMargins(0, 15, 0, 0)
-        self.verticalLayout_23.setSpacing(0)
-        self.verticalLayout_23.setObjectName("verticalLayout_23")
-        self.textEdit_3 = QtWidgets.QTextEdit(self.quick_refine_container)
+        self.textEdit_3 = QtWidgets.QTextEdit(self.A_quickStart)
         self.textEdit_3.setMaximumSize(QtCore.QSize(16777215, 100))
         self.textEdit_3.setObjectName("textEdit_3")
-        self.verticalLayout_23.addWidget(self.textEdit_3)
-        spacerItem10 = QtWidgets.QSpacerItem(20, 10, QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Expanding)
-        self.verticalLayout_23.addItem(spacerItem10)
-        self.label_5 = QtWidgets.QLabel(self.quick_refine_container)
+        self.verticalLayout_2.addWidget(self.textEdit_3)
+        self.label_container_2 = QtWidgets.QWidget(self.A_quickStart)
+        self.label_container_2.setObjectName("label_container_2")
+        self.verticalLayout_23 = QtWidgets.QVBoxLayout(self.label_container_2)
+        self.verticalLayout_23.setContentsMargins(0, 10, 0, 0)
+        self.verticalLayout_23.setSpacing(0)
+        self.verticalLayout_23.setObjectName("verticalLayout_23")
+        self.label_5 = QtWidgets.QLabel(self.label_container_2)
         font = QtGui.QFont()
         font.setPointSize(8)
         font.setBold(True)
@@ -559,7 +659,8 @@ class Ui_MainWindow(object):
         self.label_5.setFont(font)
         self.label_5.setObjectName("label_5")
         self.verticalLayout_23.addWidget(self.label_5)
-        self.widget_14 = QtWidgets.QWidget(self.quick_refine_container)
+        self.verticalLayout_2.addWidget(self.label_container_2)
+        self.widget_14 = QtWidgets.QWidget(self.A_quickStart)
         self.widget_14.setObjectName("widget_14")
         self.horizontalLayout_34 = QtWidgets.QHBoxLayout(self.widget_14)
         self.horizontalLayout_34.setContentsMargins(0, 0, 0, 0)
@@ -589,24 +690,23 @@ class Ui_MainWindow(object):
         self.pushButton_2.setIcon(icon8)
         self.pushButton_2.setObjectName("pushButton_2")
         self.horizontalLayout_34.addWidget(self.pushButton_2)
-        spacerItem11 = QtWidgets.QSpacerItem(40, 20, QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Minimum)
-        self.horizontalLayout_34.addItem(spacerItem11)
-        self.verticalLayout_23.addWidget(self.widget_14)
-        self.verticalLayout_2.addWidget(self.quick_refine_container)
-        self.widget_4 = QtWidgets.QWidget(self.A_quickStart)
-        self.widget_4.setObjectName("widget_4")
-        self.horizontalLayout_8 = QtWidgets.QHBoxLayout(self.widget_4)
-        self.horizontalLayout_8.setContentsMargins(0, 15, 0, 0)
-        self.horizontalLayout_8.setObjectName("horizontalLayout_8")
-        self.label_6 = QtWidgets.QLabel(self.widget_4)
+        spacerItem10 = QtWidgets.QSpacerItem(40, 20, QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Minimum)
+        self.horizontalLayout_34.addItem(spacerItem10)
+        self.verticalLayout_2.addWidget(self.widget_14)
+        self.label_container_3 = QtWidgets.QWidget(self.A_quickStart)
+        self.label_container_3.setObjectName("label_container_3")
+        self.verticalLayout_6 = QtWidgets.QVBoxLayout(self.label_container_3)
+        self.verticalLayout_6.setContentsMargins(0, 10, 0, 0)
+        self.verticalLayout_6.setObjectName("verticalLayout_6")
+        self.label_6 = QtWidgets.QLabel(self.label_container_3)
         font = QtGui.QFont()
         font.setPointSize(8)
         font.setBold(True)
         font.setWeight(75)
         self.label_6.setFont(font)
         self.label_6.setObjectName("label_6")
-        self.horizontalLayout_8.addWidget(self.label_6)
-        self.verticalLayout_2.addWidget(self.widget_4)
+        self.verticalLayout_6.addWidget(self.label_6)
+        self.verticalLayout_2.addWidget(self.label_container_3)
         self.widget = QtWidgets.QWidget(self.A_quickStart)
         self.widget.setObjectName("widget")
         self.horizontalLayout = QtWidgets.QHBoxLayout(self.widget)
@@ -634,8 +734,8 @@ class Ui_MainWindow(object):
         self.pushButton.setIcon(icon8)
         self.pushButton.setObjectName("pushButton")
         self.horizontalLayout.addWidget(self.pushButton)
-        spacerItem12 = QtWidgets.QSpacerItem(40, 20, QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Minimum)
-        self.horizontalLayout.addItem(spacerItem12)
+        spacerItem11 = QtWidgets.QSpacerItem(40, 20, QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Minimum)
+        self.horizontalLayout.addItem(spacerItem11)
         self.verticalLayout_2.addWidget(self.widget)
         self.verticalLayout_14.addWidget(self.A_quickStart)
         self.A5_generateDataset = QtWidgets.QGroupBox(self.baseLayer_1)
@@ -649,8 +749,8 @@ class Ui_MainWindow(object):
         self.A5_generateDataset.setObjectName("A5_generateDataset")
         self.horizontalLayout_14 = QtWidgets.QHBoxLayout(self.A5_generateDataset)
         self.horizontalLayout_14.setObjectName("horizontalLayout_14")
-        spacerItem13 = QtWidgets.QSpacerItem(40, 20, QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Minimum)
-        self.horizontalLayout_14.addItem(spacerItem13)
+        spacerItem12 = QtWidgets.QSpacerItem(40, 20, QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Minimum)
+        self.horizontalLayout_14.addItem(spacerItem12)
         self.pushButton_p1_3 = QtWidgets.QPushButton(self.A5_generateDataset)
         sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Fixed, QtWidgets.QSizePolicy.Fixed)
         sizePolicy.setHorizontalStretch(0)
@@ -678,8 +778,8 @@ class Ui_MainWindow(object):
 "}")
         self.pushButton_p1_3.setObjectName("pushButton_p1_3")
         self.horizontalLayout_14.addWidget(self.pushButton_p1_3)
-        spacerItem14 = QtWidgets.QSpacerItem(40, 20, QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Minimum)
-        self.horizontalLayout_14.addItem(spacerItem14)
+        spacerItem13 = QtWidgets.QSpacerItem(40, 20, QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Minimum)
+        self.horizontalLayout_14.addItem(spacerItem13)
         self.verticalLayout_14.addWidget(self.A5_generateDataset)
         self.widget_2 = QtWidgets.QWidget(self.baseLayer_1)
         self.widget_2.setObjectName("widget_2")
@@ -711,8 +811,8 @@ class Ui_MainWindow(object):
         self.horizontalLayout_3.addWidget(self.progressBar)
         self.verticalLayout_14.addWidget(self.widget_2)
         self.verticalLayout_30.addWidget(self.baseLayer_1)
-        spacerItem15 = QtWidgets.QSpacerItem(20, 40, QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Expanding)
-        self.verticalLayout_30.addItem(spacerItem15)
+        spacerItem14 = QtWidgets.QSpacerItem(20, 40, QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Expanding)
+        self.verticalLayout_30.addItem(spacerItem14)
         self.scrollArea_4.setWidget(self.scrollAreaWidgetContents_4_)
         self.gridLayout_8.addWidget(self.scrollArea_4, 0, 0, 1, 1)
         self.stackedWidget.addWidget(self.stackedWidgetPage1)
@@ -791,11 +891,11 @@ class Ui_MainWindow(object):
         self.qScoreInfo_btn_2.setIconSize(QtCore.QSize(20, 20))
         self.qScoreInfo_btn_2.setObjectName("qScoreInfo_btn_2")
         self.horizontalLayout_25.addWidget(self.qScoreInfo_btn_2)
-        spacerItem16 = QtWidgets.QSpacerItem(40, 20, QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Minimum)
-        self.horizontalLayout_25.addItem(spacerItem16)
+        spacerItem15 = QtWidgets.QSpacerItem(40, 20, QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Minimum)
+        self.horizontalLayout_25.addItem(spacerItem15)
         self.verticalLayout_15.addWidget(self.page2TitleWidget)
-        spacerItem17 = QtWidgets.QSpacerItem(20, 20, QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Fixed)
-        self.verticalLayout_15.addItem(spacerItem17)
+        spacerItem16 = QtWidgets.QSpacerItem(20, 20, QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Fixed)
+        self.verticalLayout_15.addItem(spacerItem16)
         self.B_enterQuery = QtWidgets.QGroupBox(self.baseLayer_2)
         sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Preferred, QtWidgets.QSizePolicy.MinimumExpanding)
         sizePolicy.setHorizontalStretch(0)
@@ -815,7 +915,7 @@ class Ui_MainWindow(object):
 "\n"
 "QGroupBox::title {\n"
 "    background-color: transparent;\n"
-"    padding-top: 20px;\n"
+"    padding-top: 16px;\n"
 "    padding-left: 16px;\n"
 "    color: black;\n"
 "}\n"
@@ -845,6 +945,7 @@ class Ui_MainWindow(object):
         self.B1_instructions.setTitle("")
         self.B1_instructions.setObjectName("B1_instructions")
         self.verticalLayout_8 = QtWidgets.QVBoxLayout(self.B1_instructions)
+        self.verticalLayout_8.setContentsMargins(0, -1, 0, 0)
         self.verticalLayout_8.setObjectName("verticalLayout_8")
         self.textBrowser_p2_2 = QtWidgets.QTextBrowser(self.B1_instructions)
         sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Maximum)
@@ -872,14 +973,14 @@ class Ui_MainWindow(object):
         self.verticalLayout_33.setObjectName("verticalLayout_33")
         self.horizontalLayout_16 = QtWidgets.QHBoxLayout()
         self.horizontalLayout_16.setObjectName("horizontalLayout_16")
-        self.textEdit_2 = QtWidgets.QTextEdit(self.B1_instructions)
+        self.p1_example1_text = QtWidgets.QTextEdit(self.B1_instructions)
         sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Fixed)
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)
-        sizePolicy.setHeightForWidth(self.textEdit_2.sizePolicy().hasHeightForWidth())
-        self.textEdit_2.setSizePolicy(sizePolicy)
-        self.textEdit_2.setMaximumSize(QtCore.QSize(16777215, 24))
-        self.textEdit_2.setStyleSheet("QTextEdit {\n"
+        sizePolicy.setHeightForWidth(self.p1_example1_text.sizePolicy().hasHeightForWidth())
+        self.p1_example1_text.setSizePolicy(sizePolicy)
+        self.p1_example1_text.setMaximumSize(QtCore.QSize(16777215, 24))
+        self.p1_example1_text.setStyleSheet("QTextEdit {\n"
 "    background-color: transparent;\n"
 "    border: transparent;\n"
 "    selection-background-color: transparent;\n"
@@ -887,31 +988,30 @@ class Ui_MainWindow(object):
 "QTextEdit:focus {\n"
 "    selection-background-color: #3875d6;\n"
 "}")
-        self.textEdit_2.setFrameShape(QtWidgets.QFrame.NoFrame)
-        self.textEdit_2.setFrameShadow(QtWidgets.QFrame.Plain)
-        self.textEdit_2.setReadOnly(True)
-        self.textEdit_2.setTextInteractionFlags(QtCore.Qt.TextSelectableByKeyboard|QtCore.Qt.TextSelectableByMouse)
-        self.textEdit_2.setObjectName("textEdit_2")
-        self.horizontalLayout_16.addWidget(self.textEdit_2)
-        self.pushButton_6 = QtWidgets.QPushButton(self.B1_instructions)
-        self.pushButton_6.setMaximumSize(QtCore.QSize(22, 22))
-        self.pushButton_6.setCursor(QtGui.QCursor(QtCore.Qt.PointingHandCursor))
-        self.pushButton_6.setStyleSheet("border-radius: 4;\n"
-"background-color: #ffffff;")
-        self.pushButton_6.setText("")
-        self.pushButton_6.setObjectName("pushButton_6")
-        self.horizontalLayout_16.addWidget(self.pushButton_6)
+        self.p1_example1_text.setFrameShape(QtWidgets.QFrame.NoFrame)
+        self.p1_example1_text.setFrameShadow(QtWidgets.QFrame.Plain)
+        self.p1_example1_text.setReadOnly(True)
+        self.p1_example1_text.setTextInteractionFlags(QtCore.Qt.TextSelectableByKeyboard|QtCore.Qt.TextSelectableByMouse)
+        self.p1_example1_text.setObjectName("p1_example1_text")
+        self.horizontalLayout_16.addWidget(self.p1_example1_text)
+        self.p1_example1_btn = QtWidgets.QPushButton(self.B1_instructions)
+        self.p1_example1_btn.setMaximumSize(QtCore.QSize(22, 22))
+        self.p1_example1_btn.setCursor(QtGui.QCursor(QtCore.Qt.PointingHandCursor))
+        self.p1_example1_btn.setStyleSheet("")
+        self.p1_example1_btn.setText("")
+        self.p1_example1_btn.setObjectName("p1_example1_btn")
+        self.horizontalLayout_16.addWidget(self.p1_example1_btn)
         self.verticalLayout_33.addLayout(self.horizontalLayout_16)
         self.horizontalLayout_42 = QtWidgets.QHBoxLayout()
         self.horizontalLayout_42.setObjectName("horizontalLayout_42")
-        self.textEdit_6 = QtWidgets.QTextEdit(self.B1_instructions)
+        self.p1_example2_text = QtWidgets.QTextEdit(self.B1_instructions)
         sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Fixed)
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)
-        sizePolicy.setHeightForWidth(self.textEdit_6.sizePolicy().hasHeightForWidth())
-        self.textEdit_6.setSizePolicy(sizePolicy)
-        self.textEdit_6.setMaximumSize(QtCore.QSize(16777215, 24))
-        self.textEdit_6.setStyleSheet("QTextEdit {\n"
+        sizePolicy.setHeightForWidth(self.p1_example2_text.sizePolicy().hasHeightForWidth())
+        self.p1_example2_text.setSizePolicy(sizePolicy)
+        self.p1_example2_text.setMaximumSize(QtCore.QSize(16777215, 24))
+        self.p1_example2_text.setStyleSheet("QTextEdit {\n"
 "    background-color: transparent;\n"
 "    border: transparent;\n"
 "    selection-background-color: transparent;\n"
@@ -919,20 +1019,19 @@ class Ui_MainWindow(object):
 "QTextEdit:focus {\n"
 "    selection-background-color: #3875d6;\n"
 "}")
-        self.textEdit_6.setFrameShape(QtWidgets.QFrame.NoFrame)
-        self.textEdit_6.setFrameShadow(QtWidgets.QFrame.Plain)
-        self.textEdit_6.setReadOnly(True)
-        self.textEdit_6.setTextInteractionFlags(QtCore.Qt.TextSelectableByKeyboard|QtCore.Qt.TextSelectableByMouse)
-        self.textEdit_6.setObjectName("textEdit_6")
-        self.horizontalLayout_42.addWidget(self.textEdit_6)
-        self.pushButton_3 = QtWidgets.QPushButton(self.B1_instructions)
-        self.pushButton_3.setMaximumSize(QtCore.QSize(22, 22))
-        self.pushButton_3.setCursor(QtGui.QCursor(QtCore.Qt.PointingHandCursor))
-        self.pushButton_3.setStyleSheet("border-radius: 4;\n"
-"background-color: #ffffff;")
-        self.pushButton_3.setText("")
-        self.pushButton_3.setObjectName("pushButton_3")
-        self.horizontalLayout_42.addWidget(self.pushButton_3)
+        self.p1_example2_text.setFrameShape(QtWidgets.QFrame.NoFrame)
+        self.p1_example2_text.setFrameShadow(QtWidgets.QFrame.Plain)
+        self.p1_example2_text.setReadOnly(True)
+        self.p1_example2_text.setTextInteractionFlags(QtCore.Qt.TextSelectableByKeyboard|QtCore.Qt.TextSelectableByMouse)
+        self.p1_example2_text.setObjectName("p1_example2_text")
+        self.horizontalLayout_42.addWidget(self.p1_example2_text)
+        self.p1_example2_btn = QtWidgets.QPushButton(self.B1_instructions)
+        self.p1_example2_btn.setMaximumSize(QtCore.QSize(22, 22))
+        self.p1_example2_btn.setCursor(QtGui.QCursor(QtCore.Qt.PointingHandCursor))
+        self.p1_example2_btn.setStyleSheet("")
+        self.p1_example2_btn.setText("")
+        self.p1_example2_btn.setObjectName("p1_example2_btn")
+        self.horizontalLayout_42.addWidget(self.p1_example2_btn)
         self.verticalLayout_33.addLayout(self.horizontalLayout_42)
         self.verticalLayout_33.setStretch(0, 1)
         self.verticalLayout_33.setStretch(1, 1)
@@ -967,7 +1066,7 @@ class Ui_MainWindow(object):
         self.horizontalLayout_20.addWidget(self.lineEdit_2)
         self.validateQuery_btn = QtWidgets.QPushButton(self.widget_7)
         self.validateQuery_btn.setCursor(QtGui.QCursor(QtCore.Qt.PointingHandCursor))
-        self.validateQuery_btn.setStyleSheet("background-color: white;\n"
+        self.validateQuery_btn.setStyleSheet("/*background-color: white;*/\n"
 "border-radius: 4;")
         self.validateQuery_btn.setText("")
         self.validateQuery_btn.setIcon(icon7)
@@ -1041,8 +1140,8 @@ class Ui_MainWindow(object):
         self.B4_downloadbtn.setObjectName("B4_downloadbtn")
         self.horizontalLayout_4 = QtWidgets.QHBoxLayout(self.B4_downloadbtn)
         self.horizontalLayout_4.setObjectName("horizontalLayout_4")
-        spacerItem18 = QtWidgets.QSpacerItem(40, 20, QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Minimum)
-        self.horizontalLayout_4.addItem(spacerItem18)
+        spacerItem17 = QtWidgets.QSpacerItem(40, 20, QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Minimum)
+        self.horizontalLayout_4.addItem(spacerItem17)
         self.pushButton_p2_2 = QtWidgets.QPushButton(self.B4_downloadbtn)
         sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Fixed, QtWidgets.QSizePolicy.Fixed)
         sizePolicy.setHorizontalStretch(0)
@@ -1070,8 +1169,8 @@ class Ui_MainWindow(object):
 "}")
         self.pushButton_p2_2.setObjectName("pushButton_p2_2")
         self.horizontalLayout_4.addWidget(self.pushButton_p2_2)
-        spacerItem19 = QtWidgets.QSpacerItem(40, 20, QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Minimum)
-        self.horizontalLayout_4.addItem(spacerItem19)
+        spacerItem18 = QtWidgets.QSpacerItem(40, 20, QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Minimum)
+        self.horizontalLayout_4.addItem(spacerItem18)
         self.verticalLayout_15.addWidget(self.B4_downloadbtn)
         self.B5_progressDisplay = QtWidgets.QGroupBox(self.baseLayer_2)
         self.B5_progressDisplay.setStyleSheet("QGroupBox{\n"
@@ -1103,8 +1202,8 @@ class Ui_MainWindow(object):
         self.horizontalLayout_13.addWidget(self.progressBar_p4_2)
         self.verticalLayout_15.addWidget(self.B5_progressDisplay)
         self.verticalLayout_29.addWidget(self.baseLayer_2)
-        spacerItem20 = QtWidgets.QSpacerItem(20, 40, QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Expanding)
-        self.verticalLayout_29.addItem(spacerItem20)
+        spacerItem19 = QtWidgets.QSpacerItem(20, 40, QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Expanding)
+        self.verticalLayout_29.addItem(spacerItem19)
         self.scrollArea_3.setWidget(self.scrollAreaWidgetContents_3_)
         self.verticalLayout_7.addWidget(self.scrollArea_3)
         self.stackedWidget.addWidget(self.stackedWidgetPage2)
@@ -1184,25 +1283,26 @@ class Ui_MainWindow(object):
         self.qScoreInfo_btn_3.setIconSize(QtCore.QSize(20, 20))
         self.qScoreInfo_btn_3.setObjectName("qScoreInfo_btn_3")
         self.horizontalLayout_26.addWidget(self.qScoreInfo_btn_3)
-        spacerItem21 = QtWidgets.QSpacerItem(40, 20, QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Minimum)
-        self.horizontalLayout_26.addItem(spacerItem21)
+        spacerItem20 = QtWidgets.QSpacerItem(40, 20, QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Minimum)
+        self.horizontalLayout_26.addItem(spacerItem20)
         self.verticalLayout_16.addWidget(self.page3TitleWidget)
-        spacerItem22 = QtWidgets.QSpacerItem(20, 20, QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Fixed)
-        self.verticalLayout_16.addItem(spacerItem22)
+        spacerItem21 = QtWidgets.QSpacerItem(20, 20, QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Fixed)
+        self.verticalLayout_16.addItem(spacerItem21)
         self.A_chooseCSV = QtWidgets.QGroupBox(self.baseLayer_3)
         self.A_chooseCSV.setStyleSheet("QGroupBox#A_chooseCSV {\n"
 "    border-radius: 20px;\n"
 "    background-color: rgba(193, 211, 239, 100);\n"
 "    font-size: 14pt;\n"
 "    font-weight: bold;\n"
-"    padding-top: 36px;\n"
+"    /*padding-top: 36px;\n"
 "    padding-left: 20px;\n"
-"    padding-right: 20px;\n"
+"    padding-right: 20px;*/\n"
+"    padding: 35% 15% 0%;\n"
 "}\n"
 "\n"
 "QGroupBox::title {\n"
 "    background-color: transparent;\n"
-"    padding-top: 20px;\n"
+"    padding-top: 16px;\n"
 "    padding-left: 16px;\n"
 "    color: black;\n"
 "}\n"
@@ -1219,6 +1319,7 @@ class Ui_MainWindow(object):
         self.A2_csvFilepath.setTitle("")
         self.A2_csvFilepath.setObjectName("A2_csvFilepath")
         self.horizontalLayout_19 = QtWidgets.QHBoxLayout(self.A2_csvFilepath)
+        self.horizontalLayout_19.setContentsMargins(0, -1, -1, -1)
         self.horizontalLayout_19.setObjectName("horizontalLayout_19")
         self.lineEdit_p3 = QtWidgets.QLineEdit(self.A2_csvFilepath)
         self.lineEdit_p3.setMinimumSize(QtCore.QSize(200, 0))
@@ -1236,7 +1337,8 @@ class Ui_MainWindow(object):
         self.lineEdit_p3.setObjectName("lineEdit_p3")
         self.horizontalLayout_19.addWidget(self.lineEdit_p3)
         self.resetDefaultVal_btn = QtWidgets.QPushButton(self.A2_csvFilepath)
-        self.resetDefaultVal_btn.setStyleSheet("background-color: white;\n"
+        self.resetDefaultVal_btn.setCursor(QtGui.QCursor(QtCore.Qt.PointingHandCursor))
+        self.resetDefaultVal_btn.setStyleSheet("/*background-color: white;*/\n"
 "border-radius: 3px;\n"
 "padding : 2px;")
         self.resetDefaultVal_btn.setText("")
@@ -1246,9 +1348,9 @@ class Ui_MainWindow(object):
         self.resetDefaultVal_btn.setObjectName("resetDefaultVal_btn")
         self.horizontalLayout_19.addWidget(self.resetDefaultVal_btn)
         self.pushButton_p3 = QtWidgets.QPushButton(self.A2_csvFilepath)
-        self.pushButton_p3.setCursor(QtGui.QCursor(QtCore.Qt.OpenHandCursor))
+        self.pushButton_p3.setCursor(QtGui.QCursor(QtCore.Qt.PointingHandCursor))
         self.pushButton_p3.setStyleSheet("/*border-image: url(:/icons/browsefilesicon.png);*/\n"
-"background-color: white;\n"
+"/*background-color: white;*/ /*this would keep it always white, even on hover and when pressed*/\n"
 "border-radius: 3px;\n"
 "padding : 2px;")
         self.pushButton_p3.setText("")
@@ -1257,22 +1359,23 @@ class Ui_MainWindow(object):
         self.horizontalLayout_19.addWidget(self.pushButton_p3)
         self.verticalLayout_19.addWidget(self.A2_csvFilepath)
         self.verticalLayout_16.addWidget(self.A_chooseCSV)
-        spacerItem23 = QtWidgets.QSpacerItem(20, 20, QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Fixed)
-        self.verticalLayout_16.addItem(spacerItem23)
+        spacerItem22 = QtWidgets.QSpacerItem(20, 20, QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Fixed)
+        self.verticalLayout_16.addItem(spacerItem22)
         self.B_refineCSV = QtWidgets.QGroupBox(self.baseLayer_3)
         self.B_refineCSV.setStyleSheet("QGroupBox#B_refineCSV {\n"
 "    border-radius: 20px;\n"
 "    background-color: rgba(193, 211, 239, 100);\n"
 "    font-size: 14pt;\n"
 "    font-weight: bold;\n"
-"    padding-top: 30px;\n"
+"    /*padding-top: 30px;\n"
 "    padding-left: 20px;\n"
-"    padding-right: 20px;\n"
+"    padding-right: 20px;*/\n"
+"    padding: 20% 15% 5%;\n"
 "}\n"
 "\n"
 "QGroupBox::title {\n"
 "    background-color: transparent;\n"
-"    padding-top: 20px;\n"
+"    padding-top: 16px;\n"
 "    padding-left: 16px;\n"
 "    color: black;\n"
 "}\n"
@@ -1342,7 +1445,7 @@ class Ui_MainWindow(object):
 "QDoubleSpinBox::up-button, QDoubleSpinBox::down-button\n"
 "{\n"
 "    background-color: #607cff;\n"
-"    border-radius: 2px;\n"
+"    border-radius: 4px;\n"
 "\n"
 "}\n"
 "\n"
@@ -1413,7 +1516,7 @@ class Ui_MainWindow(object):
         self.gridLayout_4.addWidget(self.qScoreDoubleSpinBox, 0, 1, 1, 1)
         self.resampVoxSize_btn = QtWidgets.QPushButton(self.widget1)
         self.resampVoxSize_btn.setCursor(QtGui.QCursor(QtCore.Qt.PointingHandCursor))
-        self.resampVoxSize_btn.setStyleSheet("background-color: white;\n"
+        self.resampVoxSize_btn.setStyleSheet("/*background-color: white;*/\n"
 "border-radius: 4;")
         self.resampVoxSize_btn.setText("")
         icon10 = QtGui.QIcon()
@@ -1436,8 +1539,8 @@ class Ui_MainWindow(object):
         self.qScoreInfo_btn.setIcon(icon6)
         self.qScoreInfo_btn.setObjectName("qScoreInfo_btn")
         self.horizontalLayout_22.addWidget(self.qScoreInfo_btn)
-        spacerItem24 = QtWidgets.QSpacerItem(40, 20, QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Minimum)
-        self.horizontalLayout_22.addItem(spacerItem24)
+        spacerItem23 = QtWidgets.QSpacerItem(40, 20, QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Minimum)
+        self.horizontalLayout_22.addItem(spacerItem23)
         self.gridLayout_4.addWidget(self.widget_10, 0, 0, 1, 1)
         self.widget_11 = QtWidgets.QWidget(self.widget1)
         self.widget_11.setObjectName("widget_11")
@@ -1454,8 +1557,8 @@ class Ui_MainWindow(object):
         self.mmfInfo_btn.setIcon(icon6)
         self.mmfInfo_btn.setObjectName("mmfInfo_btn")
         self.horizontalLayout_24.addWidget(self.mmfInfo_btn)
-        spacerItem25 = QtWidgets.QSpacerItem(40, 20, QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Minimum)
-        self.horizontalLayout_24.addItem(spacerItem25)
+        spacerItem24 = QtWidgets.QSpacerItem(40, 20, QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Minimum)
+        self.horizontalLayout_24.addItem(spacerItem24)
         self.gridLayout_4.addWidget(self.widget_11, 1, 0, 1, 1)
         self.mapModelFitnessSpinBox = QtWidgets.QSpinBox(self.widget1)
         self.mapModelFitnessSpinBox.setAccelerated(True)
@@ -1464,7 +1567,7 @@ class Ui_MainWindow(object):
         self.gridLayout_4.addWidget(self.mapModelFitnessSpinBox, 1, 1, 1, 1)
         self.clearQScore_btn = QtWidgets.QPushButton(self.widget1)
         self.clearQScore_btn.setCursor(QtGui.QCursor(QtCore.Qt.PointingHandCursor))
-        self.clearQScore_btn.setStyleSheet("background-color: white;\n"
+        self.clearQScore_btn.setStyleSheet("/*background-color: white;*/\n"
 "border-radius: 4;")
         self.clearQScore_btn.setText("")
         self.clearQScore_btn.setIcon(icon10)
@@ -1485,12 +1588,12 @@ class Ui_MainWindow(object):
         self.simInfo_btn_2.setIcon(icon6)
         self.simInfo_btn_2.setObjectName("simInfo_btn_2")
         self.horizontalLayout_27.addWidget(self.simInfo_btn_2)
-        spacerItem26 = QtWidgets.QSpacerItem(40, 20, QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Minimum)
-        self.horizontalLayout_27.addItem(spacerItem26)
+        spacerItem25 = QtWidgets.QSpacerItem(40, 20, QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Minimum)
+        self.horizontalLayout_27.addItem(spacerItem25)
         self.gridLayout_4.addWidget(self.widget_13, 3, 0, 1, 1)
         self.clearMMF_btn = QtWidgets.QPushButton(self.widget1)
         self.clearMMF_btn.setCursor(QtGui.QCursor(QtCore.Qt.PointingHandCursor))
-        self.clearMMF_btn.setStyleSheet("background-color: white;\n"
+        self.clearMMF_btn.setStyleSheet("/*background-color: white;*/\n"
 "border-radius: 4;")
         self.clearMMF_btn.setText("")
         self.clearMMF_btn.setIcon(icon10)
@@ -1511,8 +1614,8 @@ class Ui_MainWindow(object):
         self.simInfo_btn.setIcon(icon6)
         self.simInfo_btn.setObjectName("simInfo_btn")
         self.horizontalLayout_23.addWidget(self.simInfo_btn)
-        spacerItem27 = QtWidgets.QSpacerItem(40, 20, QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Minimum)
-        self.horizontalLayout_23.addItem(spacerItem27)
+        spacerItem26 = QtWidgets.QSpacerItem(40, 20, QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Minimum)
+        self.horizontalLayout_23.addItem(spacerItem26)
         self.gridLayout_4.addWidget(self.widget_12, 2, 0, 1, 1)
         self.similaritySpinBox = QtWidgets.QSpinBox(self.widget1)
         self.similaritySpinBox.setAccelerated(True)
@@ -1522,7 +1625,7 @@ class Ui_MainWindow(object):
         self.gridLayout_4.addWidget(self.similaritySpinBox, 2, 1, 1, 1)
         self.clearSim_btn = QtWidgets.QPushButton(self.widget1)
         self.clearSim_btn.setCursor(QtGui.QCursor(QtCore.Qt.PointingHandCursor))
-        self.clearSim_btn.setStyleSheet("background-color: white;\n"
+        self.clearSim_btn.setStyleSheet("/*background-color: white;*/\n"
 "border-radius: 4;")
         self.clearSim_btn.setText("")
         self.clearSim_btn.setIcon(icon10)
@@ -1536,8 +1639,8 @@ class Ui_MainWindow(object):
         self.resampVoxSizeDoubleSpinBox.setObjectName("resampVoxSizeDoubleSpinBox")
         self.gridLayout_4.addWidget(self.resampVoxSizeDoubleSpinBox, 3, 1, 1, 1)
         self.horizontalLayout_17.addWidget(self.widget1)
-        spacerItem28 = QtWidgets.QSpacerItem(40, 20, QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Minimum)
-        self.horizontalLayout_17.addItem(spacerItem28)
+        spacerItem27 = QtWidgets.QSpacerItem(40, 20, QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Minimum)
+        self.horizontalLayout_17.addItem(spacerItem27)
         self.verticalLayout_9.addWidget(self.widget_6)
         self.verticalLayout_16.addWidget(self.B_refineCSV)
         self.B4_downloadbtn_2 = QtWidgets.QGroupBox(self.baseLayer_3)
@@ -1551,8 +1654,8 @@ class Ui_MainWindow(object):
         self.B4_downloadbtn_2.setObjectName("B4_downloadbtn_2")
         self.horizontalLayout_5 = QtWidgets.QHBoxLayout(self.B4_downloadbtn_2)
         self.horizontalLayout_5.setObjectName("horizontalLayout_5")
-        spacerItem29 = QtWidgets.QSpacerItem(40, 20, QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Minimum)
-        self.horizontalLayout_5.addItem(spacerItem29)
+        spacerItem28 = QtWidgets.QSpacerItem(40, 20, QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Minimum)
+        self.horizontalLayout_5.addItem(spacerItem28)
         self.pushButton_p3_4 = QtWidgets.QPushButton(self.B4_downloadbtn_2)
         sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Fixed, QtWidgets.QSizePolicy.Fixed)
         sizePolicy.setHorizontalStretch(0)
@@ -1580,12 +1683,12 @@ class Ui_MainWindow(object):
 "}")
         self.pushButton_p3_4.setObjectName("pushButton_p3_4")
         self.horizontalLayout_5.addWidget(self.pushButton_p3_4)
-        spacerItem30 = QtWidgets.QSpacerItem(40, 20, QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Minimum)
-        self.horizontalLayout_5.addItem(spacerItem30)
+        spacerItem29 = QtWidgets.QSpacerItem(40, 20, QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Minimum)
+        self.horizontalLayout_5.addItem(spacerItem29)
         self.verticalLayout_16.addWidget(self.B4_downloadbtn_2)
         self.verticalLayout_28.addWidget(self.baseLayer_3)
-        spacerItem31 = QtWidgets.QSpacerItem(20, 40, QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Expanding)
-        self.verticalLayout_28.addItem(spacerItem31)
+        spacerItem30 = QtWidgets.QSpacerItem(20, 40, QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Expanding)
+        self.verticalLayout_28.addItem(spacerItem30)
         self.scrollArea_2.setWidget(self.scrollAreaWidgetContents_2)
         self.gridLayout_12.addWidget(self.scrollArea_2, 0, 0, 1, 1)
         self.stackedWidget.addWidget(self.stackedWidgetPage3)
@@ -1623,7 +1726,7 @@ class Ui_MainWindow(object):
         self.scrollArea.setWidgetResizable(True)
         self.scrollArea.setObjectName("scrollArea")
         self.scrollAreaWidgetContents = QtWidgets.QWidget()
-        self.scrollAreaWidgetContents.setGeometry(QtCore.QRect(0, 0, 786, 926))
+        self.scrollAreaWidgetContents.setGeometry(QtCore.QRect(0, 0, 786, 924))
         self.scrollAreaWidgetContents.setObjectName("scrollAreaWidgetContents")
         self.verticalLayout_27 = QtWidgets.QVBoxLayout(self.scrollAreaWidgetContents)
         self.verticalLayout_27.setContentsMargins(0, 0, 0, 0)
@@ -1664,25 +1767,26 @@ class Ui_MainWindow(object):
         self.qScoreInfo_btn_6.setIconSize(QtCore.QSize(20, 20))
         self.qScoreInfo_btn_6.setObjectName("qScoreInfo_btn_6")
         self.horizontalLayout_29.addWidget(self.qScoreInfo_btn_6)
-        spacerItem32 = QtWidgets.QSpacerItem(40, 20, QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Minimum)
-        self.horizontalLayout_29.addItem(spacerItem32)
+        spacerItem31 = QtWidgets.QSpacerItem(40, 20, QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Minimum)
+        self.horizontalLayout_29.addItem(spacerItem31)
         self.verticalLayout_17.addWidget(self.page4TitleWidget)
-        spacerItem33 = QtWidgets.QSpacerItem(20, 20, QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Fixed)
-        self.verticalLayout_17.addItem(spacerItem33)
+        spacerItem32 = QtWidgets.QSpacerItem(20, 20, QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Fixed)
+        self.verticalLayout_17.addItem(spacerItem32)
         self.A_chooseCSV_2 = QtWidgets.QGroupBox(self.baseLayer_4)
         self.A_chooseCSV_2.setStyleSheet("QGroupBox#A_chooseCSV_2 {\n"
 "    border-radius: 20px;\n"
 "    background-color: rgba(193, 211, 239, 100);\n"
 "    font-size: 14pt;\n"
 "    font-weight: bold;\n"
-"    padding-top: 36px;\n"
+"    /*padding-top: 36px;\n"
 "    padding-left: 20px;\n"
-"    padding-right: 20px;\n"
+"    padding-right: 20px;*/\n"
+"    padding: 35% 15% 0%;\n"
 "}\n"
 "\n"
 "QGroupBox::title {\n"
 "    background-color: transparent;\n"
-"    padding-top: 20px;\n"
+"    padding-top: 16px;\n"
 "    padding-left: 16px;\n"
 "    color: black;\n"
 "}\n"
@@ -1699,6 +1803,7 @@ class Ui_MainWindow(object):
         self.A2_csvFilepath_2.setTitle("")
         self.A2_csvFilepath_2.setObjectName("A2_csvFilepath_2")
         self.horizontalLayout_28 = QtWidgets.QHBoxLayout(self.A2_csvFilepath_2)
+        self.horizontalLayout_28.setContentsMargins(0, -1, -1, -1)
         self.horizontalLayout_28.setObjectName("horizontalLayout_28")
         self.lineEdit_p3_2 = QtWidgets.QLineEdit(self.A2_csvFilepath_2)
         self.lineEdit_p3_2.setMinimumSize(QtCore.QSize(200, 0))
@@ -1716,7 +1821,8 @@ class Ui_MainWindow(object):
         self.lineEdit_p3_2.setObjectName("lineEdit_p3_2")
         self.horizontalLayout_28.addWidget(self.lineEdit_p3_2)
         self.resetDefaultVal_btn_2 = QtWidgets.QPushButton(self.A2_csvFilepath_2)
-        self.resetDefaultVal_btn_2.setStyleSheet("background-color: white;\n"
+        self.resetDefaultVal_btn_2.setCursor(QtGui.QCursor(QtCore.Qt.PointingHandCursor))
+        self.resetDefaultVal_btn_2.setStyleSheet("/*background-color: white;*/\n"
 "border-radius: 3px;\n"
 "padding : 2px;")
         self.resetDefaultVal_btn_2.setText("")
@@ -1724,9 +1830,9 @@ class Ui_MainWindow(object):
         self.resetDefaultVal_btn_2.setObjectName("resetDefaultVal_btn_2")
         self.horizontalLayout_28.addWidget(self.resetDefaultVal_btn_2)
         self.pushButton_p3_2 = QtWidgets.QPushButton(self.A2_csvFilepath_2)
-        self.pushButton_p3_2.setCursor(QtGui.QCursor(QtCore.Qt.OpenHandCursor))
+        self.pushButton_p3_2.setCursor(QtGui.QCursor(QtCore.Qt.PointingHandCursor))
         self.pushButton_p3_2.setStyleSheet("/*border-image: url(:/icons/browsefilesicon.png);*/\n"
-"background-color: white;\n"
+"/*background-color: white;*/\n"
 "border-radius: 3px;\n"
 "padding : 2px;")
         self.pushButton_p3_2.setText("")
@@ -1735,8 +1841,8 @@ class Ui_MainWindow(object):
         self.horizontalLayout_28.addWidget(self.pushButton_p3_2)
         self.verticalLayout_21.addWidget(self.A2_csvFilepath_2)
         self.verticalLayout_17.addWidget(self.A_chooseCSV_2)
-        spacerItem34 = QtWidgets.QSpacerItem(20, 20, QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Fixed)
-        self.verticalLayout_17.addItem(spacerItem34)
+        spacerItem33 = QtWidgets.QSpacerItem(20, 20, QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Fixed)
+        self.verticalLayout_17.addItem(spacerItem33)
         self.A_datasetOptions = QtWidgets.QGroupBox(self.baseLayer_4)
         sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Preferred, QtWidgets.QSizePolicy.Expanding)
         sizePolicy.setHorizontalStretch(0)
@@ -1748,14 +1854,15 @@ class Ui_MainWindow(object):
 "    background-color: rgba(193, 211, 239, 100);\n"
 "    font-size: 14pt;\n"
 "    font-weight: bold;\n"
-"    padding-top: 30px;\n"
+"    /*padding-top: 30px;\n"
 "    padding-left: 20px;\n"
-"    padding-right: 20px;\n"
+"    padding-right: 20px;*/\n"
+"    padding: 30% 10% 0%;\n"
 "}\n"
 "\n"
 "QGroupBox::title {\n"
 "    background-color: transparent;\n"
-"    padding-top: 20px;\n"
+"    padding-top: 16px;\n"
 "    padding-left: 16px;\n"
 "    color: black;\n"
 "}\n"
@@ -1769,18 +1876,41 @@ class Ui_MainWindow(object):
         self.verticalLayout_3 = QtWidgets.QVBoxLayout(self.A_datasetOptions)
         self.verticalLayout_3.setObjectName("verticalLayout_3")
         self.widget_3 = QtWidgets.QWidget(self.A_datasetOptions)
+        self.widget_3.setStyleSheet("QPushButton\n"
+"{\n"
+"    background-color: rgb(220, 220, 220);\n"
+"    color: black;\n"
+"    /*border: 1px solid rgba(140, 140, 140, 200);*/\n"
+"    border-radius: 3px;\n"
+"    padding: 4px;\n"
+"}\n"
+"\n"
+"QPushButton::hover\n"
+"{\n"
+"    background-color: rgb(210, 210, 210);\n"
+"    /*border: 1px solid #525251;*/\n"
+"    padding: 0px;\n"
+"}\n"
+"\n"
+"QPushButton::pressed\n"
+"{\n"
+"    background-color: rgb(200, 200, 200);\n"
+"    /*border: 1px solid #4969ff;*/\n"
+"    padding: 0px;\n"
+"}")
         self.widget_3.setObjectName("widget_3")
         self.horizontalLayout_15 = QtWidgets.QHBoxLayout(self.widget_3)
         self.horizontalLayout_15.setContentsMargins(0, 10, 0, 0)
         self.horizontalLayout_15.setObjectName("horizontalLayout_15")
         self.addgroup_btn = QtWidgets.QPushButton(self.widget_3)
+        self.addgroup_btn.setStyleSheet("")
         self.addgroup_btn.setObjectName("addgroup_btn")
         self.horizontalLayout_15.addWidget(self.addgroup_btn)
         self.addlabel_btn = QtWidgets.QPushButton(self.widget_3)
         self.addlabel_btn.setObjectName("addlabel_btn")
         self.horizontalLayout_15.addWidget(self.addlabel_btn)
-        spacerItem35 = QtWidgets.QSpacerItem(40, 20, QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Minimum)
-        self.horizontalLayout_15.addItem(spacerItem35)
+        spacerItem34 = QtWidgets.QSpacerItem(40, 20, QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Minimum)
+        self.horizontalLayout_15.addItem(spacerItem34)
         self.verticalLayout_3.addWidget(self.widget_3)
         self.A1_featureLabels = QtWidgets.QWidget(self.A_datasetOptions)
         self.A1_featureLabels.setMinimumSize(QtCore.QSize(0, 400))
@@ -1943,8 +2073,8 @@ class Ui_MainWindow(object):
         self.label_p4_2 = QtWidgets.QLabel(self.A2_cubeSize)
         self.label_p4_2.setObjectName("label_p4_2")
         self.horizontalLayout_10.addWidget(self.label_p4_2)
-        spacerItem36 = QtWidgets.QSpacerItem(300, 20, QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Minimum)
-        self.horizontalLayout_10.addItem(spacerItem36)
+        spacerItem35 = QtWidgets.QSpacerItem(300, 20, QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Minimum)
+        self.horizontalLayout_10.addItem(spacerItem35)
         self.verticalLayout_3.addWidget(self.A2_cubeSize)
         self.dataset_split_container = QtWidgets.QWidget(self.A_datasetOptions)
         self.dataset_split_container.setStyleSheet("QSpinBox, \n"
@@ -2070,8 +2200,8 @@ class Ui_MainWindow(object):
         self.testing_label.setAlignment(QtCore.Qt.AlignRight|QtCore.Qt.AlignTrailing|QtCore.Qt.AlignVCenter)
         self.testing_label.setObjectName("testing_label")
         self.gridLayout_2.addWidget(self.testing_label, 1, 2, 1, 1)
-        spacerItem37 = QtWidgets.QSpacerItem(40, 20, QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Minimum)
-        self.gridLayout_2.addItem(spacerItem37, 1, 6, 1, 1)
+        spacerItem36 = QtWidgets.QSpacerItem(40, 20, QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Minimum)
+        self.gridLayout_2.addItem(spacerItem36, 1, 6, 1, 1)
         self.validation_spinBox = QtWidgets.QSpinBox(self.dataset_split_container)
         sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Fixed, QtWidgets.QSizePolicy.Fixed)
         sizePolicy.setHorizontalStretch(0)
@@ -2112,8 +2242,8 @@ class Ui_MainWindow(object):
         self.A4_generateDataset.setObjectName("A4_generateDataset")
         self.horizontalLayout_6 = QtWidgets.QHBoxLayout(self.A4_generateDataset)
         self.horizontalLayout_6.setObjectName("horizontalLayout_6")
-        spacerItem38 = QtWidgets.QSpacerItem(40, 20, QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Minimum)
-        self.horizontalLayout_6.addItem(spacerItem38)
+        spacerItem37 = QtWidgets.QSpacerItem(40, 20, QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Minimum)
+        self.horizontalLayout_6.addItem(spacerItem37)
         self.pushButton_p4_2 = QtWidgets.QPushButton(self.A4_generateDataset)
         sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Fixed, QtWidgets.QSizePolicy.Fixed)
         sizePolicy.setHorizontalStretch(0)
@@ -2141,8 +2271,8 @@ class Ui_MainWindow(object):
 "}")
         self.pushButton_p4_2.setObjectName("pushButton_p4_2")
         self.horizontalLayout_6.addWidget(self.pushButton_p4_2)
-        spacerItem39 = QtWidgets.QSpacerItem(40, 20, QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Minimum)
-        self.horizontalLayout_6.addItem(spacerItem39)
+        spacerItem38 = QtWidgets.QSpacerItem(40, 20, QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Minimum)
+        self.horizontalLayout_6.addItem(spacerItem38)
         self.verticalLayout_17.addWidget(self.A4_generateDataset)
         self.A5_progressDisplay = QtWidgets.QGroupBox(self.baseLayer_4)
         self.A5_progressDisplay.setStyleSheet("QGroupBox{\n"
@@ -2713,7 +2843,7 @@ class Ui_MainWindow(object):
         MainWindow.setStatusBar(self.statusbar)
 
         self.retranslateUi(MainWindow)
-        self.stackedWidget.setCurrentIndex(1)
+        self.stackedWidget.setCurrentIndex(0)
         QtCore.QMetaObject.connectSlotsByName(MainWindow)
 
     def retranslateUi(self, MainWindow):
@@ -2750,18 +2880,22 @@ class Ui_MainWindow(object):
 "filling space"))
         self.baseLayer_1.setToolTip(_translate("MainWindow", "<html><head/><body><p><br/></p></body></html>"))
         self.page2TitleLabel_2.setText(_translate("MainWindow", "Quickstart"))
+        self.label.setText(_translate("MainWindow", "Query"))
         self.textBrowser_p1.setHtml(_translate("MainWindow", "<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.0//EN\" \"http://www.w3.org/TR/REC-html40/strict.dtd\">\n"
 "<html><head><meta name=\"qrichtext\" content=\"1\" /><style type=\"text/css\">\n"
 "p, li { white-space: pre-wrap; }\n"
 "</style></head><body style=\" font-family:\'MS Shell Dlg 2\'; font-size:8pt; font-weight:400; font-style:normal;\">\n"
-"<p style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\"><span style=\" font-family:\'Segoe UI\'; font-size:9pt; color:#000000;\">Enter a search term</span><span style=\" font-family:\'Segoe UI\'; font-size:9pt; font-weight:600; color:#ff6969;\">*</span><span style=\" font-family:\'Segoe UI\'; font-size:9pt; color:#000000;\"> followed by optional keywords. </span></p>\n"
-"<p style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\"><span style=\" font-family:\'Segoe UI\'; font-size:6pt; color:#ff6969;\">    </span><span style=\" font-family:\'Segoe UI\'; font-size:6pt; font-weight:600; color:#ff6969;\">*required</span></p>\n"
-"<p style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\"><span style=\" font-family:\'Segoe UI\'; font-size:9pt; color:#000000;\">Keywords are connected by boolean operators (AND, OR, NOT). Default is AND.</span></p>\n"
-"<p style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\"><a href=\"https://www.ebi.ac.uk/emdb/documentation/search\"><span style=\" text-decoration: underline; color:#0000ff;\">Query follows EMDB search format.</span></a></p>\n"
-"<p style=\"-qt-paragraph-type:empty; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px; font-family:\'Segoe UI\'; font-size:9pt; color:#000000;\"><br /></p>\n"
-"<p style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\"><span style=\" font-family:\'Segoe UI\'; font-size:9pt; color:#000000;\">ex.</span><span style=\" font-family:\'Segoe UI\'; font-size:9pt; color:#007c82;\">  </span><span style=\" font-family:\'Segoe UI\'; font-size:9pt; color:#00007f;\">spliceosome AND resolution:[2 TO 4]</span></p>\n"
-"<p style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\"><span style=\" font-family:\'Segoe UI\'; font-size:9pt; color:#000000;\">ex.  </span><span style=\" font-family:\'Segoe UI\'; font-size:9pt; color:#00007f;\">(spliceosome OR ribonucleoprotein) AND NOT human AND xref_UNIPROTKB:[* TO *]</span></p></body></html>"))
-        self.label.setText(_translate("MainWindow", "Query"))
+"<p style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\"><span style=\" font-family:\'Segoe UI\'; font-size:9pt; color:#000000;\">Enter a search query using </span><a href=\"https://www.ebi.ac.uk/emdb/documentation/search\"><span style=\" text-decoration: underline; color:#0000ff;\">EMDB syntax.</span></a></p></body></html>"))
+        self.qs_example1_text.setHtml(_translate("MainWindow", "<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.0//EN\" \"http://www.w3.org/TR/REC-html40/strict.dtd\">\n"
+"<html><head><meta name=\"qrichtext\" content=\"1\" /><style type=\"text/css\">\n"
+"p, li { white-space: pre-wrap; }\n"
+"</style></head><body style=\" font-family:\'MS Shell Dlg 2\'; font-size:8pt; font-weight:400; font-style:normal;\">\n"
+"<p style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\"><span style=\" font-family:\'Segoe UI\'; font-size:9pt; color:#000000;\">    ex.</span><span style=\" font-family:\'Segoe UI\'; font-size:9pt; color:#007c82;\">  </span><span style=\" font-family:\'Segoe UI\'; font-size:9pt; color:#00007f;\">spliceosome AND resolution:[2 TO 4]</span></p></body></html>"))
+        self.qs_example2_text.setHtml(_translate("MainWindow", "<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.0//EN\" \"http://www.w3.org/TR/REC-html40/strict.dtd\">\n"
+"<html><head><meta name=\"qrichtext\" content=\"1\" /><style type=\"text/css\">\n"
+"p, li { white-space: pre-wrap; }\n"
+"</style></head><body style=\" font-family:\'MS Shell Dlg 2\'; font-size:8pt; font-weight:400; font-style:normal;\">\n"
+"<p style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\"><span style=\" font-family:\'Segoe UI\'; font-size:9pt; color:#000000;\">    ex.  </span><span style=\" font-family:\'Segoe UI\'; font-size:9pt; color:#00007f;\">(spliceosome OR ribonucleoprotein) AND NOT human AND xref_UNIPROTKB:[* TO *]</span></p></body></html>"))
         self.lineEdit_15.setPlaceholderText(_translate("MainWindow", "[sample] AND [range_keyword: x TO y] AND [keyword]"))
         self.label_5.setText(_translate("MainWindow", "Curation Settings"))
         self.pushButton_2.setText(_translate("MainWindow", "Curation"))
@@ -2777,12 +2911,12 @@ class Ui_MainWindow(object):
 "p, li { white-space: pre-wrap; }\n"
 "</style></head><body style=\" font-family:\'MS Shell Dlg 2\'; font-size:8pt; font-weight:400; font-style:normal;\">\n"
 "<p style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\"><span style=\" font-family:\'Segoe UI\'; font-size:9pt; color:#000000;\">Enter a search query using </span><a href=\"https://www.ebi.ac.uk/emdb/documentation/search\"><span style=\" text-decoration: underline; color:#0000ff;\">EMDB syntax.</span></a></p></body></html>"))
-        self.textEdit_2.setHtml(_translate("MainWindow", "<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.0//EN\" \"http://www.w3.org/TR/REC-html40/strict.dtd\">\n"
+        self.p1_example1_text.setHtml(_translate("MainWindow", "<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.0//EN\" \"http://www.w3.org/TR/REC-html40/strict.dtd\">\n"
 "<html><head><meta name=\"qrichtext\" content=\"1\" /><style type=\"text/css\">\n"
 "p, li { white-space: pre-wrap; }\n"
 "</style></head><body style=\" font-family:\'MS Shell Dlg 2\'; font-size:8pt; font-weight:400; font-style:normal;\">\n"
 "<p style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\"><span style=\" font-family:\'Segoe UI\'; font-size:9pt; color:#000000;\">    ex.</span><span style=\" font-family:\'Segoe UI\'; font-size:9pt; color:#007c82;\">  </span><span style=\" font-family:\'Segoe UI\'; font-size:9pt; color:#00007f;\">spliceosome AND resolution:[2 TO 4]</span></p></body></html>"))
-        self.textEdit_6.setHtml(_translate("MainWindow", "<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.0//EN\" \"http://www.w3.org/TR/REC-html40/strict.dtd\">\n"
+        self.p1_example2_text.setHtml(_translate("MainWindow", "<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.0//EN\" \"http://www.w3.org/TR/REC-html40/strict.dtd\">\n"
 "<html><head><meta name=\"qrichtext\" content=\"1\" /><style type=\"text/css\">\n"
 "p, li { white-space: pre-wrap; }\n"
 "</style></head><body style=\" font-family:\'MS Shell Dlg 2\'; font-size:8pt; font-weight:400; font-style:normal;\">\n"

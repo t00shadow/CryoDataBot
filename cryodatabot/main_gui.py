@@ -150,8 +150,10 @@ class MainWindow(qtw.QMainWindow):    # Make sure the root widget/class is the r
         self.ui.pushButton_p1_3.clicked.connect(self.gen_dataset_quick)
         #? Fetch Metadata (page 2) - Step 1
         # self.ui.pushButton_p2.clicked.connect(lambda: self.browse_folder(page="step1"))    #! REMOVED THIS WIDGET, check old commits to see what it was in the .ui file
-        self.ui.pushButton_6.clicked.connect(self.copy_example_1)
-        self.ui.pushButton_3.clicked.connect(self.copy_example_2)
+        self.ui.qs_example1_btn.clicked.connect(lambda: self.copy_example(self.ui.qs_example1_text))
+        self.ui.qs_example2_btn.clicked.connect(lambda: self.copy_example(self.ui.qs_example2_text))
+        self.ui.p1_example1_btn.clicked.connect(lambda: self.copy_example(self.ui.p1_example1_text))
+        self.ui.p1_example2_btn.clicked.connect(lambda: self.copy_example(self.ui.p1_example2_text))
         self.previewQueryBtn = self.ui.pushButton_16                       #TODO: move this alias to the top
         self.previewQueryBtn.clicked.connect(lambda: self.preview_search(version="normal"))
         self.quickstart_previewQueryBtn = self.ui.pushButton_19                       #TODO: move this alias to the top
@@ -196,7 +198,6 @@ class MainWindow(qtw.QMainWindow):    # Make sure the root widget/class is the r
         self.ui.treeWidget_p4.setColumnWidth(3, 150)
         self.ui.treeWidget_p4.setColumnWidth(4, 50)
         self.ui.treeWidget_p4.header().setSectionResizeMode(qtw.QHeaderView.Stretch)   # TODO: figure out how to keep last column fixed width
-        self.ui.addlabel_btn.setDisabled(True)
         self.add_group_w_del_btn()
         self.add_label_custom()
 
@@ -291,26 +292,29 @@ class MainWindow(qtw.QMainWindow):    # Make sure the root widget/class is the r
         self.ui.textEdit.setReadOnly(True)
         self.ui.sidebtn_5.setHidden(True)    # holy shit setHidden is so much more convenient
         self.ui.sidebtn_6.setHidden(True)
-        self.ui.B2_queryBox.layout().removeWidget(self.ui.widget_7)
-        try:
-            self.ui.widget_7.deleteLater()
-            self.ui.widget_7 = None
-        except Exception as e:
-            print("idk why there'd ever be one but here u go:", e)
-        self.ui.B2_queryBox.layout().removeWidget(self.querywidget2)
+        # self.ui.B2_queryBox.layout().removeWidget(self.ui.widget_7)
+        # try:
+        #     self.ui.widget_7.deleteLater()
+        #     self.ui.widget_7 = None
+        # except Exception as e:
+        #     print("idk why there'd ever be one but here u go:", e) 
+        # self.ui.B2_queryBox.layout().removeWidget(self.querywidget2)
+        self.ui.B2_queryBox.hide()
         self.querywidget2.deleteLater()
         self.querywidget2 = None
         # self.ui.baseLayer_3.setTitle("Preprocessing")
         self.ui.B_refineCSV.setTitle("Filters")
         # self.ui.pushButton_p3_4.setText("Preprocess")
         # self.ui.pushButton_p2_2.setText("Download")
-        self.ui.statusbar.showMessage("example status bar message")
+        self.ui.statusbar.showMessage("example status bar message", msecs=2000)
 
         # hide cursors (setting text selectable by keyboard flag makes the cursor show up, so hide it)
         self.ui.textBrowser_p1.setCursorWidth(0)
+        self.ui.qs_example1_text.setCursorWidth(0)
+        self.ui.qs_example2_text.setCursorWidth(0)
         self.ui.textBrowser_p2_2.setCursorWidth(0)
-        self.ui.textEdit_2.setCursorWidth(0)
-        self.ui.textEdit_6.setCursorWidth(0)
+        self.ui.p1_example1_text.setCursorWidth(0)
+        self.ui.p1_example2_text.setCursorWidth(0)
         
         # change font. slightly better than qstylesheet approach since setStyleSheet would overwrite existing style sheet. tho could fetch existing one and append to it i guess
         #! deleted this Qlabel in qt designer
@@ -320,8 +324,10 @@ class MainWindow(qtw.QMainWindow):    # Make sure the root widget/class is the r
 
         # self.ui.lineEdit_p1_2.findChild(qtw.QToolButton).setIcon(qtg.QIcon(resource_path("cryodatabot/src/frontend/svgs/clear_small-svgrepo-com.svg")))
         self.ui.lineEdit_p3_2.findChild(qtw.QToolButton).setIcon(qtg.QIcon(resource_path("cryodatabot/src/frontend/svgs/clear_small-svgrepo-com.svg")))
-        self.ui.pushButton_6.setIcon(qtg.QIcon(resource_path("cryodatabot/src/frontend/svgs/copy-svgrepo-com.svg")))
-        self.ui.pushButton_3.setIcon(qtg.QIcon(resource_path("cryodatabot/src/frontend/svgs/copy-svgrepo-com.svg")))
+        self.ui.qs_example1_btn.setIcon(qtg.QIcon(resource_path("cryodatabot/src/frontend/svgs/copy-svgrepo-com.svg")))
+        self.ui.qs_example2_btn.setIcon(qtg.QIcon(resource_path("cryodatabot/src/frontend/svgs/copy-svgrepo-com.svg")))
+        self.ui.p1_example1_btn.setIcon(qtg.QIcon(resource_path("cryodatabot/src/frontend/svgs/copy-svgrepo-com.svg")))
+        self.ui.p1_example2_btn.setIcon(qtg.QIcon(resource_path("cryodatabot/src/frontend/svgs/copy-svgrepo-com.svg")))
 
         self.ui.training_spinBox.setValue(80)
         self.ui.testing_spinBox.setValue(10)
@@ -547,18 +553,12 @@ class MainWindow(qtw.QMainWindow):    # Make sure the root widget/class is the r
     # def updateStatusBar(self, string):
     #     self.ui.statusBar.showMessage(string)
 
-    def copy_example_1(self):
-        text = self.ui.textEdit_2.toPlainText()
+
+    def copy_example(self, text_widget):
+        text = text_widget.toPlainText()
         stripped_text = text.lstrip("ex.").strip()
         qtw.QApplication.clipboard().setText(stripped_text)
-        self.ui.statusbar.showMessage(f"Copied example 1.")
-
-
-    def copy_example_2(self):
-        text = self.ui.textEdit_6.toPlainText()
-        stripped_text = text.lstrip("ex.").strip()
-        qtw.QApplication.clipboard().setText(stripped_text)
-        self.ui.statusbar.showMessage(f"Copied example 2.")
+        self.ui.statusbar.showMessage(f"Copied example to clipboard.", msecs=1000)
 
 
     #& THIS is a better way to disable/enable buttons, use the sender() method instead of hardcoding buttons. Slowly refactor the other functions. Do one at a time and test them.
@@ -924,8 +924,6 @@ class MainWindow(qtw.QMainWindow):    # Make sure the root widget/class is the r
         self.ui.treeWidget_p4.setItemWidget(group_item, 4, group_delbtn)
         self.ui.treeWidget_p4.itemClicked.connect(lambda: print("CASE\n    OH"))
 
-        self.ui.addlabel_btn.setEnabled(True)
-
     def add_label(self):
         """Add a label (subitem, editable) to the selected group or the parent group of the selected label."""
         selected_item = self.ui.treeWidget_p4.currentItem()
@@ -962,12 +960,15 @@ class MainWindow(qtw.QMainWindow):    # Make sure the root widget/class is the r
     # =============================
     def add_label_custom(self):
         """Add a label (subitem, editable) to the selected group or the parent group of the selected label."""
+        # If the tree is empty, create a group first
+        if self.ui.treeWidget_p4.topLevelItemCount() == 0:
+            self.add_group_w_del_btn()
+        
         selected_item = self.ui.treeWidget_p4.currentItem()    # to make this code reusable (and possible to move into a separate file, get the parent or the current widget, however that;s related to perhaps have to pass in self.smth else. alternatively leave it here but break up fxns into mutiple fxns with helpers where possible)
-
-        # Check if a group or label is selected
-        if selected_item is None:
-            self.ui.statusbar.showMessage("Create a group first", 250)
-            
+        
+        # If (somehow) no item is selected, then do nothing.
+        if selected_item is None:    # ideally should never happen, since an item is always selected in a QTreeWidget
+            self.ui.statusbar.showMessage("Select a group to add labels to.", 1000)
             return
         
         if selected_item.parent() is None:
@@ -1043,8 +1044,6 @@ class MainWindow(qtw.QMainWindow):    # Make sure the root widget/class is the r
         selected_item = self.ui.treeWidget_p4.currentItem()
         if selected_item:          # functionally equivalent to if selection_item is not None:
             self.ui.treeWidget_p4.takeTopLevelItem(self.ui.treeWidget_p4.indexOfTopLevelItem(selected_item))
-        if self.ui.treeWidget_p4.topLevelItemCount() == 0:
-            self.ui.addlabel_btn.setDisabled(True)
 
     def duplicate_label(self):
         """Add a label (subitem, editable) to the selected group or the parent group of the selected label."""
@@ -1078,9 +1077,9 @@ class MainWindow(qtw.QMainWindow):    # Make sure the root widget/class is the r
     def open_delete_popup(self, sender_type):
         """Show the popup dialog."""
         if sender_type == "group":
-            dialog = PopupDialog(self, self.delete_group)
+            dialog = PopupDialog(self, self.delete_group, "group")
         else:   # elif sender_type == "label":
-            dialog = PopupDialog(self, self.delete_label)
+            dialog = PopupDialog(self, self.delete_label, "label")
         dialog.setWindowModality(False)  # Non-modal, allowing interaction with the main window
         dialog.show()
 
