@@ -556,7 +556,7 @@ class MainWindow(qtw.QMainWindow):    # Make sure the root widget/class is the r
 
     def copy_example(self, text_widget):
         text = text_widget.toPlainText()
-        stripped_text = text.lstrip("ex.").strip()
+        stripped_text = text.strip().removeprefix("ex.").strip()    # strip leading & trailing whitespace, then remove prefix, then strip any leading & trailing whitespace that results from removing prefix
         qtw.QApplication.clipboard().setText(stripped_text)
         self.ui.statusbar.showMessage(f"Copied example to clipboard.", msecs=1000)
 
