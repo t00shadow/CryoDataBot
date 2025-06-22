@@ -48,6 +48,8 @@ import cryodatabot.src.frontend.custom_widgets.dialog_windows.quickstart_labels_
 
 from cryodatabot.src.backend.helper.file_utils import resource_path
 
+from cryodatabot.src.backend.helper.atom_in_models import residues_protein, residues_RNA, residues_DNA
+
 # print(sys.modules.keys())    # checking neccesary imports
 # print(sys.version)
 
@@ -83,15 +85,35 @@ class MainWindow(qtw.QMainWindow):    # Make sure the root widget/class is the r
 
 
         # ======== VARIABLES ========    #! move these to their respective sections in INITIALIZE
-        self.save_location = Path.cwd().as_posix()      # default
+        #? General stuff
+        self.save_location = Path.cwd().as_posix()      # default save location
         self.labels = [[]]     # list of list of dicts, initialize as list of empty list
-        self.label_dict_template = {'secondary_type': '', 'residue_type': '', 'atom_type': '', 'label': ''}
         self.main_dir_path = ""
         self.leftpanel_buttons = {}    # key, value = QPushButton, text().  Alternatively just use two lists
 
+        #? Page 3: Labels
+        self.label_template = {'secondary_type': '', 'residue_type': '', 'atom_type': '', 'label': ''}     #! might not need this? could just type this out below
+        # GUI listings for label columns
+        self.GUI_secondary_types = ['', 'protein - all', 'protein - helix', 'protein - sheet', 'protein - loop', 'RNA', 'DNA']
+        # Might want to split these by secondary type? like make 3 different arrays, might help make dependent combo boxes easier
+        self.GUI_residue_types = ['', 'All', 'A', 'T', 'C', 'G', 'U', 'alanine', 'arginine', 'asparagine', 'aspartic acid', 'cysteine', 'glutamic acid', 'glutamine', 'glycine', 'histidine', 'isoleucine', 'leucine', 'lysine', 'methionine', 'phenylalanine', 'proline', 'serine', 'threonine', 'tryptophan', 'tyrosine', 'valine']
+        self.GUI_atom_types = ['All', 'C', 'N', 'P', 'O', 'H', 'Metals?']
+        # Dictionaries to map GUI labels to backend labels (the GUI text is slightly different from what the backend uses). Using 
+        gui_to_backend_SECONDARY_type_mapping = {
+            'protein - all' : '',
+            'protein - helix' : 'Helix',
+            'protein - sheet' : 'Sheet',
+            'protein - loop' : 'Loop',
+            'RNA' : '',    # in the backend, RNA is handled solely by residue type
+            'DNA' : '',    # in the backend, DNA is handled solely by residue type
+        }
+        # TODO: use RNA and DNA in secondary structure (GUI) by using an if statement to decide whether the use the RNA or DNA versions of residues (see atoms_in_models.py to understand)
+        # Also, move the list of gui stuff up here.
+        gui_to_backend_RESIDUE_type_mapping = {}   # TODO: separating the above lists by secondary type would make this slightly cleaner, right now either need to do it by hand or use list indexing which works but wont be as robust if you change the order of things in the above lists
+        gui_to_backend_ATOM_type_mapping = {}   # TODO: this one doesnt actually need any mapping. just go back and add to the list of atom types, make a set of the atoms in atoms_in_models.py
 
         # ======== INITIALIZE ========
-        #? Step 2: Preprocessing
+        #? Page 2: Preprocessing
         # Default values
         self.preprocesing_default_values = {        # these are for restoring the default values. Used by both normal page and quickstart
             "qscore": 0,          # 0 - 1
@@ -134,8 +156,10 @@ class MainWindow(qtw.QMainWindow):    # Make sure the root widget/class is the r
         # self.ui.lineEdit.setClearButtonEnabled(True)
         # self.ui.lineEdit.setPlaceholderText("overwrote placeholder text via code")
         # self.ui.lineEdit_p1.setText(r"C:\Users\noelu\CryoDataBot\JUNK_TEST_FOLDER")
-        self.ui.lineEdit_12.setPlaceholderText("[sample] AND [range_keyword: x TO y] AND [keyword]")
+        self.ui.lineEdit_12.setPlaceholderText("sample AND range_keyword:[x TO y] AND other keywords")
+        self.ui.lineEdit_15.setPlaceholderText("sample AND range_keyword:[x TO y] AND other keywords")
         self.ui.lineEdit_12.setText("")
+        self.ui.lineEdit_15.setText("")
         self.ui.lineEdit_12.returnPressed.connect(lambda: self.preview_search(version="normal"))     # Fetch Metadata page
         self.ui.lineEdit_15.returnPressed.connect(lambda: self.preview_search(version="quickstart"))     # Quickstart page
         # self.ui.lineEdit_p2.setText(self.save_location)     #! REMOVED THIS WIDGET, check old commits to see what it was in the .ui file
@@ -243,10 +267,11 @@ class MainWindow(qtw.QMainWindow):    # Make sure the root widget/class is the r
         # self.ui.lineEdit_p2.textEdited['QString'].connect(self.ui.statusbar.showMessage)    #! REMOVED THIS WIDGET, check old commits to see what it was in the .ui file
         self.querywidget2.tagTextEdited.connect(self.ui.statusbar.showMessage)
         # self.userInputQuery = self.ui.lineEdit_2       # alias for easier swtching btwn dif search bars
-        self.userInputQuery = self.ui.lineEdit_12
-        self.ui.lineEdit_12.setClearButtonEnabled(True)               #TODO: why's this still hardcoded lol
+        self.userInputQuery = self.ui.lineEdit_12     # use an alias OR change the name in the .ui file
+        self.userInputQuery.setClearButtonEnabled(True)               #TODO: why's this still hardcoded lol, EDIT: not rly an issue
         self.userInputQuery.textEdited.connect(self.ui.statusbar.showMessage)
-        # self.ui.lineEdit_12.textEdited.connect(self.ui.statusbar.showMessage)
+        self.ui.lineEdit_15.setClearButtonEnabled(True)               #TODO: why's this still hardcoded lol, EDIT: not rly an issue
+        self.ui.lineEdit_15.textEdited.connect(self.ui.statusbar.showMessage)
         # self.previewQueryBtn = self.ui.validateQuery_btn
 
 
@@ -333,6 +358,8 @@ class MainWindow(qtw.QMainWindow):    # Make sure the root widget/class is the r
         self.ui.qs_example2_btn.setIcon(qtg.QIcon(resource_path("cryodatabot/src/frontend/svgs/copy-svgrepo-com.svg")))
         self.ui.p1_example1_btn.setIcon(qtg.QIcon(resource_path("cryodatabot/src/frontend/svgs/copy-svgrepo-com.svg")))
         self.ui.p1_example2_btn.setIcon(qtg.QIcon(resource_path("cryodatabot/src/frontend/svgs/copy-svgrepo-com.svg")))
+        self.ui.pushButton_19.setIcon(qtg.QIcon(resource_path("cryodatabot/src/frontend/svgs/preview_eyecon.svg")))
+        self.previewQueryBtn.setIcon(qtg.QIcon(resource_path("cryodatabot/src/frontend/svgs/preview_eyecon.svg")))    # no .ui in the button name since created an alias above
 
         self.ui.training_spinBox.setValue(80)
         self.ui.testing_spinBox.setValue(10)
@@ -1002,14 +1029,14 @@ class MainWindow(qtw.QMainWindow):    # Make sure the root widget/class is the r
 
         # self.ui.treeWidget_p4.setItemWidget(label_item, 0, label_name_widget)
         secondary_struct_combo = LabelComboBox_v2()
-        secondary_struct_combo.addItems(['', 'protein - all', 'protein - helix', 'protein - sheet', 'protein - loop', 'RNA', 'DNA'])
+        secondary_struct_combo.addItems(self.GUI_secondary_types)
         secondary_struct_combo.currentTextChanged.connect(lambda: print("item changed"))
         self.ui.treeWidget_p4.setItemWidget(label_item, 1, secondary_struct_combo)
         # residues_combo = LabelComboBox(placeholder_text="Choose residue(s)")
         residues_combo = LabelComboBox_v2()
-        residues_combo.addItems(['', 'All', 'A', 'T', 'C', 'G', 'U', 'alanine', 'arginine', 'asparagine', 'aspartic acid', 'cysteine', 'glutamic acid', 'glutamine', 'glycine', 'histidine', 'isoleucine', 'leucine', 'lysine', 'methionine', 'phenylalanine', 'proline', 'serine', 'threonine', 'tryptophan', 'tyrosine', 'valine'])
+        residues_combo.addItems(self.GUI_residue_types)
         self.ui.treeWidget_p4.setItemWidget(label_item, 2, residues_combo)
-        atoms_lineedit = LabelLineEdit.CustomLineEdit(['All', 'C', 'N', 'P', 'O', 'H', 'Metals?'])
+        atoms_lineedit = LabelLineEdit.CustomLineEdit(self.GUI_atom_types)
         atoms_lineedit.setPlaceholderText("Type in atoms")    # TODO: consider adding this to the customlineedit constructor
         self.ui.treeWidget_p4.setItemWidget(label_item, 3, atoms_lineedit)
         label_delbtn = qtw.QPushButton()
@@ -1039,7 +1066,7 @@ class MainWindow(qtw.QMainWindow):    # Make sure the root widget/class is the r
         group_item.setExpanded(True)  # Automatically expand the group when a label is added
         self.ui.treeWidget_p4.setCurrentItem(label_item)
 
-        label = self.label_dict_template.copy()   # delete this later and make a separate function. More optimal way is to retrieve only when ready to generate datasets. But maybe want some method to save sessions/history later idk
+        label = self.label_template.copy()   # delete this later and make a separate function. More optimal way is to retrieve only when ready to generate datasets. But maybe want some method to save sessions/history later idk
         label['secondary_type'] = "obunga"
         # TODO: deal with this test code, just move it into some test function?
         self.labels.append(label)    # lol its not even right

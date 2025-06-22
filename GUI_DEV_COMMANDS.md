@@ -1,4 +1,16 @@
-# installing packages
+# Table of Contents
+
+- [Installing Packages](#installing-packages)
+- [UI Files](#ui-file)
+- [Resources](#resources)
+- [Delete this section?](#for-the-other-dialog-window-wip)
+- [Which files to run?](#which-files-to-run)
+- [Building Executables](#building-executables)
+- [Git](#git)
+<!-- square brackets are the name of the table of contents entry, hashtags are the anchors to the sections below, all lowercase and replace spaces (and special charas like parens and question mark) with hyphens -->
+<!-- https://stackoverflow.com/questions/2822089/how-to-link-to-part-of-the-same-document-in-markdown -->
+
+# Installing Packages
 ```
 cat requirements.txt | xargs -n 1 -I {} pip install {} || echo "Failed to install {}"
 ```
@@ -23,7 +35,7 @@ Explanation:
     - {} is the same placeholder from the left side of the ||
     - echo is the bash equivalent of print()
 
-# ui file:
+# UI File:
 ```
 pyuic5 -x "/mnt/c/Users/noelu/Python Projects/PyQt GUI practice/QtDesigner_practice/dataset_gen_tool_GUI/dataset_gen_tool_v10.ui" -o guiskin_DEV2.py
 ```
@@ -40,18 +52,23 @@ even even more updated command:
 pyuic5 -x "/mnt/c/Users/noelu/CryoDataBot/cryodatabot/src/frontend/ui_files/dataset_gen_tool_v12.ui" -o "/mnt/c/Users/noelu/CryoDataBot/cryodatabot/src/frontend/ui_files/guiskin_DEV3_1.py"
 ```
 
-# resources:
+# Resources:
 ```
 pyrcc5 "/mnt/c/Users/noelu/Python Projects/PyQt GUI practice/QtDesigner_practice/dataset_gen_tool_GUI/resources.qrc" -o resources_rc.py
 ```
 
+note: the newer stuff is done in main_gui.py directly (don't need resources_rc.py), but some svgs were missing when tested on other machines.
 
-# for the other dialog window (WIP):
+**(TODO)** Figure out which approach had the missing svgs
+
+
+# For the other dialog window (WIP):
 ```
 pyuic5 -x "/mnt/c/Users/noelu/CryoDataBot/label_manager_popup_EXP/label_manager_popup.ui" -o label_manager_popup_EXP/label_manager_popup.py
 ```
+Dont think this exists anymore, **delete**.
 
-# which files to run?
+# Which files to run?
 Run ```main_gui_DEV3.py``` (or ```main_gui_DEV3_alt.py``` for page buttons on the side). 
 
 ```main_gui_DEV3.py``` imports ```guiskin_DEV2.py```. Do NOT modify ```guiskin_DEV2.py``` because any changes will be overwritten.
@@ -104,6 +121,14 @@ Differences vs the windows version: 1) run in wsl terminal instead of powershell
 ## Mac version (uhh TODO)
 
 
+
+# Git
+- temp branch is the current dev branch, develop on temp (ugh wish i chose a better name), then mirror on main
+- Since temp branch's commit history is kinda garbage, use a merge --squash to avoid cluttering the main branch's history. Copy the files but not the commit history to main branch. [stackoverflow post](https://stackoverflow.com/a/13348709)
+- Also uh temp is both behind and ahead of main; not an issue when doing merge --squash, but it's still kind of annoying since it causes merge conflicts for regular merges.
+
+### merge --squash
+1. git ...
 
 
 
