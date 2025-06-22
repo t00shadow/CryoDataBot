@@ -511,7 +511,7 @@ QPushButton:checked {
 }</string>
        </property>
        <property name="currentIndex">
-        <number>3</number>
+        <number>4</number>
        </property>
        <widget class="QWidget" name="stackedWidgetPage0">
         <layout class="QVBoxLayout" name="verticalLayout_26">
@@ -557,8 +557,8 @@ QPushButton:checked {
              <rect>
               <x>0</x>
               <y>0</y>
-              <width>786</width>
-              <height>814</height>
+              <width>372</width>
+              <height>368</height>
              </rect>
             </property>
             <layout class="QVBoxLayout" name="verticalLayout_31">
@@ -1641,7 +1641,7 @@ QGroupBox{
                       </font>
                      </property>
                      <property name="toolTip">
-                      <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-weight:400;&quot;&gt;this is limiting the window's thickness when shrinking btw, prob a better way to go about sizepolicys&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                      <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;br/&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
                      </property>
                      <property name="styleSheet">
                       <string notr="true">QPushButton {
@@ -2424,7 +2424,7 @@ QPushButton:pressed {
                       </font>
                      </property>
                      <property name="toolTip">
-                      <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-weight:400;&quot;&gt;this is limiting the window's thickness when shrinking btw, prob a better way to go about sizepolicys&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                      <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;br/&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
                      </property>
                      <property name="styleSheet">
                       <string notr="true">QPushButton {
@@ -3035,7 +3035,7 @@ QDoubleSpinBox::up-arrow
                           </widget>
                          </item>
                          <item row="3" column="2">
-                          <widget class="QPushButton" name="resampVoxSize_btn">
+                          <widget class="QPushButton" name="clear_resampVoxSize_btn">
                            <property name="cursor">
                             <cursorShape>PointingHandCursor</cursorShape>
                            </property>
@@ -3176,7 +3176,7 @@ border-radius: 4;</string>
                           </widget>
                          </item>
                          <item row="0" column="2">
-                          <widget class="QPushButton" name="clearQScore_btn">
+                          <widget class="QPushButton" name="clear_qscore_btn">
                            <property name="cursor">
                             <cursorShape>PointingHandCursor</cursorShape>
                            </property>
@@ -3249,7 +3249,7 @@ border-radius: 4;</string>
                           </widget>
                          </item>
                          <item row="1" column="2">
-                          <widget class="QPushButton" name="clearMMF_btn">
+                          <widget class="QPushButton" name="clear_mmf_btn">
                            <property name="cursor">
                             <cursorShape>PointingHandCursor</cursorShape>
                            </property>
@@ -3338,7 +3338,7 @@ border-radius: 4;</string>
                           </widget>
                          </item>
                          <item row="2" column="2">
-                          <widget class="QPushButton" name="clearSim_btn">
+                          <widget class="QPushButton" name="clear_similarity_btn">
                            <property name="cursor">
                             <cursorShape>PointingHandCursor</cursorShape>
                            </property>
@@ -3442,7 +3442,7 @@ QGroupBox{
                       </font>
                      </property>
                      <property name="toolTip">
-                      <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-weight:400;&quot;&gt;this is limiting the window's thickness when shrinking btw, prob a better way to go about sizepolicys&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                      <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;br/&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
                      </property>
                      <property name="styleSheet">
                       <string notr="true">QPushButton {
@@ -3545,7 +3545,7 @@ QPushButton:pressed {
             <property name="geometry">
              <rect>
               <x>0</x>
-              <y>0</y>
+              <y>-110</y>
               <width>786</width>
               <height>924</height>
              </rect>

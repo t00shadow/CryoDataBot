@@ -39,3 +39,4 @@ cryodatabot/src/backend/core/redundancy_*.py
 *.mrc
 Training/download_file_001_Final/class_weight_for_training.txt
 Training/download_file_001_Final/statistics.txt
+zzz_scratchpad.py

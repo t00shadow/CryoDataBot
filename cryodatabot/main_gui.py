@@ -94,17 +94,19 @@ class MainWindow(qtw.QMainWindow):    # Make sure the root widget/class is the r
         #? Step 2: Preprocessing
         # Default values
         self.preprocesing_default_values = {        # these are for restoring the default values. Used by both normal page and quickstart
-            "qscore": 0,        # 0 - 1
-            "similarity": 0,    # 0 - 100%
-            "mmf": 0,           # 0 - 100%
+            "qscore": 0,          # 0 - 1
+            "similarity": 100,    # 0 - 100%
+            "mmf": 0,             # 0 - 100%
+            "target_vox_size": 0.1,
         }
         self.ui.qScoreDoubleSpinBox.setValue(self.preprocesing_default_values["qscore"])
         self.ui.similaritySpinBox.setValue(self.preprocesing_default_values["similarity"])
         self.ui.mapModelFitnessSpinBox.setValue(self.preprocesing_default_values["mmf"])
-        # Tweaks
-        self.ui.qScoreDoubleSpinBox.setDecimals(3)
-        self.ui.qScoreDoubleSpinBox.setMinimum(-1.0)   # qscores < 0 are bad, but giving users more flexibility in case they have some usecase
-        self.ui.qScoreDoubleSpinBox.setSingleStep(0.001)
+        self.ui.resampVoxSizeDoubleSpinBox.setValue(self.preprocesing_default_values["target_vox_size"])
+        # Tweaks (#! delete if unused)
+        # self.ui.qScoreDoubleSpinBox.setDecimals(3)
+        # self.ui.qScoreDoubleSpinBox.setMinimum(-1.0)   # qscores < 0 are bad, but giving users more flexibility in case they have some usecase
+        # self.ui.qScoreDoubleSpinBox.setSingleStep(0.001)
 
         #? Quickstart (implemented last so goes here, also reuses some of the variables above)
         self.prepro_dialog = None
@@ -168,20 +170,21 @@ class MainWindow(qtw.QMainWindow):    # Make sure the root widget/class is the r
         self.ui.resetDefaultVal_btn_2.clicked.connect(lambda: self.ui.lineEdit_p3_2.setText(self.step3_results_path))
 
         
-        # make these tool tips in designer in rich text on a testpage, and then copy paste them from the generated ui code, and then delete the test page at runtime
+        #TODO: make these tool tips in designer in rich text on a testpage, and then copy paste them from the generated ui code, and then delete the test page at runtime
         self.ui.qScoreInfo_btn.clicked.connect(lambda: self.show_tooltip_on_click("QScore: \ndescrip... *consider using richtext (if possible) to have colors and bold, italics, etc"))
         self.ui.simInfo_btn.clicked.connect(lambda: self.show_tooltip_on_click("Similarity: a measure of how similar _ are. 100 is most similar, 0 is least similar"))
         self.ui.mmfInfo_btn.clicked.connect(lambda: self.show_tooltip_on_click("Our calculated metric: ...what this means..."))
-        # rename these info buttons in designer. Use rich text if possible
+        #TODO: rename these info buttons in designer. Use rich text if possible
         self.ui.qScoreInfo_btn_2.clicked.connect(lambda: self.show_tooltip_on_click("This step fetches metadata from EMDB. If you already have a .csv file with the columns: emdb_id, resolution, fitted_pdbs, you can skip this step."))
         self.ui.qScoreInfo_btn_3.clicked.connect(lambda: self.show_tooltip_on_click("This step preprocesses... NOTE: Maps and models are downloaded in this step."))
         self.ui.qScoreInfo_btn_6.clicked.connect(lambda: self.show_tooltip_on_click("Create labels for your dataset. Add groups to separate your labels. Select a cube size. Choose how to divide your dataset between testing, training, and validation"))
         self.ui.qScoreInfo_btn_5.clicked.connect(lambda: self.show_tooltip_on_click("Quickly generate datasets."))
 
 
-        self.ui.clearQScore_btn.clicked.connect(lambda: self.ui.qScoreDoubleSpinBox.setValue(self.preprocesing_default_values["qscore"]))
-        self.ui.clearSim_btn.clicked.connect(lambda: self.ui.similaritySpinBox.setValue(self.preprocesing_default_values["similarity"]))
-        self.ui.clearMMF_btn.clicked.connect(lambda: self.ui.mapModelFitnessSpinBox.setValue(self.preprocesing_default_values["mmf"]))
+        self.ui.clear_qscore_btn.clicked.connect(lambda: self.ui.qScoreDoubleSpinBox.setValue(self.preprocesing_default_values["qscore"]))
+        self.ui.clear_similarity_btn.clicked.connect(lambda: self.ui.similaritySpinBox.setValue(self.preprocesing_default_values["similarity"]))
+        self.ui.clear_mmf_btn.clicked.connect(lambda: self.ui.mapModelFitnessSpinBox.setValue(self.preprocesing_default_values["mmf"]))
+        self.ui.clear_resampVoxSize_btn.clicked.connect(lambda: self.ui.resampVoxSizeDoubleSpinBox.setValue(self.preprocesing_default_values["target_vox_size"]))
         # Generate Datasets (page 4)
         self.ui.pushButton_p4_2.clicked.connect(self.gen_ds)
 
@@ -212,10 +215,12 @@ class MainWindow(qtw.QMainWindow):    # Make sure the root widget/class is the r
         self.ui.spinBox_2.valueChanged.connect(self.on_spin_box2_changed)
         self.ui.spinBox_3.valueChanged.connect(self.on_spin_box3_changed)
 
-        for spinbox in self.findChildren(qtw.QDoubleSpinBox):
-            self.clamp_spinbox(spinbox)       # allows users to type values above spinbox max, and then caps the value at max
-            print(spinbox.minimum())
-            print(spinbox.maximum())
+        # [for debugging] print the min and max values for all spinboxes
+        for spinbox in self.findChildren((qtw.QSpinBox, qtw.QDoubleSpinBox)):
+            # self.clamp_spinbox(spinbox)       # [currently broken] allows users to type values above spinbox max, and then caps the value at max
+            print(spinbox.objectName())
+            print(f"min: {spinbox.minimum()}")
+            print(f"max: {spinbox.maximum()}")
 
         ### custom query TextEdit widget
         # # page 1
@@ -254,10 +259,10 @@ class MainWindow(qtw.QMainWindow):    # Make sure the root widget/class is the r
         self.leftpanel_buttons[self.ui.sidebtn_4] = self.ui.sidebtn_4.text()
         self.leftpanel_buttons[self.ui.sidebtn_5] = self.ui.sidebtn_5.text()
         self.leftpanel_buttons[self.ui.sidebtn_6] = self.ui.sidebtn_6.text()
-        print("dict:\n", self.leftpanel_buttons)
-        print("keys:\n", self.leftpanel_buttons.keys())
-        print("values:\n", self.leftpanel_buttons.values())
-        self.ui.splitter.splitterMoved.connect(print)
+        # print("leftpanel_buttons DICT:\n", self.leftpanel_buttons)
+        # print("leftpanel_buttons KEYS:\n", self.leftpanel_buttons.keys())
+        # print("leftpanel_buttons VALUES:\n", self.leftpanel_buttons.values())
+        # self.ui.splitter.splitterMoved.connect(print)    # print messages for debugging
         self.ui.sidebtn_5.clicked.connect(self.toggle_sidebar)
         self.ui.splitter.setCollapsible(0, False)
         self.ui.splitter.setCollapsible(1, False)
@@ -493,13 +498,13 @@ class MainWindow(qtw.QMainWindow):    # Make sure the root widget/class is the r
         except Exception as error:
             print("An exception occurred:", error)    # TODO: switch to a logger statement
 
-        # this code looks kinda gross
+
     def browse_folder(self, page="home"):
-        #? should adopt a more modular approach to mapping fxns to modules. create a dictionary of mappings are the start of the program? Or adopt the MVC design pattern
         if page == "home":
             filepath = qtw.QFileDialog.getExistingDirectory(self, caption='Select Folder')
             if not filepath:
-                print("no directory selected")
+                # print("No directory selected or directory does not exist.")
+                self.ui.statusbar.showMessage("No directory selected or directory does not exist.")
                 return
             self.ui.main_save_path_lineedit.setText(filepath)     # gui visual update
             self.save_location = filepath                            # store the value
@@ -508,13 +513,15 @@ class MainWindow(qtw.QMainWindow):    # Make sure the root widget/class is the r
         elif page == "quick":
             filepath = qtw.QFileDialog.getExistingDirectory(self, caption='Select Folder')
             if not filepath:
-                print("no directory selected")
+                # print("No directory selected or directory does not exist.")
+                self.ui.statusbar.showMessage("No directory selected or directory does not exist.")
                 return
             self.ui.lineEdit_p1.setText(filepath)   # seems the name of this widget changed or was deleted
         elif page == "step1":
             filepath = qtw.QFileDialog.getExistingDirectory(self, caption='Select Folder')
             if not filepath:
-                print("no directory selected")
+                # print("No directory selected or directory does not exist.")
+                self.ui.statusbar.showMessage("No directory selected or directory does not exist.")
                 return
             # self.ui.lineEdit_p2.setText(filepath)     #! REMOVED THIS WIDGET, check old commits to see what it was in the .ui file
             self.save_location = filepath                # store the value
@@ -523,7 +530,8 @@ class MainWindow(qtw.QMainWindow):    # Make sure the root widget/class is the r
         elif page == "step2":
             filepath = qtw.QFileDialog.getOpenFileName(self, caption='Select File', filter="(*.csv)")[0]    # returns a Tuple[str, str], keep first value
             if not filepath:
-                print("no file selected")
+                # print("No file selected or file does not exist.")
+                self.ui.statusbar.showMessage("No file selected or file does not exist.")
                 return
             #& This approach of selectAll() and then insert() preserves undo/redo history as compared to setText(). If make the folder selection lineedits editable too, adopt this approach for them too. For that u need a way to verify the folder exists, kinda like vscode select an interpreter typa thing.
             # self.ui.lineEdit_p3.setText(filepath)
@@ -532,13 +540,14 @@ class MainWindow(qtw.QMainWindow):    # Make sure the root widget/class is the r
         elif page == "step4":
             filepath = qtw.QFileDialog.getOpenFileName(self, caption='Select File', filter="(*.csv)")[0]
             if not filepath:
-                print("no file selected")
+                # print("No file selected or file does not exist.")
+                self.ui.statusbar.showMessage("No file selected or file does not exist.")
                 return
             # self.ui.lineEdit_p3_2.setText(filepath)
             self.ui.lineEdit_p3_2.selectAll()
             self.ui.lineEdit_p3_2.insert(filepath)
         
-        print("selected path:", filepath)     # debugging, shows up in console. Could consider displaying in gui's log too.
+        # print("selected path:", filepath)     # debugging, shows up in console. Could consider displaying in gui's log too.
         self.ui.statusbar.showMessage(f"selected folder: {filepath}", 2000)    # if use textChanged instead of textEdited signal in lineEdit_22 to statusbar connection, can remove this line, since textChanged is emitted the text is change by users OR programmatically (textEdited is only emited when text is changed by users)
         self.main_dir_path = filepath       # this is just to store this value so make_main_dir() can access it later
 
@@ -749,7 +758,9 @@ class MainWindow(qtw.QMainWindow):    # Make sure the root widget/class is the r
 
         step1_csv_path = self.ui.lineEdit_p3.text()
         q_thresh = self.ui.qScoreDoubleSpinBox.value()
-        uni_thresh = self.ui.similaritySpinBox.value()
+        print(f"q_thresh: {q_thresh}")
+        uni_thresh = self.ui.similaritySpinBox.value() / 100
+        print(f"uni_thresh: {uni_thresh}")
                 
         self.ui.pushButton_p3_4.setDisabled(True)
         self.worker = Worker(redundancy_filter.filter_csv, step1_csv_path, q_thresh, uni_thresh)
@@ -777,14 +788,17 @@ class MainWindow(qtw.QMainWindow):    # Make sure the root widget/class is the r
         if not os.path.exists(raw_dir):
             os.makedirs(raw_dir)
         print(raw_dir)
-        overwrite = False
+        overwrite = False     # TODO: should add a toggle in the gui for this
         give_map = True
         protein_tag_dist = 1
-        map_threashold = 0.15
-        vof_threashold = 0.25
-        dice_threashold = 0.4
+        map_threshold = 0.01    # Normalized map density cutoff. # TODO: no gui input for this (might not need one), maybe add a "more options" dropdown and add it there maybe?
+        vof_threshold = self.ui.mapModelFitnessSpinBox.value() / 100
+        print(f"vof_threshold (mmf_threshold): {vof_threshold}")
+        dice_threshold = 0.4     # TODO: no gui input for this, maybe add a "more options" dropdown and add it there maybe?
+        target_voxel_size = self.ui.resampVoxSizeDoubleSpinBox.value()
+        print(f"target_voxel_size: {target_voxel_size}")
 
-        self.worker = Worker(downloading_and_preprocessing_NO_GPU2.downloading_and_preprocessing, metadata_path, raw_dir, overwrite, give_map, protein_tag_dist, map_threashold, vof_threashold, dice_threashold)
+        self.worker = Worker(downloading_and_preprocessing_NO_GPU2.downloading_and_preprocessing, metadata_path, raw_dir, overwrite, give_map, protein_tag_dist, map_threshold, vof_threshold, dice_threshold, target_voxel_size)
         self.worker.result_signal.connect(self.handle_result_step3)
         self.worker.start()
 
@@ -1027,9 +1041,10 @@ class MainWindow(qtw.QMainWindow):    # Make sure the root widget/class is the r
 
         label = self.label_dict_template.copy()   # delete this later and make a separate function. More optimal way is to retrieve only when ready to generate datasets. But maybe want some method to save sessions/history later idk
         label['secondary_type'] = "obunga"
+        # TODO: deal with this test code, just move it into some test function?
         self.labels.append(label)    # lol its not even right
         print(self.labels)           #! not as inefficient as it seems, since it only appends stuff but this makes deletion unnecessarily complicated. either assign each entry a unique id different from its name (hidden identifier)  orrrr just fetch the values only when the "generate dataset(s)" buttion is clicked. If any place needs the current values, just fetch from the widgets. Qt doesnt rly use the MVC model. it kinda has view and data combined in its widgets
-        print(f"HERE ASKDFJASLDKFJASLDKFJASLDKFJAL {self.ui.treeWidget_p4.columnCount()}")   #! [DELETE ME LATER]
+        # print(f"Tree widget column count {self.ui.treeWidget_p4.columnCount()}")
 
 
     def showDeleteButton(self):
@@ -1195,21 +1210,22 @@ class MainWindow(qtw.QMainWindow):    # Make sure the root widget/class is the r
         self.spin_box_changed_generic(value, [self.ui.spinBox, self.ui.spinBox_2])      # 3, 1, 2
 
 
-    def clamp_spinbox(self, spinbox):
-        def on_editing_finished():
-            print("editing finished")
-            value = float(spinbox.lineEdit().text())
-            print("value =", value)
-            print(spinbox.value())
-            if value < spinbox.minimum():
-                spinbox.setValue(spinbox.minimum())
-                print("Spinbox min:", spinbox.minimum())      # Debugging
-            elif value > spinbox.maximum():
-                spinbox.setValue(spinbox.maximum())
-                print("Spinbox max:", spinbox.maximum())      # Debugging
+    #! does NOT work, delete or fix
+    # def clamp_spinbox(self, spinbox):
+    #     def on_editing_finished():
+    #         print("editing finished")
+    #         value = float(spinbox.lineEdit().text())
+    #         print("value =", value)
+    #         print(spinbox.value())
+    #         if value < spinbox.minimum():
+    #             spinbox.setValue(spinbox.minimum())
+    #             print("Spinbox min:", spinbox.minimum())      # Debugging
+    #         elif value > spinbox.maximum():
+    #             spinbox.setValue(spinbox.maximum())
+    #             print("Spinbox max:", spinbox.maximum())      # Debugging
 
-        spinbox.lineEdit().setValidator(None)  # Disable built-in validator that blocks input
-        spinbox.editingFinished.connect(on_editing_finished)
+    #     spinbox.lineEdit().setValidator(None)  # Disable built-in validator that blocks input
+    #     spinbox.editingFinished.connect(on_editing_finished)
 
 
     #^ REFACTORIZATION 2: more readable code. ideally the same performance as refactorization 1. potentially slightly more responsive and more prone to unexpected changes in value. worse loose coupling. Rly only an issue IF the value of the spinbox changes unexpectedly after the signal is emitted (maybe value changed super fast, like with an infinite scroll scrollwheel?).

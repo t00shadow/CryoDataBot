@@ -809,7 +809,8 @@ def main():
     atom_grid_radius = generate_dataset_config.getfloat('user_settings', 'atom_grid_radius')
     n_workers = generate_dataset_config.getint('user_settings', 'n_workers')
 
-    csv_path = 'CryoDataBot_Data/Metadata/ribosome_res_1-4_001/ribosome_res_1-4_001_Final.csv'
+    # csv_path = 'CryoDataBot_Data/Metadata/ribosome_res_1-4_001/ribosome_res_1-4_001_Final.csv'
+    csv_path = "C:/Users/noelu/CryoDataBot/download_file_001/download_file_001_Final.csv"
     group_names = ['secondary_strctures', 'residue_types', 'key_atoms']
     from helper.atom_in_models import atoms_sugar_ring, residues_RNA
     label_groups = [
@@ -847,9 +848,9 @@ def main():
                     {'secondary_type': '', 'residue_type': '', 'atom_type': 'P', 'element_type': '', 'metal_type': '', 'label': 2},
                     {'secondary_type': '', 'residue_type': '', 'atom_type': ','.join(atoms_sugar_ring), 'element_type': '', 'metal_type': '', 'label': 3},],
                   ]
-    raw_path = 'CryoDataBot_Data/Raw'
-    temp_path = 'CryoDataBot_Data/Temp'
-    sample_path = 'CryoDataBot_Data/Training'
+    raw_path = 'Raw'
+    temp_path = 'Temp'
+    sample_path = 'Training'
 
     label_maps(label_groups=label_groups,
                group_names=group_names,

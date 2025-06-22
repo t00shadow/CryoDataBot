@@ -126,6 +126,8 @@ def fetch_map_model(csv_info, path_info, overwrite=False):
     logger = logging.getLogger('Downloading_and_Preprocessing_Logger')
     emdb_ids, pdbs, _, _ = csv_info
     raw_map_paths, model_paths, _ = path_info
+    #& [Something of note]: Might want to check if files exist PRIOR to creating threads (currently it's the other way around), to avoid creating unnecessary threads. Seems to not have much impact, but tested on a small query that only downloaded 5 maps.
+    #& (cont.): If choose to do this, remove files that already exist from the variables above. Then update the tqdm line a few lines below. Store the original size first before removing things. This is just to keep the progress bar consistent.
     with ThreadPoolExecutor() as executor:
         futures = [executor.submit(download_one_map, emdb_id, pdb, raw_map_path, model_path, overwrite)\
                    for emdb_id, pdb, raw_map_path, model_path in zip(emdb_ids, pdbs, raw_map_paths, model_paths)]
@@ -525,7 +527,7 @@ def map_normalizing(raw_map_path, recl=0.0, target_voxel_size=1.0):
         map_orientation = np.array([mrc.header.mapc, mrc.header.mapr, mrc.header.maps], dtype=np.float32)
 
         # Resample map to target_voxel_size grid size (default:1.0A*1.0A*1.0A)Add commentMore actions
-        zoom_factors = [mrc.voxel_size.z, mrc.voxel_size.y, mrc.voxel_size.x] / target_voxel_size
+        zoom_factors = np.array([mrc.voxel_size.z, mrc.voxel_size.y, mrc.voxel_size.x]) / target_voxel_size
         if xp == np:
             map_data = zoom(map_data, zoom_factors)
         else:
