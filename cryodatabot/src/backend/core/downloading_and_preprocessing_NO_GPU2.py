@@ -523,15 +523,21 @@ def map_normalizing(raw_map_path, recl=0.0, target_voxel_size=1.0):
     with mrcfile.mmap(raw_map_path, 'r+') as mrc:
         # Load map data
         map_data = xp.array(mrc.data, dtype=np.float32)
+        print("Shape:", map_data.shape)        # debugging
+        print("Data type:", map_data.dtype)    # debugging
         map_origin = np.array([mrc.header.nxstart, mrc.header.nystart, mrc.header.nzstart], dtype=np.int8)
         map_orientation = np.array([mrc.header.mapc, mrc.header.mapr, mrc.header.maps], dtype=np.float32)
 
         # Resample map to target_voxel_size grid size (default:1.0A*1.0A*1.0A)Add commentMore actions
+        print("zoom start")
         zoom_factors = np.array([mrc.voxel_size.z, mrc.voxel_size.y, mrc.voxel_size.x]) / target_voxel_size
+        print("Not this line that runs out of memory")
         if xp == np:
-            map_data = zoom(map_data, zoom_factors)
+            map_data = zoom(map_data, zoom_factors)    #! ITS THIS LINES FAULT. when zoomfactors are rly small, it upsamples the data so it can explode in size. zoom tries to load the whole thing in memory but no one has like 75 GiB of memory.
+            print("Not this line either")
         else:
-            map_data = to_numpy(zoom(map_data, zoom_factors))
+            map_data = to_numpy(zoom(map_data, zoom_factors))   # CuPy version, disabled by default
+        print("zoom end")
 
         # remove noisy values that are too small
         count_good = np.sum(map_data > max(0, recl))
