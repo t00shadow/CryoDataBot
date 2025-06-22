@@ -30,3 +30,12 @@ cryodatabot.egg-info/
 JUNK_DONT_COMMIT.py
 
 /cleanvenv
+/cleanvenv_linux
+cryodatabot/src/backend/core/test_fetch_sample*.py
+cryodatabot/src/backend/core/redundancy_*.py
+*.map.gz
+*.map
+*.cif
+*.mrc
+/Training
+zzz_scratchpad.py

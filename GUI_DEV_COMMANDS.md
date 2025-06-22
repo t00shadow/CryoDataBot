@@ -1,4 +1,16 @@
-# installing packages
+# Table of Contents
+
+- [Installing Packages](#installing-packages)
+- [UI Files](#ui-file)
+- [Resources](#resources)
+- [Delete this section?](#for-the-other-dialog-window-wip)
+- [Which files to run?](#which-files-to-run)
+- [Building Executables](#building-executables)
+- [Git](#git)
+<!-- square brackets are the name of the table of contents entry, hashtags are the anchors to the sections below, all lowercase and replace spaces (and special charas like parens and question mark) with hyphens -->
+<!-- https://stackoverflow.com/questions/2822089/how-to-link-to-part-of-the-same-document-in-markdown -->
+
+# Installing Packages
 ```
 cat requirements.txt | xargs -n 1 -I {} pip install {} || echo "Failed to install {}"
 ```
@@ -23,7 +35,7 @@ Explanation:
     - {} is the same placeholder from the left side of the ||
     - echo is the bash equivalent of print()
 
-# ui file:
+# UI File:
 ```
 pyuic5 -x "/mnt/c/Users/noelu/Python Projects/PyQt GUI practice/QtDesigner_practice/dataset_gen_tool_GUI/dataset_gen_tool_v10.ui" -o guiskin_DEV2.py
 ```
@@ -35,19 +47,28 @@ even more updated command:
 ```
 pyuic5 -x "/mnt/c/Users/noelu/CryoDataBot/dataset_gen_tool_v12.ui" -o guiskin_DEV3_1.py
 ```
+even even more updated command:
+```
+pyuic5 -x "/mnt/c/Users/noelu/CryoDataBot/cryodatabot/src/frontend/ui_files/dataset_gen_tool_v12.ui" -o "/mnt/c/Users/noelu/CryoDataBot/cryodatabot/src/frontend/ui_files/guiskin_DEV3_1.py"
+```
 
-# resources:
+# Resources:
 ```
 pyrcc5 "/mnt/c/Users/noelu/Python Projects/PyQt GUI practice/QtDesigner_practice/dataset_gen_tool_GUI/resources.qrc" -o resources_rc.py
 ```
 
+note: the newer stuff is done in main_gui.py directly (don't need resources_rc.py), but some svgs were missing when tested on other machines.
 
-# for the other dialog window (WIP):
+**(TODO)** Figure out which approach had the missing svgs
+
+
+# For the other dialog window (WIP):
 ```
 pyuic5 -x "/mnt/c/Users/noelu/CryoDataBot/label_manager_popup_EXP/label_manager_popup.ui" -o label_manager_popup_EXP/label_manager_popup.py
 ```
+Dont think this exists anymore, **delete**.
 
-# which files to run?
+# Which files to run?
 Run ```main_gui_DEV3.py``` (or ```main_gui_DEV3_alt.py``` for page buttons on the side). 
 
 ```main_gui_DEV3.py``` imports ```guiskin_DEV2.py```. Do NOT modify ```guiskin_DEV2.py``` because any changes will be overwritten.
@@ -57,31 +78,67 @@ Run ```main_gui_DEV3.py``` (or ```main_gui_DEV3_alt.py``` for page buttons on th
 
 
 # BUILDING EXECUTABLES
+(use a venv with only the necessary python modules. see requirements.txt. only need those 9)
 ## Windows version (.exe)
-delete the empty __init__.py file in the root directory of the main gui file.
+delete the empty __init__.py file in the root directory of the main gui file. Edit: nvm that wasn't the issue. Try adding __init__.py files back to every directory (besides the non code ones).
 
-run this command in powershell (windows version of pyinstaller gives exe, linux version of pyinstaller gives linix executable): ```pyinstaller.exe --onefile --windowed --paths="C:\\Users\\noelu\\CryoDataBot\\.venv\\Lib\\site-packages" --name "CryoDataBot" --icon "C:\\Users\\noelu\\Python Projects\\PyQt GUI practice\\QtDesigner_practice\\dataset_gen_tool_GUI\\app_icon2.ico" .\main_gui_DEV4.py```
+New command (run in powershell. INSIDE THE "cleanvenv" VIRTUAL ENVIRONMENT): 
+```
+pyinstaller.exe --onefile --windowed --name "CryoDataBot" --add-data="cryodatabot/src/frontend/svgs/*;cryodatabot/src/frontend/svgs/" .\run_gui.py
+```
+Pyinstaller only packs code files by default i think, so need to explicitly tell it to add the svg files.
 
-Once you run it once, you'll have .spec file. So can use the .spec file for future builds.
+[//]: # (Comment syntax, can replace parens with double quotes)
+[//]: # (Same thing but with console. THe --windowed option disables console.)
+[//]: # (pyinstaller.exe --onefile --name "CryoDataBot" --add-data="cryodatabot/src/frontend/svgs/*;cryodatabot/src/frontend/svgs/" .\run_gui.py)
 
-The app icon .ico files are from PyQt GUI practice folder. Feel free to change the icon. Just download a new one or make one.
+
+[//]: # (This one's outdated, --add-data works while those other spec file hacks dont)
+[//]: # (pyinstaller.exe --onefile --windowed --name "CryoDataBot" .\run_gui.py)
+
+
+<!-- Other comment style, html comments -->
+<!-- (rlyyyy OLD) run this command in powershell (windows version of pyinstaller gives exe, linux version of pyinstaller gives linix executable): ```pyinstaller.exe --onefile --windowed --paths="C:\\Users\\noelu\\CryoDataBot\\.venv\\Lib\\site-packages" --name "CryoDataBot" --icon "C:\\Users\\noelu\\Python Projects\\PyQt GUI practice\\QtDesigner_practice\\dataset_gen_tool_GUI\\app_icon2.ico" .\main_gui_DEV4.py``` -->
+
+Once you run it once, you'll have .spec file. So can use the .spec file for future builds. Can also edit the .spec file and build from it instead. Make sure to backup the spec file if you manually edit it tho. Running the pyinstaller command while targeting a python file will overwrite the existing spec file.
+
+The app icon .ico files are from PyQt GUI practice folder. Feel free to change the icon. Just download a new one or make one. Add the --icon option to the pyinstaller command.
 
 ### Edit: making a clean venv
 pip install all the necessary packages and run the main gui file after importing one at a time. also check sys.modules.keys() or this approach: https://stackoverflow.com/questions/4858100/how-to-list-imported-modules
 
 ## Linux version (linux executable)
-```pyinstaller --onefile --windowed --paths="C:\\Users\\noelu\\CryoDataBot\\.venv\\Lib\\site-packages" --name "CryoDataBot_LINUX" --icon "C:\\Users\\noelu\\Python Projects\\PyQt GUI practice\\QtDesigner_practice\\dataset_gen_tool_GUI\\app_icon2.ico" main_gui_DEV4.py```
+New command (run in wsl terminal. INSIDE THE "cleanvenv_linux" VIRTUAL ENVIRONMENT. ALSO, pip install pyinstaller in the venv. 
+
+(My global pyinstaller version is only 6.11.1 and it uses my global python which is only 3.8.10. The venv is 3.10.16 and pyinstaller in the venv is 6.13.0. For the windows venv, i can just use the same pyinstaller.exe everywhere; it's version 6.13.0 too, but my windows python venv is 3.10.11)
+```
+pyinstaller --onefile --windowed --name "CryoDataBot" --add-data "cryodatabot/src/frontend/svgs/*:cryodatabot/src/frontend/svgs/" run_gui.py
+```
+Differences vs the windows version: 1) run in wsl terminal instead of powershell, 2) change pyinstaller.exe to pyinstaller, 3) change semi-colon to colon, 4) drop the .\ at the front of the file name
+
+<!-- (rly OLD) ```pyinstaller --onefile --windowed --paths="C:\\Users\\noelu\\CryoDataBot\\.venv\\Lib\\site-packages" --name "CryoDataBot_LINUX" --icon "C:\\Users\\noelu\\Python Projects\\PyQt GUI practice\\QtDesigner_practice\\dataset_gen_tool_GUI\\app_icon2.ico" main_gui_DEV4.py``` -->
+
+## Mac version (uhh TODO)
+
+
+
+# Git
+- temp branch is the current dev branch, develop on temp (ugh wish i chose a better name), then mirror on main
+- Since temp branch's commit history is kinda garbage, use a merge --squash to avoid cluttering the main branch's history. Copy the files but not the commit history to main branch. [stackoverflow post](https://stackoverflow.com/a/13348709)
+EDIT: not this one.
+- merge conflicts, try this instead: https://stackoverflow.com/a/45344014
+
+### merge --squash
+1. git checkout main
+2. git checkout temp -- .
+3. git add .
+4. git commit -m "commit message"
+5. push to origin (i use github desktop for this step. do whatever works)
 
 
 
 
-
-
-
-
-
-
-# Aside: proof that Jaccard index (GOF, VOF, wtv u wanna rename it) and Dice* are not independent
+<!-- # Aside: proof that Jaccard index (GOF, VOF, wtv u wanna rename it) and Dice* are not independent
 $$
 \text{Jaccard (GOF, VOF, doesnt matter what you call intersect/union)} = \frac{|A \cap B|}{|A \cup B|} \\
 \text{Dice*} = \frac{|A \cap B|}{|A| + |B|} \\
@@ -113,4 +170,4 @@ Example) For some fixed A and B. Say A = 100 and B = 100.
 | --------- | ------ | ------- |
 | 10%       | \~0.18 | \~0.095 |
 | 50%       | \~0.67 | \~0.33  |
-| 90%       | \~0.95 | \~0.82  |
+| 90%       | \~0.95 | \~0.82  | -->

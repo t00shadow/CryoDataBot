@@ -1,6 +1,6 @@
 # CryoDataBot
 
-CryoDataBot is a Python package designed for curating high-quality cryoEM datasets for AI-driven structural biology.
+CryoDataBot is a Python package designed for ...
 
 ## Table of Contents
 
@@ -14,10 +14,17 @@ CryoDataBot is a Python package designed for curating high-quality cryoEM datase
 ## Installation
 
 To install CryoDataBot:
-```bash
-pip install git+https://github.com/t00shadow/CryoDataBot.git@main
-```
 
+one-liner:
+```bash
+git clone --branch temp https://github.com/t00shadow/CryoDataBot.git && cd CryoDataBot && pip install -r requirements.txt
+```
+step-by-step:
+```bash
+git clone --branch temp https://github.com/t00shadow/CryoDataBot.git
+cd CryoDataBot
+pip install -r requirements.txt
+```
 
 ## Usage
 You can run the main GUI for CryoDataBot with the following command:

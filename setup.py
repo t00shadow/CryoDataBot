@@ -13,12 +13,17 @@ setup(
         'numpy',
         'scipy',
         'pandas',
-        'matplotlib',
-        'PyQt5'
+        'PyQt5',
+        'gemmi',
+        'mrcfile',
+        'requests',
+        'split-folders',
+        'tqdm'
     ],
     entry_points={
         'console_scripts': [
-           'cryodatabot=__main__:main'
+        #    'cryodatabot=__main__:main'
+           'cryodatabot=cryodatabot.main_gui:main'
         ],
     },
     classifiers=[
