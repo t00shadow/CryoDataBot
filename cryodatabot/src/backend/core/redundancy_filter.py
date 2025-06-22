@@ -16,9 +16,9 @@ from cryodatabot.src.backend.helper.file_utils import has_entries
 
 def filter_csv(input_csv, q_threshold: float = 0.0, uni_threshold: float = 1.0):
     """
-    :param file_path: path to .csv file
+    :param input_csv: path to .csv file
+    :param q_threshold: q_score threshold
     :param uni_threshold: percentage uniprot similarity
-    :param uni_threshold: q_score threshold
     """    
     save_path = os.path.dirname(input_csv)
 
