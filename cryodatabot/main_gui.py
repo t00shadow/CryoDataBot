@@ -96,7 +96,10 @@ class MainWindow(qtw.QMainWindow):    # Make sure the root widget/class is the r
         # GUI listings for label columns
         self.GUI_secondary_types = ['', 'protein - all', 'protein - helix', 'protein - sheet', 'protein - loop', 'RNA', 'DNA']
         # Might want to split these by secondary type? like make 3 different arrays, might help make dependent combo boxes easier
-        self.GUI_residue_types = ['', 'All', 'A', 'T', 'C', 'G', 'U', 'alanine', 'arginine', 'asparagine', 'aspartic acid', 'cysteine', 'glutamic acid', 'glutamine', 'glycine', 'histidine', 'isoleucine', 'leucine', 'lysine', 'methionine', 'phenylalanine', 'proline', 'serine', 'threonine', 'tryptophan', 'tyrosine', 'valine']
+        self.GUI_residue_types_PROTEIN = ['', 'All', 'alanine', 'arginine', 'asparagine', 'aspartic acid', 'cysteine', 'glutamic acid', 'glutamine', 'glycine', 'histidine', 'isoleucine', 'leucine', 'lysine', 'methionine', 'phenylalanine', 'proline', 'serine', 'threonine', 'tryptophan', 'tyrosine', 'valine']
+        self.GUI_residue_types_RNA = ['', 'All', 'A', 'G', 'C', 'U']
+        self.GUI_residue_types_DNA = ['', 'All', 'A', 'G', 'C', 'T']
+        self.GUI_residue_types = self.GUI_residue_types_PROTEIN + self.GUI_residue_types_RNA + self.GUI_residue_types_DNA
         self.GUI_atom_types = ['All', 'C', 'N', 'P', 'O', 'H', 'Metals?']
         # Dictionaries to map GUI labels to backend labels (the GUI text is slightly different from what the backend uses). Using 
         gui_to_backend_SECONDARY_type_mapping = {
