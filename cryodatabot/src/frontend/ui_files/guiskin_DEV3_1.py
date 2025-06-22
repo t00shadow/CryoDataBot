@@ -1148,7 +1148,7 @@ class Ui_MainWindow(object):
         sizePolicy.setVerticalStretch(0)
         sizePolicy.setHeightForWidth(self.pushButton_p2_2.sizePolicy().hasHeightForWidth())
         self.pushButton_p2_2.setSizePolicy(sizePolicy)
-        self.pushButton_p2_2.setMinimumSize(QtCore.QSize(232, 40))
+        self.pushButton_p2_2.setMinimumSize(QtCore.QSize(150, 40))
         font = QtGui.QFont()
         font.setPointSize(11)
         font.setBold(True)
@@ -1662,7 +1662,7 @@ class Ui_MainWindow(object):
         sizePolicy.setVerticalStretch(0)
         sizePolicy.setHeightForWidth(self.pushButton_p3_4.sizePolicy().hasHeightForWidth())
         self.pushButton_p3_4.setSizePolicy(sizePolicy)
-        self.pushButton_p3_4.setMinimumSize(QtCore.QSize(232, 40))
+        self.pushButton_p3_4.setMinimumSize(QtCore.QSize(150, 40))
         font = QtGui.QFont()
         font.setPointSize(11)
         font.setBold(True)
@@ -2843,7 +2843,7 @@ class Ui_MainWindow(object):
         MainWindow.setStatusBar(self.statusbar)
 
         self.retranslateUi(MainWindow)
-        self.stackedWidget.setCurrentIndex(0)
+        self.stackedWidget.setCurrentIndex(3)
         QtCore.QMetaObject.connectSlotsByName(MainWindow)
 
     def retranslateUi(self, MainWindow):
