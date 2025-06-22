@@ -4231,7 +4231,7 @@ QSpinBox::up-button, QSpinBox::down-button,
 QDoubleSpinBox::up-button, QDoubleSpinBox::down-button
 {
     background-color: #607cff;
-	border-radius: 2px;
+	border-radius: 4px;
 
 }
 
@@ -4369,7 +4369,7 @@ QSpinBox::up-button, QSpinBox::down-button,
 QDoubleSpinBox::up-button, QDoubleSpinBox::down-button
 {
     background-color: #607cff;
-	border-radius: 2px;
+	border-radius: 4px;
 
 }
 

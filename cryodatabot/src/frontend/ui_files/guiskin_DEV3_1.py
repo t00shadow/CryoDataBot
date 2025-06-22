@@ -366,7 +366,7 @@ class Ui_MainWindow(object):
         self.scrollArea_4.setWidgetResizable(True)
         self.scrollArea_4.setObjectName("scrollArea_4")
         self.scrollAreaWidgetContents_4_ = QtWidgets.QWidget()
-        self.scrollAreaWidgetContents_4_.setGeometry(QtCore.QRect(0, 0, 216, 558))
+        self.scrollAreaWidgetContents_4_.setGeometry(QtCore.QRect(0, 0, 786, 814))
         self.scrollAreaWidgetContents_4_.setObjectName("scrollAreaWidgetContents_4_")
         self.verticalLayout_30 = QtWidgets.QVBoxLayout(self.scrollAreaWidgetContents_4_)
         self.verticalLayout_30.setContentsMargins(0, 0, 0, 0)
@@ -850,7 +850,7 @@ class Ui_MainWindow(object):
         self.scrollArea_3.setWidgetResizable(True)
         self.scrollArea_3.setObjectName("scrollArea_3")
         self.scrollAreaWidgetContents_3_ = QtWidgets.QWidget()
-        self.scrollAreaWidgetContents_3_.setGeometry(QtCore.QRect(0, 0, 319, 604))
+        self.scrollAreaWidgetContents_3_.setGeometry(QtCore.QRect(0, 0, 786, 814))
         self.scrollAreaWidgetContents_3_.setObjectName("scrollAreaWidgetContents_3_")
         self.verticalLayout_29 = QtWidgets.QVBoxLayout(self.scrollAreaWidgetContents_3_)
         self.verticalLayout_29.setContentsMargins(0, 0, 0, 0)
@@ -1726,7 +1726,7 @@ class Ui_MainWindow(object):
         self.scrollArea.setWidgetResizable(True)
         self.scrollArea.setObjectName("scrollArea")
         self.scrollAreaWidgetContents = QtWidgets.QWidget()
-        self.scrollAreaWidgetContents.setGeometry(QtCore.QRect(0, 0, 373, 924))
+        self.scrollAreaWidgetContents.setGeometry(QtCore.QRect(0, -110, 786, 924))
         self.scrollAreaWidgetContents.setObjectName("scrollAreaWidgetContents")
         self.verticalLayout_27 = QtWidgets.QVBoxLayout(self.scrollAreaWidgetContents)
         self.verticalLayout_27.setContentsMargins(0, 0, 0, 0)
@@ -2005,7 +2005,7 @@ class Ui_MainWindow(object):
 "QDoubleSpinBox::up-button, QDoubleSpinBox::down-button\n"
 "{\n"
 "    background-color: #607cff;\n"
-"    border-radius: 2px;\n"
+"    border-radius: 4px;\n"
 "\n"
 "}\n"
 "\n"
@@ -2115,7 +2115,7 @@ class Ui_MainWindow(object):
 "QDoubleSpinBox::up-button, QDoubleSpinBox::down-button\n"
 "{\n"
 "    background-color: #607cff;\n"
-"    border-radius: 2px;\n"
+"    border-radius: 4px;\n"
 "\n"
 "}\n"
 "\n"
@@ -2843,7 +2843,7 @@ class Ui_MainWindow(object):
         MainWindow.setStatusBar(self.statusbar)
 
         self.retranslateUi(MainWindow)
-        self.stackedWidget.setCurrentIndex(3)
+        self.stackedWidget.setCurrentIndex(4)
         QtCore.QMetaObject.connectSlotsByName(MainWindow)
 
     def retranslateUi(self, MainWindow):
@@ -2902,7 +2902,7 @@ class Ui_MainWindow(object):
         self.label_6.setText(_translate("MainWindow", "Label Settings"))
         self.pushButton.setToolTip(_translate("MainWindow", "<html><head/><body><p>CHANGE THIS NAME</p></body></html>"))
         self.pushButton.setText(_translate("MainWindow", "Labels"))
-        self.pushButton_p1_3.setToolTip(_translate("MainWindow", "<html><head/><body><p><span style=\" font-weight:400;\">this is limiting the window\'s thickness when shrinking btw, prob a better way to go about sizepolicys</span></p></body></html>"))
+        self.pushButton_p1_3.setToolTip(_translate("MainWindow", "<html><head/><body><p><br/></p></body></html>"))
         self.pushButton_p1_3.setText(_translate("MainWindow", "Generate"))
         self.page2TitleLabel.setText(_translate("MainWindow", "Collect Metadata"))
         self.B_enterQuery.setTitle(_translate("MainWindow", "Search"))
@@ -2923,7 +2923,7 @@ class Ui_MainWindow(object):
 "<p style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\"><span style=\" font-family:\'Segoe UI\'; font-size:9pt; color:#000000;\">    ex.  </span><span style=\" font-family:\'Segoe UI\'; font-size:9pt; color:#00007f;\">(spliceosome OR ribonucleoprotein) AND NOT human AND xref_UNIPROTKB:[* TO *]</span></p></body></html>"))
         self.lineEdit_2.setPlaceholderText(_translate("MainWindow", "[sample] AND [range_keyword: x TO y] AND [keyword]"))
         self.lineEdit_12.setPlaceholderText(_translate("MainWindow", "[sample] AND [range_keyword: x TO y] AND [keyword]"))
-        self.pushButton_p2_2.setToolTip(_translate("MainWindow", "<html><head/><body><p><span style=\" font-weight:400;\">this is limiting the window\'s thickness when shrinking btw, prob a better way to go about sizepolicys</span></p></body></html>"))
+        self.pushButton_p2_2.setToolTip(_translate("MainWindow", "<html><head/><body><p><br/></p></body></html>"))
         self.pushButton_p2_2.setText(_translate("MainWindow", "Download"))
         self.page3TitleLabel.setText(_translate("MainWindow", "Curation"))
         self.A_chooseCSV.setTitle(_translate("MainWindow", "Metadata File"))
@@ -2937,7 +2937,7 @@ class Ui_MainWindow(object):
         self.similarityLabel_2.setText(_translate("MainWindow", "Resampled Voxel Size:"))
         self.similarityLabel.setText(_translate("MainWindow", "Similarity Threshold:"))
         self.similaritySpinBox.setSuffix(_translate("MainWindow", "%"))
-        self.pushButton_p3_4.setToolTip(_translate("MainWindow", "<html><head/><body><p><span style=\" font-weight:400;\">this is limiting the window\'s thickness when shrinking btw, prob a better way to go about sizepolicys</span></p></body></html>"))
+        self.pushButton_p3_4.setToolTip(_translate("MainWindow", "<html><head/><body><p><br/></p></body></html>"))
         self.pushButton_p3_4.setText(_translate("MainWindow", "Run"))
         self.page4TitleLabel.setText(_translate("MainWindow", "Construct Datasets"))
         self.A_chooseCSV_2.setTitle(_translate("MainWindow", "Curated Metadata File"))
