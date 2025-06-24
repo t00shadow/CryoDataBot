@@ -1,17 +1,20 @@
 /test.py
-/__pycache__
-.venv/
 cryodatabot.egg-info/
-# /EVALUATION
+
+# venvs
+.venv/
+/cleanvenv
+/cleanvenv_linux
 
 # pycache
+**/__pycache__/
 *.pyc
 
 # vscode
 .vscode
 .idea
 
-# build files (for .exe)
+# build files (for executables)
 /build
 /dist
 *.spec
@@ -21,21 +24,20 @@ cryodatabot.egg-info/
 *.csv
 *.log
 /CryoDataBot_Data
-/JUNKSTUFF
-
-# misc testing stuff
-/JUNK_TEST_FOLDER
-/TEST_FILES_noncode
-/zzzzz_TEST
-JUNK_DONT_COMMIT.py
-
-/cleanvenv
-/cleanvenv_linux
-cryodatabot/src/backend/core/test_fetch_sample*.py
-cryodatabot/src/backend/core/redundancy_*.py
+/Raw
+/Temp
+/Training
 *.map.gz
 *.map
 *.cif
 *.mrc
-/Training
+
+# misc testing stuff
+/JUNKSTUFF
+/JUNK_TEST_FOLDER
+/TEST_FILES_noncode
+/zzzzz_TEST
+JUNK_DONT_COMMIT.py
 zzz_scratchpad.py
+cryodatabot/src/backend/core/test_fetch_sample*.py
+cryodatabot/src/backend/core/redundancy_*.py
