@@ -123,18 +123,31 @@ Differences vs the windows version: 1) run in wsl terminal instead of powershell
 
 
 # Git
-- temp branch is the current dev branch, develop on temp (ugh wish i chose a better name), then mirror on main
-- Since temp branch's commit history is kinda garbage, use a merge --squash to avoid cluttering the main branch's history. Copy the files but not the commit history to main branch. [stackoverflow post](https://stackoverflow.com/a/13348709)
-EDIT: not this one.
-- merge conflicts, try this instead: https://stackoverflow.com/a/45344014
+Copy file contents of temp branch but not the commit history (would clutter main branch's history) onto main branch.
 
-### merge --squash
-1. git checkout main
-2. git checkout temp -- .
-3. git add .
-4. git commit -m "commit message"
-5. push to origin (i use github desktop for this step. do whatever works)
+Make sure on main branch
 
+1. `git checkout main`
+
+Delete current files (ignores untracked files)
+
+2. `git rm -rf .`
+
+Copy files from feature branch
+
+3. `git checkout temp -- .`
+
+Add all files to staging area (*this command might be unneeded* since prev command might just stage it for you)
+
+4. `git add .`
+
+New commit (only adds 1 commit to main instead of like 80)
+
+5. `git commit -m "fixed last commit, make main branch match temp branch snapshot"`
+
+Push to origin
+
+6. push to origin using whatever is convenient (command line, github desktop, ...)
 
 
 
