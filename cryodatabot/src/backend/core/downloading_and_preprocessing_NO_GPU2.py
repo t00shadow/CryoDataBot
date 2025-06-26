@@ -185,20 +185,19 @@ def download_one_map(emdb_id, pdb, raw_map_path, model_path, overwrite=False):
     emdb_fetch_link = f"https://ftp.ebi.ac.uk/pub/databases/emdb/structures/EMD-{emdb_id}/map/emd_{emdb_id}.map.gz"
     pdb_fetch_link = f"http://files.rcsb.org/download/{pdb}.cif"
 
-    raw_map_gz_path = f"{raw_map_path}.gz"
-
     if not os.path.exists(raw_map_path) or overwrite:
         try:
-            urllib.request.urlretrieve(emdb_fetch_link, raw_map_gz_path)
-            logger.info(f"Downloaded: emd_{emdb_id}.map.gz")
-
-            with gzip.open(raw_map_gz_path, 'rb') as f_in, open(raw_map_path, 'wb') as f_out:
-                shutil.copyfileobj(f_in, f_out)
-            os.remove(raw_map_gz_path)
-
-            logger.info(f"Unzipped {raw_map_gz_path} into {raw_map_path}")
+            urllib.request.urlretrieve(emdb_fetch_link, f"{raw_map_path}.gz")
+            with gzip.open(f"{raw_map_path}.gz", 'rb') as f_in:
+                with open(raw_map_path, 'wb') as f_out:
+                    shutil.copyfileobj(f_in, f_out)
+                    os.remove(f"{raw_map_path}.gz")
         except Exception as e:
-            logger.warning(f"Error downloading or unzipping EMD_{emdb_id} Map File: {e}")
+            logger.warning(f"Error Downloading EMD_{emdb_id} Map File: {e}")
+        else:
+            logger.info(f"Downloaded: emd_{emdb_id}.map")
+    else:
+        logger.info(f"Already Downloaded: emd_{emdb_id}.map")
 
     if not os.path.exists(model_path) or overwrite:
         try:
@@ -207,6 +206,8 @@ def download_one_map(emdb_id, pdb, raw_map_path, model_path, overwrite=False):
             logger.warning(f"Error Downloading PDB-{pdb} Model File: {e}")
         else:
             logger.info(f"Downloaded: {pdb}.cif")
+    else:
+        logger.info(f"Already Downloaded: {pdb}.cif")
 
 
 # Step3: preprocess maps using multithreasing
