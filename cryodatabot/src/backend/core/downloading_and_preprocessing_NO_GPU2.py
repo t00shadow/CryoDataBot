@@ -243,9 +243,27 @@ def preprocess_maps(csv_info,
     """
     logger = logging.getLogger('Downloading_and_Preprocessing_Logger')
 
-    _, _, _, recls = csv_info
+    _, pdbs, _, recls = csv_info
     raw_map_paths, model_paths, _ = path_info
 
+    metadata_df = pd.read_csv(metadata_path)
+    if 'vof' not in metadata_df.columns:
+        metadata_df['vof'] = 'N/A'
+    else:
+        metadata_df['vof'] = metadata_df['vof'].fillna("N/A")
+    if 'dice_coefficient' not in metadata_df.columns:
+        metadata_df['dice_coefficient'] = 'N/A'
+    else:
+        metadata_df['dice_coefficient'] = metadata_df['dice_coefficient'].fillna("N/A")
+
+    updated_metadata_path = os.path.join(os.path.dirname(metadata_path), "updated_" + os.path.basename(metadata_path))
+    metadata_df.to_csv(updated_metadata_path, index=False)
+
+    failed_df_path = os.path.join(os.path.dirname(metadata_path), 'Archive', 'preprocessing_failed.csv')
+    os.makedirs(os.path.dirname(failed_df_path), exist_ok=True)
+    failed_columns = pd.read_csv(metadata_path, nrows=0).columns
+    pd.DataFrame(columns=failed_columns).to_csv(failed_df_path, index=False)
+                        
     results = []
     failed: list[str] = []
     with logging_redirect_tqdm([logger]):
@@ -255,25 +273,36 @@ def preprocess_maps(csv_info,
         for raw_map_path, model_path, recl in tqdm(zip(raw_map_paths, model_paths, recls), total=len(raw_map_paths), desc='Preprocessing Maps'):
             try:
                 vof, dice = preprocess_one_map(recl, raw_map_path, model_path, give_map, protein_tag_dist, map_threashold, target_voxel_size)
-                results.append(('EMD-'+os.path.basename(raw_map_path).split(".")[0].split('_')[1], vof, dice))
+                metadata_df.loc[metadata_df['fitted_pdbs'] == pdb, 'vof'] = vof
+                metadata_df.loc[metadata_df['fitted_pdbs'] == pdb, 'dice_coefficient'] = dice
+                metadata_df.to_csv(updated_metadata_path, index=False)
             except ValueError as e:
                 logger.warning(f'  Error Preprocessing Map: {e}')
                 logger.warning('  !!! Preprocessing Failed !!!')
                 logger.info('')
+                row = metadata_df[metadata_df["fitted_pdbs"] == pdb]
+                row.to_csv(failed_df_path, mode="a", header=False, index=False)
+
                 failed.append('EMD-'+os.path.basename(raw_map_path).split(".")[0].split('_')[1])
             except FileNotFoundError as e:
                 logger.warning(f'  Error Preprocessing Map: {e}')
                 logger.warning('  !!! Preprocessing Failed !!!')
                 logger.info('')
+                row = metadata_df[metadata_df["fitted_pdbs"] == pdb]
+                row.to_csv(failed_df_path, mode="a", header=False, index=False)
+
                 failed.append('EMD-'+os.path.basename(raw_map_path).split(".")[0].split('_')[1])
             except Exception as e:
                 logger.warning(f'  Error Preprocessing Map: {e}')
                 logger.warning('  !!! Preprocessing Failed !!!')
                 logger.info('')
+                row = metadata_df[metadata_df["fitted_pdbs"] == pdb]
+                row.to_csv(failed_df_path, mode="a", header=False, index=False)
+                
                 failed.append('EMD-'+os.path.basename(raw_map_path).split(".")[0].split('_')[1])
 
-    # read metadata file
-    metadata_df = pd.read_csv(metadata_path)
+    # # read metadata file
+    # metadata_df = pd.read_csv(metadata_path)
 
     # Print out failed maps
     logger.info('')
@@ -282,19 +311,20 @@ def preprocess_maps(csv_info,
         length = len(failed)
         for idx in range(0, length, num:=10):
             logger.info(f'  {", ".join(failed[idx:idx + num])}')
-    failed_df_path = os.path.join(os.path.dirname(metadata_path), 'Archive', 'preprocessing_failed.csv')
-    os.makedirs(os.path.dirname(failed_df_path), exist_ok=True)
-    failed_df = metadata_df[metadata_df['emdb_id'].isin(failed)]
-    failed_df.to_csv(failed_df_path, index=False)
+    # failed_df_path = os.path.join(os.path.dirname(metadata_path), 'Archive', 'preprocessing_failed.csv')
+    # os.makedirs(os.path.dirname(failed_df_path), exist_ok=True)
+    # failed_df = metadata_df[metadata_df['emdb_id'].isin(failed)]
+    # failed_df.to_csv(failed_df_path, index=False)
     print(f'Please Check Failed Entries at:\n"{os.path.abspath(failed_df_path)}"')
     logger.info('')
 
-    # save VOF/Dice            
-    result_df = pd.DataFrame(results, columns=['emdb_id', 'vof', 'dice_coefficient'])
-    metadata_df = metadata_df.merge(result_df, on='emdb_id', how='left')
+    # # save VOF/Dice            
+    # result_df = pd.DataFrame(results, columns=['emdb_id', 'vof', 'dice_coefficient'])
+    # metadata_df = metadata_df.merge(result_df, on='emdb_id', how='left')
 
     # Remove failed entries from metadata file
-    metadata_df = metadata_df[~metadata_df['emdb_id'].isin(failed)]
+    metadata_df = metadata_df[metadata_df['vof'] != "N/A"]
+    # metadata_df = metadata_df[~metadata_df['emdb_id'].isin(failed)]
 
     # remove the entries with poor map_to_model fitness
     kept_df, removed_df = map_model_filter(metadata_df, vof_threashold, dice_threashold)
