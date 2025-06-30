@@ -248,7 +248,8 @@ def split_to_npy(data,
                  npy_size,
                  group_names,
                  emdb_id,
-                 extract_stride=32):
+                 extract_stride=32,
+                 test_zero_ratio=0.001):
     """
     Splits 3D data into smaller numpy arrays and saves them as .npy files.
 
@@ -272,6 +273,10 @@ def split_to_npy(data,
     7. Increments the sample counter.
     8. Returns the list of the number of group_names.
     """
+
+    for idx in range(0, len(data) - 1):
+        test_zero = sum((arr != 0).astype(np.uint8) for arr in data[:-1])
+
     sample_num = 0
     num_labels = np.array([np.zeros(30, dtype=np.int64) for _ in range(len(data)-1)])
     sample_start_z, sample_start_y, sample_start_x = start_coords
@@ -285,7 +290,11 @@ def split_to_npy(data,
             idx_y = sample_start_y + extract_stride * n_y
             for n_x in range(n_samples[2]):
                 idx_x = sample_start_x + extract_stride * n_x
-                for idx in range(0, len(data) - 1):
+                if test_zero[idx_z:idx_z + npy_size,
+                             idx_y:idx_y + npy_size,
+                             idx_x:idx_x + npy_size].sum() <= npy_size ** 3 * test_zero_ratio:
+                    continue
+                for idx in range(len(data)):
                     sample = data[idx][idx_z:idx_z + npy_size,
                              idx_y:idx_y + npy_size,
                              idx_x:idx_x + npy_size]
@@ -293,19 +302,19 @@ def split_to_npy(data,
                         temp_sample_path, group_name:=group_names[idx],
                         f"{group_name}_{emdb_id}_{sample_num}.npy")
                     np.save(file_name, sample)
+                    if idx < len(data) - 1:
+                        count = np.bincount(sample.flatten())
+                        count = np.pad(count, (0, max(0, 30 - len(count))),
+                                       'constant')
+                        num_labels[idx] += count
 
-                    count = np.bincount(sample.flatten())
-                    count = np.pad(count, (0, max(0, 30 - len(count))),
-                                   'constant')
-                    num_labels[idx] += count
-
-                # Save separated files for map data
-                sample = data[len(data) - 1][idx_z:idx_z + npy_size,
-                         idx_y:idx_y + npy_size,
-                         idx_x:idx_x + npy_size]
-                file_name = os.path.join(temp_sample_path, group_name:=group_names[len(data) - 1],
-                                         f"{group_name}_{emdb_id}_{sample_num}.npy")
-                np.save(file_name, sample)
+                # # Save separated files for map data
+                # sample = data[len(data) - 1][idx_z:idx_z + npy_size,
+                #          idx_y:idx_y + npy_size,
+                #          idx_x:idx_x + npy_size]
+                # file_name = os.path.join(temp_sample_path, group_name:=group_names[len(data) - 1],
+                #                          f"{group_name}_{emdb_id}_{sample_num}.npy")
+                # np.save(file_name, sample)
 
                 sample_num += 1
 
