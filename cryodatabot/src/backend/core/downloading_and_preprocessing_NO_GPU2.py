@@ -34,9 +34,9 @@ def downloading_and_preprocessing(metadata_path,
                                   give_map: bool=True, 
                                   protein_tag_dist: int=1, 
                                   map_threshold=0.01,
-                                  vof_threashold: float=0.25, 
+                                  vof_threashold: float=0.8, 
                                   dice_threashold: float=0.4,
-                                  target_voxel_size: float=0.1
+                                  target_voxel_size: float=1.0
                                   ):
     """
     Reads metadata, downloads map and model files, and preprocesses the map files.
@@ -185,20 +185,19 @@ def download_one_map(emdb_id, pdb, raw_map_path, model_path, overwrite=False):
     emdb_fetch_link = f"https://ftp.ebi.ac.uk/pub/databases/emdb/structures/EMD-{emdb_id}/map/emd_{emdb_id}.map.gz"
     pdb_fetch_link = f"http://files.rcsb.org/download/{pdb}.cif"
 
-    raw_map_gz_path = f"{raw_map_path}.gz"
-
     if not os.path.exists(raw_map_path) or overwrite:
         try:
-            urllib.request.urlretrieve(emdb_fetch_link, raw_map_gz_path)
-            logger.info(f"Downloaded: emd_{emdb_id}.map.gz")
-
-            with gzip.open(raw_map_gz_path, 'rb') as f_in, open(raw_map_path, 'wb') as f_out:
-                shutil.copyfileobj(f_in, f_out)
-            os.remove(raw_map_gz_path)
-
-            logger.info(f"Unzipped {raw_map_gz_path} into {raw_map_path}")
+            urllib.request.urlretrieve(emdb_fetch_link, f"{raw_map_path}.gz")
+            with gzip.open(f"{raw_map_path}.gz", 'rb') as f_in:
+                with open(raw_map_path, 'wb') as f_out:
+                    shutil.copyfileobj(f_in, f_out)
+                    os.remove(f"{raw_map_path}.gz")
         except Exception as e:
-            logger.warning(f"Error downloading or unzipping EMD_{emdb_id} Map File: {e}")
+            logger.warning(f"Error Downloading EMD_{emdb_id} Map File: {e}")
+        else:
+            logger.info(f"Downloaded: emd_{emdb_id}.map")
+    else:
+        logger.info(f"Already Downloaded: emd_{emdb_id}.map")
 
     if not os.path.exists(model_path) or overwrite:
         try:
@@ -207,6 +206,8 @@ def download_one_map(emdb_id, pdb, raw_map_path, model_path, overwrite=False):
             logger.warning(f"Error Downloading PDB-{pdb} Model File: {e}")
         else:
             logger.info(f"Downloaded: {pdb}.cif")
+    else:
+        logger.info(f"Already Downloaded: {pdb}.cif")
 
 
 # Step3: preprocess maps using multithreasing
@@ -242,37 +243,69 @@ def preprocess_maps(csv_info,
     """
     logger = logging.getLogger('Downloading_and_Preprocessing_Logger')
 
-    _, _, _, recls = csv_info
+    _, pdbs, _, recls = csv_info
     raw_map_paths, model_paths, _ = path_info
+
+    metadata_df = pd.read_csv(metadata_path)
+    if 'vof' not in metadata_df.columns:
+        metadata_df['vof'] = 'N/A'
+    else:
+        metadata_df['vof'] = metadata_df['vof'].fillna("N/A")
+    if 'dice_coefficient' not in metadata_df.columns:
+        metadata_df['dice_coefficient'] = 'N/A'
+    else:
+        metadata_df['dice_coefficient'] = metadata_df['dice_coefficient'].fillna("N/A")
+
+    updated_metadata_path = os.path.join(os.path.dirname(metadata_path), "updated_" + os.path.basename(metadata_path))
+
+    metadata_df.to_csv(updated_metadata_path, index=False)
+
+    failed_df_path = os.path.join(os.path.dirname(metadata_path), 'Archive', 'preprocessing_failed_' + os.path.basename(metadata_path))
+    os.makedirs(os.path.dirname(failed_df_path), exist_ok=True)
+    failed_columns = pd.read_csv(metadata_path, nrows=0).columns
+    pd.DataFrame(columns=failed_columns).to_csv(failed_df_path, index=False)
+
 
     results = []
     failed: list[str] = []
     with logging_redirect_tqdm([logger]):
-        print(f"raw_map_paths: {type(raw_map_paths)}")
-        print(f"model_paths: {type(model_paths)}")
-        print(f"recls: {type(recls)}")
-        for raw_map_path, model_path, recl in tqdm(zip(raw_map_paths, model_paths, recls), total=len(raw_map_paths), desc='Preprocessing Maps'):
+        for raw_map_path, model_path, recl, pdb in tqdm(zip(raw_map_paths, model_paths, recls, pdbs), total=len(raw_map_paths), desc='Preprocessing Maps'):
             try:
                 vof, dice = preprocess_one_map(recl, raw_map_path, model_path, give_map, protein_tag_dist, map_threashold, target_voxel_size)
-                results.append(('EMD-'+os.path.basename(raw_map_path).split(".")[0].split('_')[1], vof, dice))
+                metadata_df.loc[metadata_df['fitted_pdbs'] == pdb, 'vof'] = vof
+                metadata_df.loc[metadata_df['fitted_pdbs'] == pdb, 'dice_coefficient'] = dice
+                metadata_df.to_csv(updated_metadata_path, index=False)
+
+                # results.append(('EMD-'+os.path.basename(raw_map_path).split(".")[0].split('_')[1], vof, dice))
             except ValueError as e:
                 logger.warning(f'  Error Preprocessing Map: {e}')
                 logger.warning('  !!! Preprocessing Failed !!!')
                 logger.info('')
+                row = metadata_df[metadata_df["fitted_pdbs"] == pdb]
+                row.to_csv(failed_df_path, mode="a", header=False, index=False)
+
                 failed.append('EMD-'+os.path.basename(raw_map_path).split(".")[0].split('_')[1])
             except FileNotFoundError as e:
                 logger.warning(f'  Error Preprocessing Map: {e}')
                 logger.warning('  !!! Preprocessing Failed !!!')
                 logger.info('')
+                row = metadata_df[metadata_df["fitted_pdbs"] == pdb]
+                row.to_csv(failed_df_path, mode="a", header=False, index=False)
+
                 failed.append('EMD-'+os.path.basename(raw_map_path).split(".")[0].split('_')[1])
             except Exception as e:
                 logger.warning(f'  Error Preprocessing Map: {e}')
                 logger.warning('  !!! Preprocessing Failed !!!')
-                logger.info('')
+                logger.info('')                
+                row = metadata_df[metadata_df["fitted_pdbs"] == pdb]
+                row.to_csv(failed_df_path, mode="a", header=False, index=False)
+
                 failed.append('EMD-'+os.path.basename(raw_map_path).split(".")[0].split('_')[1])
 
+### TO BE EDITTED
+
     # read metadata file
-    metadata_df = pd.read_csv(metadata_path)
+    # metadata_df = pd.read_csv(metadata_path)
 
     # Print out failed maps
     logger.info('')
@@ -281,26 +314,27 @@ def preprocess_maps(csv_info,
         length = len(failed)
         for idx in range(0, length, num:=10):
             logger.info(f'  {", ".join(failed[idx:idx + num])}')
-    failed_df_path = os.path.join(os.path.dirname(metadata_path), 'Archive', 'preprocessing_failed.csv')
-    os.makedirs(os.path.dirname(failed_df_path), exist_ok=True)
-    failed_df = metadata_df[metadata_df['emdb_id'].isin(failed)]
-    failed_df.to_csv(failed_df_path, index=False)
+    # failed_df_path = os.path.join(os.path.dirname(metadata_path), 'Archive', 'preprocessing_failed.csv')
+    # os.makedirs(os.path.dirname(failed_df_path), exist_ok=True)
+    # failed_df = metadata_df[metadata_df['emdb_id'].isin(failed)]
+    # failed_df.to_csv(failed_df_path, index=False)
     print(f'Please Check Failed Entries at:\n"{os.path.abspath(failed_df_path)}"')
     logger.info('')
 
-    # save VOF/Dice            
-    result_df = pd.DataFrame(results, columns=['emdb_id', 'vof', 'dice_coefficient'])
-    metadata_df = metadata_df.merge(result_df, on='emdb_id', how='left')
+    # # save VOF/Dice            
+    # result_df = pd.DataFrame(results, columns=['emdb_id', 'vof', 'dice_coefficient'])
+    # metadata_df = metadata_df.merge(result_df, on='emdb_id', how='left')
 
     # Remove failed entries from metadata file
-    metadata_df = metadata_df[~metadata_df['emdb_id'].isin(failed)]
+    metadata_df = metadata_df[metadata_df['vof'] != "N/A"]
+    # metadata_df = metadata_df[~metadata_df['emdb_id'].isin(failed)]
 
     # remove the entries with poor map_to_model fitness
     kept_df, removed_df = map_model_filter(metadata_df, vof_threashold, dice_threashold)
 
     # save filtered file
     kept_df.to_csv(metadata_path, index=False)
-    poor_map_path = os.path.join(os.path.dirname(metadata_path), 'Archive', 'poor_map_model_fitness.csv')
+    poor_map_path = os.path.join(os.path.dirname(metadata_path), 'Archive', 'poor_map_model_fitness_' + os.path.basename(metadata_path))
     removed_df.to_csv(poor_map_path, index=False)
     logger.info(f'VOF/DICE Written & Failed Entries Removed')
     logger.info(f'New Meatadata File Written at: "{os.path.abspath(metadata_path)}"')
@@ -368,13 +402,13 @@ def preprocess_one_map(recl: float, raw_map_path: str, model_path: str, give_map
     # if the origin is [0, 0, 0], then the following steps
     # Load the map
     try:
-        logger.info('  Normalizing Map')
+        # logger.info('  Normalizing Map')
         map_F = map_normalizing(raw_map_path, recl, target_voxel_size)
         
         if give_map:
             map_path = f"{raw_map_path.split('.map')[0]}_normalized.mrc"
             map_output(raw_map_path, to_numpy(map_F), map_path, is_model=False)
-            logger.info(f'  Normalized Map Saved as "{map_path}"')
+            # logger.info(f'  Normalized Map Saved as "{map_path}"')
     except FileNotFoundError as e:
         logger.warning(f'  Error Loading Map: {e}')
         logger.warning('  !!! Preprocessing Failed !!!')
@@ -405,16 +439,16 @@ def preprocess_one_map(recl: float, raw_map_path: str, model_path: str, give_map
         protein_tag = xp.array(protein_tag)
         vof, dice = planes_map(map_F, protein_tag)
         
-        map_path = f"{model_path.split('.cif')[0]}_simulated.mrc"
-        map_output(raw_map_path, to_numpy(protein_tag), map_path, is_model=True)
+        # map_path = f"{model_path.split('.cif')[0]}_simulated.mrc"
+        # map_output(raw_map_path, to_numpy(protein_tag), map_path, is_model=True)
             
     except Exception as e:
-            logger.warning(f'  Error Calculating Map to Model Fitness: {e}')
             logger.warning('  !!! Preprocessing Failed !!!')
+            logger.warning(f'  Error Calculating Map to Model Fitness: {e}')
             logger.info('')
             return (0, 0)
     else:
-        logger.info('  Map_to_Model Calculation Completed:')
+        # logger.info('  Map_to_Model Calculation Completed:')
         logger.info(f'  Volume Overlap Fraction (VOF): {(vof*100):.4f}%, Dice Coefficient: {(dice*100):.4f}%')
 
     # # test
@@ -523,21 +557,21 @@ def map_normalizing(raw_map_path, recl=0.0, target_voxel_size=1.0):
     with mrcfile.mmap(raw_map_path, 'r+') as mrc:
         # Load map data
         map_data = xp.array(mrc.data, dtype=np.float32)
-        print("Shape:", map_data.shape)        # debugging
-        print("Data type:", map_data.dtype)    # debugging
+        # print("Shape:", map_data.shape)        # debugging
+        # print("Data type:", map_data.dtype)    # debugging
         map_origin = np.array([mrc.header.nxstart, mrc.header.nystart, mrc.header.nzstart], dtype=np.int8)
         map_orientation = np.array([mrc.header.mapc, mrc.header.mapr, mrc.header.maps], dtype=np.float32)
 
         # Resample map to target_voxel_size grid size (default:1.0A*1.0A*1.0A)Add commentMore actions
-        print("zoom start")
+        # print("zoom start")
         zoom_factors = np.array([mrc.voxel_size.z, mrc.voxel_size.y, mrc.voxel_size.x]) / target_voxel_size
-        print("Not this line that runs out of memory")
+        # print("Not this line that runs out of memory")
         if xp == np:
             map_data = zoom(map_data, zoom_factors)    #! ITS THIS LINES FAULT. when zoomfactors are rly small, it upsamples the data so it can explode in size. zoom tries to load the whole thing in memory but no one has like 75 GiB of memory.
-            print("Not this line either")
+            # print("Not this line either")
         else:
             map_data = to_numpy(zoom(map_data, zoom_factors))   # CuPy version, disabled by default
-        print("zoom end")
+        # print("zoom end")
 
         # remove noisy values that are too small
         count_good = np.sum(map_data > max(0, recl))
@@ -642,19 +676,29 @@ def main():
     # from config file read default values
     downloading_and_preprocessing_config = ConfigParser(default_section='downloading_and_preprocessing')
     downloading_and_preprocessing_config.read('CryoDataBotConfig.ini')
-    overwrite = downloading_and_preprocessing_config.getboolean('user_settings', 'overwrite')
-    give_map = downloading_and_preprocessing_config.getboolean('user_settings', 'give_map')
-    protein_tag_dist = downloading_and_preprocessing_config.getint('user_settings', 'protein_tag_dist')
-    map_threashold = downloading_and_preprocessing_config.getfloat('user_settings', 'map_threashold')
-    vof_threashold = downloading_and_preprocessing_config.getfloat('user_settings', 'vof_threashold')
-    dice_threashold = downloading_and_preprocessing_config.getfloat('user_settings', 'dice_threashold')
-    target_voxel_size = 0.1
+    # overwrite = downloading_and_preprocessing_config.getboolean('user_settings', 'overwrite')
+    # give_map = downloading_and_preprocessing_config.getboolean('user_settings', 'give_map')
+    # protein_tag_dist = downloading_and_preprocessing_config.getint('user_settings', 'protein_tag_dist')
+    # map_threashold = downloading_and_preprocessing_config.getfloat('user_settings', 'map_threashold')
+    # vof_threashold = downloading_and_preprocessing_config.getfloat('user_settings', 'vof_threashold')
+    # dice_threashold = downloading_and_preprocessing_config.getfloat('user_settings', 'dice_threashold')
+    target_voxel_size = 1.0
     
-    # matadata_path = 'CryoDataBot_Data/Metadata/ribosome_res_1-4_001/ribosome_res_1-4_001_Final.csv'
-    # matadata_path = r'C:\Users\noelu\CryoDataBot\JUNKSTUFF\CryoDataBot\download_file_044\download_file_044_Final.csv'
-    matadata_path = r'C:\Users\noelu\CryoDataBot\dist\download_file_001\download_file_001_Final.csv'
-    raw_dir = 'CryoDataBot_Data/Raw'
-    downloading_and_preprocessing(matadata_path, 
+    overwrite = False
+    give_map = True
+    protein_tag_dist = 1
+    map_threashold = 0.01
+    vof_threashold = 0.8
+    dice_threashold = 0.4
+
+    # metadata_path = 'CryoDataBot_Data/Metadata/ribosome_res_1-4_001/ribosome_res_1-4_001_Final.csv'
+    # metadata_path = r'C:\Users\noelu\CryoDataBot\CryoDataBot_Data\Metadata\ribosome_res_1-4_001\ribosome_res_1-4_001_Final.csv'
+    metadata_path = '/home/qiboxu/Database/U_NET/EMDB_PDB_for_U_Net/Filtered_Dateset/cryoID2_metadata/cryoID2_metadata_Final-23.csv'
+    # raw_dir = 'CryoDataBot_Data/Raw'
+    raw_dir = '/home/qiboxu/Database/U_NET/EMDB_PDB_for_U_Net/Filtered_Dateset/Raw'
+
+
+    downloading_and_preprocessing(metadata_path, 
                                   raw_dir, 
                                   overwrite,
                                   give_map,

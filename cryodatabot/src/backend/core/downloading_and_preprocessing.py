@@ -169,19 +169,19 @@ def download_one_map(emdb_id, pdb, raw_map_path, model_path, overwrite=False):
     emdb_fetch_link = f"https://ftp.ebi.ac.uk/pub/databases/emdb/structures/EMD-{emdb_id}/map/emd_{emdb_id}.map.gz"
     pdb_fetch_link = f"http://files.rcsb.org/download/{pdb}.cif"
 
-    raw_map_path = f"{raw_map_path}.gz"
-
     if not os.path.exists(raw_map_path) or overwrite:
         try:
-            urllib.request.urlretrieve(emdb_fetch_link, raw_map_path)
-            with gzip.open(raw_map_path, 'rb') as f_in:
-                with open(raw_map_path.split('.gz')[0], 'wb') as f_out:
+            urllib.request.urlretrieve(emdb_fetch_link, f"{raw_map_path}.gz")
+            with gzip.open(f"{raw_map_path}.gz", 'rb') as f_in:
+                with open(raw_map_path, 'wb') as f_out:
                     shutil.copyfileobj(f_in, f_out)
-                    os.remove(raw_map_path)
+                    os.remove(f"{raw_map_path}.gz")
         except Exception as e:
             logger.warning(f"Error Downloading EMD_{emdb_id} Map File: {e}")
         else:
             logger.info(f"Downloaded: emd_{emdb_id}.map")
+    else:
+        logger.info(f"Already Downloaded: emd_{emdb_id}.map")
 
     if not os.path.exists(model_path) or overwrite:
         try:
@@ -190,6 +190,8 @@ def download_one_map(emdb_id, pdb, raw_map_path, model_path, overwrite=False):
             logger.warning(f"Error Downloading PDB-{pdb} Model File: {e}")
         else:
             logger.info(f"Downloaded: {pdb}.cif")
+    else:
+        logger.info(f"Already Downloaded: {pdb}.cif")
 
 
 # Step3: preprocess maps using multithreasing
@@ -382,8 +384,8 @@ def preprocess_one_map(recl: float, raw_map_path: str, model_path: str, give_map
         protein_tag = cp.array(protein_tag)
         vof, dice = planes_map(map_F, protein_tag)
         
-        map_path = f"{model_path.split('.cif')[0]}_simulated.mrc"
-        map_output(raw_map_path, cp.asnumpy(protein_tag), map_path, is_model=True)
+        # map_path = f"{model_path.split('.cif')[0]}_simulated.mrc"
+        # map_output(raw_map_path, cp.asnumpy(protein_tag), map_path, is_model=True)
             
     except Exception as e:
             logger.warning(f'  Error Calculating Map to Model Fitness: {e}')
@@ -608,17 +610,25 @@ def main():
     # from config file read default values
     downloading_and_preprocessing_config = ConfigParser(default_section='downloading_and_preprocessing')
     downloading_and_preprocessing_config.read('CryoDataBotConfig.ini')
-    overwrite = downloading_and_preprocessing_config.getboolean('user_settings', 'overwrite')
-    give_map = downloading_and_preprocessing_config.getboolean('user_settings', 'give_map')
-    protein_tag_dist = downloading_and_preprocessing_config.getint('user_settings', 'protein_tag_dist')
-    map_threashold = downloading_and_preprocessing_config.getfloat('user_settings', 'map_threashold')
-    vof_threashold = downloading_and_preprocessing_config.getfloat('user_settings', 'vof_threashold')
-    dice_threashold = downloading_and_preprocessing_config.getfloat('user_settings', 'dice_threashold')
+    # overwrite = downloading_and_preprocessing_config.getboolean('downloading_and_preprocessing', 'overwrite')
+    # give_map = downloading_and_preprocessing_config.getboolean('downloading_and_preprocessing', 'give_map')
+    # protein_tag_dist = downloading_and_preprocessing_config.getint('downloading_and_preprocessing', 'protein_tag_dist')
+    # map_threashold = downloading_and_preprocessing_config.getfloat('downloading_and_preprocessing', 'map_threashold')
+    # vof_threashold = downloading_and_preprocessing_config.getfloat('downloading_and_preprocessing', 'vof_threashold')
+    # dice_threashold = downloading_and_preprocessing_config.getfloat('downloading_and_preprocessing', 'dice_threashold')
+    overwrite = False
+    give_map = True
+    protein_tag_dist = 1
+    map_threashold = 0.01
+    vof_threashold = 0.8
+    dice_threashold = 0.4
 
     # matadata_path = 'CryoDataBot_Data/Metadata/ribosome_res_1-4_001/ribosome_res_1-4_001_Final.csv'
-    matadata_path = r'C:\Users\noelu\CryoDataBot\CryoDataBot_Data\Metadata\ribosome_res_1-4_001\ribosome_res_1-4_001_Final.csv'
-    raw_dir = 'CryoDataBot_Data/Raw'
-    downloading_and_preprocessing(matadata_path, 
+    # matadata_path = r'C:\Users\noelu\CryoDataBot\CryoDataBot_Data\Metadata\ribosome_res_1-4_001\ribosome_res_1-4_001_Final.csv'
+    metadata_path = '/home/qiboxu/Database/U_NET/EMDB_PDB_for_U_Net/Filtered_Dateset/cryoID2_metadata/cryoID2_metadata_Final_test.csv'
+    # raw_dir = 'CryoDataBot_Data/Raw'
+    raw_dir = '/home/qiboxu/Database/U_NET/EMDB_PDB_for_U_Net/Filtered_Dateset/Raw'
+    downloading_and_preprocessing(metadata_path, 
                                   raw_dir, 
                                   overwrite,
                                   give_map,

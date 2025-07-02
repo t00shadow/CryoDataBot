@@ -411,7 +411,7 @@ def q_score_filter(input_csv_path:str, archive_path:str, threshold:float):
     return q_score_kept_path, q_score_filter_kept_num_entries, q_score_filter_removed_num_entries 
 
 
-def map_model_filter(df:pd.DataFrame, vof_threshold:float=0.25, dice_threshold:float=0.4):
+def map_model_filter(df:pd.DataFrame, vof_threshold:float=0.8, dice_threshold:float=0.4):
     """
     Filter the DataFrame to remove entries with vof < vof_threshold and 
     dice_coefficient < dice_threshold.
@@ -437,13 +437,19 @@ def map_model_filter(df:pd.DataFrame, vof_threshold:float=0.25, dice_threshold:f
 
 
 def main():
-        # from config file read default values
+    # from config file read default values
     redundancy_filter_config = ConfigParser(default_section='redundancy_filter')
     redundancy_filter_config.read('CryoDataBotConfig.ini')
-    q_threshold = redundancy_filter_config.getfloat('user_settings', 'q_threshold')
-    uni_threshold = redundancy_filter_config.getfloat('user_settings', 'uni_threshold')
-    metadata_path = 'dist\download_file_001\download_file_001.csv'
+    # q_threshold = redundancy_filter_config.getfloat('redundancy_filter', 'q_threshold')
+    # uni_threshold = redundancy_filter_config.getfloat('redundancy_filter', 'uni_threshold')
+    q_threshold = 0.4
+    uni_threshold = 0.7
+
+    # metadata_path = 'dist\download_file_001\download_file_001.csv'
     # metadata_path = 'dist\download_file_002\download_file_002.csv'
+    metadata_path = '/home/qiboxu/Database/U_NET/EMDB_PDB_for_U_Net/Filtered_Dateset/cryoID2_metadata/cryoID2_metadata.csv'
+    # raw_dir = 'CryoDataBot_Data/Raw'
+    raw_dir = '/home/qiboxu/Database/U_NET/EMDB_PDB_for_U_Net/Filtered_Dateset/Raw'
 
     filter_csv(input_csv=metadata_path, 
                q_threshold=q_threshold, 
