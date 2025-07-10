@@ -69,12 +69,46 @@ python run_gui.py
 
 ### 2. Standard workflow
 <ol type="i">
-  <li><b>Collect Metadata</b></li>
-  [INSERT IMAGE(S) HERE]
-  <li><b>Curation</b></li>
-  [INSERT IMAGE(S) HERE]
-  <li><b>Construct Datasets</b></li>
-  [INSERT IMAGE(S) HERE]
+  <li><b>Home Page</b></li></br>
+  <img src="readme_images/home_annotated.png" alt="Home Page Annotated">
+  <ol type="1">
+    <li>Select a base directory (home folder) for output files to be saved in.</li>
+  </ol>
+
+  </br>
+  
+  <li><b>Step 1: Collect Metadata</b></li></br>
+  <img src="readme_images/page1_annotated2.png" alt="Page 1 Annotated">
+  <ol type="1">
+    <li>(Optional) Copy an example query.</li>
+    <li>Paste or type in search query.</li>
+    <li>Preview query button (takes ~1-2 seconds). Useful for sanity checking before downloading the full metadata. Full metadata takes longer to download since a few metadata fields do not have a batch API access point and must be fetched one by one.</li>
+    <li>Download full metadata. Returns a CSV file. Can take a few minutes depending on the query.</li>
+  </ol>
+
+  </br>
+  
+  <li><b>Step 2: Curation</b></li></br>
+  <img src="readme_images/page2_annotated.png" alt="Page 2 Annotated">
+  <ol type="1">
+    <li>Browse for the metadata CSV file downloaded from previous step. This is automatically handled if you just ran the previous step.</li>
+    <li>File path of raw metadata file. Automatically populated if you just ran the previous step.</li>
+    <li>Filters. Can type in values, click on the blue buttons, or use mouse scroll wheel. Click the circular arrow buttons to reset to default values. Default values filter out the least amount of data.</li>
+    <li>Run button. <b>Note: this step is quite time-intensive.</b> Map and model files are downloaded and then processed. The map files generally range from a few hundred megabytes to a gigabyte, so internet speeds can make a noticeable difference. The processing step is also quite time-consuming. This step also creates a CSV file (appends "_Final" to the metadata CSV file's name).</li>
+  </ol>
+
+  </br>
+  
+  <li><b>Step 3: Construct Datasets</b></li></br>
+  <img src="readme_images/page3_annotated.png" alt="Page 3 Annotated">
+  <ol type="1">
+    <li>Browse for the CSV file created by the previous step (has "_Final" at the end of its name). This is automatically handled if you just ran the previous step.</li>
+    <li>File path of said CSV file. Automatically populated if you just ran the previous step.</li>
+    <li>Add groups and labels. Each group creates one labeled dataset. So multiple groups means differently labeled datasets from the same data.</li>
+    <li>Each label has 3 columns: secondary structure, residue(s), atom(s). The columns can be combined or used separately (see picture above).</li>
+    <li>The data is split into cubes based on subvolume size. In other words, subvolume size is the size of those cubes.</li>
+    <li>Training, test, validation split.</li>
+  </ol>
 </ol>
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
