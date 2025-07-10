@@ -100,7 +100,7 @@ python run_gui.py
   </br>
   
   <li><b>Step 3: Construct Datasets</b></li></br>
-  <img src="readme_images/page3_annotated.png" alt="Page 3 Annotated">
+  <img src="readme_images/page3_annotated2.png" alt="Page 3 Annotated">
   <ol type="1">
     <li>Browse for the CSV file created by the previous step (has "_Final" at the end of its name). This is automatically handled if you just ran the previous step.</li>
     <li>File path of said CSV file. Automatically populated if you just ran the previous step.</li>
@@ -108,15 +108,22 @@ python run_gui.py
     <li>Each label has 3 columns: secondary structure, residue(s), atom(s). The columns can be combined or used separately (see picture above).</li>
     <li>The data is split into cubes based on subvolume size. In other words, subvolume size is the size of those cubes.</li>
     <li>Training, test, validation split.</li>
+    <li>Generate datasets. Takes maybe a few minutes.</li>
   </ol>
 </ol>
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
 ### 3. Quickstart
-Same as the standard workflow but with less clicks and **without** intermediate output.
+Same as the standard workflow but **without** intermediate output. Tradeoff is less clicks and all the user input is up front, so you can let it run to completion, without having to come back between steps.
 
-[INSERT IMAGE(S) HERE]
+![Quickstart Annotated](readme_images/quickstart_annotated.png)
+1. (Optional) Copy an example query.
+2. Paste or type in search query.
+3. Preview query button (takes ~1-2 seconds). Useful for sanity checking. The rest of the workflow takes way more time.
+4. Curation page pop up button. Launches the curation page but in a popup window. Difference from standard workflow is nothing is downloaded yet.
+5. Dataset labels page pop up button. Launches the dataset labels page but in a popup window.
+6. Generate datasets. All heavy backend processing happens now.
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
