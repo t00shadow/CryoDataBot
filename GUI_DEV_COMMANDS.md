@@ -10,57 +10,23 @@
 <!-- square brackets are the name of the table of contents entry, hashtags are the anchors to the sections below, all lowercase and replace spaces (and special charas like parens and question mark) with hyphens -->
 <!-- https://stackoverflow.com/questions/2822089/how-to-link-to-part-of-the-same-document-in-markdown -->
 
+All commands assume you're in the root directory btw (.../CryoDataBot). CryoDataBot with caps, not the lowercase cryodatabot folder.
+
 # Installing Packages
 ```
-cat requirements.txt | xargs -n 1 -I {} pip install {} || echo "Failed to install {}"
+pip install -r requirements.txt
 ```
-This command will continue installing from requirements.txt even if a package fails to install. (pip install -r requirements.txt stops as soon as one package fails to install)
-
-Explanation:
-1. ```cat``` reads in requirements.txt and spits out its contents to standard output
-
-2. pipe (```|```) redirects cat's output and sends it as input to xargs
-
-3. ```xargs -n 1 -I {} pip install {}```
-    - xargs is a command used to build and execute command lines from standard input.
-        - -n 1: This option tells xargs to use one argument at a time from the input for each command execution.
-    - This means for each line in the requirements.txt file (which is a package name), it will execute pip install \<package\> once per line.
-        - -I {}: This option allows you to specify a placeholder ({}) in the command. xargs will replace {} with the current item being processed (each package name in this case).
-        -   For example, if the current line in requirements.txt is numpy, it will replace {} with numpy in the pip install {} command.
-    - pip install {}: This is the command that gets executed for each package. The {} is a placeholder that gets replaced by the package name from requirements.txt.
-        - For example, it would run pip install numpy for a line containing numpy.
-
-4. ```|| echo "Failed to install {}"```
-    - || is a logical OR. runs the command to the right only if the left command fails
-    - {} is the same placeholder from the left side of the ||
-    - echo is the bash equivalent of print()
+In the future, use pipreqs instead of pip freeze to generate the requirements.txt.
 
 # UI File:
 ```
-pyuic5 -x "/mnt/c/Users/noelu/Python Projects/PyQt GUI practice/QtDesigner_practice/dataset_gen_tool_GUI/dataset_gen_tool_v10.ui" -o guiskin_DEV2.py
-```
-updated command:
-```
-pyuic5 -x "/mnt/c/Users/noelu/CryoDataBot/dataset_gen_tool_v11_experimental_copy.ui" -o guiskin_DEV3.py
-```
-even more updated command:
-```
-pyuic5 -x "/mnt/c/Users/noelu/CryoDataBot/dataset_gen_tool_v12.ui" -o guiskin_DEV3_1.py
-```
-even even more updated command:
-```
-pyuic5 -x "/mnt/c/Users/noelu/CryoDataBot/cryodatabot/src/frontend/ui_files/dataset_gen_tool_v12.ui" -o "/mnt/c/Users/noelu/CryoDataBot/cryodatabot/src/frontend/ui_files/guiskin_DEV3_1.py"
+pyuic5 -x "cryodatabot/src/frontend/ui_files/dataset_gen_tool_v12.ui" -o "cryodatabot/src/frontend/ui_files/guiskin_DEV3_1.py"
 ```
 
 # Resources:
-```
-pyrcc5 "/mnt/c/Users/noelu/Python Projects/PyQt GUI practice/QtDesigner_practice/dataset_gen_tool_GUI/resources.qrc" -o resources_rc.py
-```
-
 note: the newer stuff is done in main_gui.py directly (don't need resources_rc.py), but some svgs were missing when tested on other machines.
 
-**(TODO)** Figure out which approach had the missing svgs
-
+TODO: Some svgs are still missing on certain machines, not sure why. But figure out whether it's the code approach or the resources file appraoch and use the same appraoch for all.
 
 # For the other dialog window (WIP):
 ```
@@ -69,9 +35,7 @@ pyuic5 -x "/mnt/c/Users/noelu/CryoDataBot/label_manager_popup_EXP/label_manager_
 Dont think this exists anymore, **delete**.
 
 # Which files to run?
-Run ```main_gui_DEV3.py``` (or ```main_gui_DEV3_alt.py``` for page buttons on the side). 
-
-```main_gui_DEV3.py``` imports ```guiskin_DEV2.py```. Do NOT modify ```guiskin_DEV2.py``` because any changes will be overwritten.
+Run `run_gui.py`. It's the access point into main_gui.py. Since main_gui.py is in the cryodatabot folder now (ie a directory down from the root directory), running it gives some path errors (unless you load it as a module, but thats kinda annoying).
 
 
 
@@ -123,6 +87,10 @@ Differences vs the windows version: 1) run in wsl terminal instead of powershell
 
 
 # Git
+**IGNORE this if working on main branch OR if your branch is not behind the main branch (a branch can be both ahead and behind), which would ideally be the case.**
+
+**Use the following ONLY IF NEEDED**
+
 Copy file contents of temp branch but not the commit history (would clutter main branch's history) onto main branch.
 
 Make sure on main branch
@@ -148,39 +116,3 @@ New commit (only adds 1 commit to main instead of like 80)
 Push to origin
 
 6. push to origin using whatever is convenient (command line, github desktop, ...)
-
-
-
-<!-- # Aside: proof that Jaccard index (GOF, VOF, wtv u wanna rename it) and Dice* are not independent
-$$
-\text{Jaccard (GOF, VOF, doesnt matter what you call intersect/union)} = \frac{|A \cap B|}{|A \cup B|} \\
-\text{Dice*} = \frac{|A \cap B|}{|A| + |B|} \\
-\text{(*actual Dice has a scaling factor of 2)} \\
-
-\text{Dice*} = \frac{|A \cap B|}{|A| + |B|} = \frac{|A \cap B|}{|A \cup B| + |A \cap B|} \\
-\frac{1}{\text{Jaccard}} = \frac{|A \cup B|}{|A \cap B|} = \frac{|A \cup B|}{|A \cap B|} + 1 - 1 = \frac{|A \cup B|}{|A \cap B|} + \frac{|A \cap B|}{|A \cap B|} - 1 = \frac{|A \cup B| + |A \cap B|}{|A \cap B|} - 1 = \frac{1}{\text{Dice*}} - 1 \\
-\frac{1}{\text{Jaccard}} = \frac{1}{\text{Dice*}} - 1 \\
-$$
-
-<br>
-
-$$
-\text{Jaccard} = \frac{\text{Dice*}}{1 - \text{Dice*}} \\
-$$
-
-<br>
-
-$$
-\text{Dice*} = \frac{\text{Jaccard}}{1 + \text{Jaccard}} \\
-$$
-
-
-
-
-
-Example) For some fixed A and B. Say A = 100 and B = 100.
-| Overlap % | Dice   | IoU     |
-| --------- | ------ | ------- |
-| 10%       | \~0.18 | \~0.095 |
-| 50%       | \~0.67 | \~0.33  |
-| 90%       | \~0.95 | \~0.82  | -->
