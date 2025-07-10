@@ -149,7 +149,7 @@ fix this, on another branch, need to check something (think need to change some 
   ```
   Options are `fetch_sample_info`, `redundancy_filter`, `downloading_and_preprocessing_NO_GPU2`, and `generate_dataset`. Running as a module, so drop the ".py" suffix.
 
-  ex)
+  Ex)
   ```
   python -m cryodatabot.src.backend.core.fetch_sample_info
   ```
@@ -158,7 +158,14 @@ fix this, on another branch, need to check something (think need to change some 
   
   The other way is edit the config file CryoDataBotConfig.ini (located in the root level directory).
 
-[INSERT IMAGE(S) HERE, 2 total, 1 for main(), 1 for ini]
+  Ex) fetch_sample_info.py's main() function. Instead of using the config file, you replace those lines with hardcoded values:
+
+  ![Quickstart Annotated](readme_images/main_function.png)
+
+  .ini file (config file):
+
+  ![Quickstart Annotated](readme_images/ini_file.png)
+
 
 </details>
 
