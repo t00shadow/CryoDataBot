@@ -6,6 +6,7 @@ CryoDataBot is a Python workflow designed for curating high-quality cryoEM datas
 
 ## Table of Contents
 
+- [Prerequisites](#prerequisites)
 - [Installation](#installation)
 - [Usage](#usage)
   - [1. Running the GUI](#1-running-the-gui)
@@ -15,6 +16,9 @@ CryoDataBot is a Python workflow designed for curating high-quality cryoEM datas
   - [5. Running backend scripts modularly](#5-running-backend-scripts-modularly)
 - [Project Structure](#project-structure)
 - [License](#license)
+
+## Prerequisites
+python version >=3.8
 
 ## Installation
 
@@ -202,3 +206,4 @@ CryoDataBot
 This project is licensed under the terms of the [MIT License](LICENSE).
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
+
