@@ -28,13 +28,13 @@ def to_numpy(array):
     return array  # already a NumPy array
 
 # main function
-def downloading_and_preprocessing(metadata_path, 
-                                  raw_dir: str = 'Raw', 
+def downloading_and_preprocessing(metadata_path,
+                                  raw_dir: str = 'Raw',
                                   overwrite = False,
-                                  give_map: bool=True, 
-                                  protein_tag_dist: int=1, 
+                                  give_map: bool=True,
+                                  protein_tag_dist: int=1,
                                   map_threshold=0.01,
-                                  vof_threashold: float=0.8, 
+                                  vof_threashold: float=0.8,
                                   dice_threashold: float=0.4,
                                   target_voxel_size: float=1.0
                                   ):
@@ -57,10 +57,10 @@ def downloading_and_preprocessing(metadata_path,
 
     3. Resample and normalize map files.
        - Uses preprocess_maps(path_info) to preprocess the downloaded map files.
-    """ 
+    """
     # configure logger
     logger = logging.getLogger('Downloading_and_Preprocessing_Logger')
-    logger.setLevel(logging.INFO)  
+    logger.setLevel(logging.INFO)
     std_out_hdlr = logging.StreamHandler()
     std_out_hdlr.setLevel(logging.INFO)
     log_file_path = metadata_path.replace('.csv', '_downloading_and_preprocessing.log')
@@ -77,7 +77,7 @@ def downloading_and_preprocessing(metadata_path,
     if not has_entries(metadata_path):
         logger.info("Invalid CSV file: No data rows found.")
         return
-    
+
     read_csv_info_with_recl = csv_col_reader('recommended_contour_level')(read_csv_info)
     csv_info, path_info = read_csv_info_with_recl(metadata_path, raw_dir)
 
@@ -90,13 +90,13 @@ def downloading_and_preprocessing(metadata_path,
 
     # Step3: preprocess maps using multithreasing (Resample and normalize map files)
     logger.info(calculate_title_padding('Preprocessing Maps'))
-    preprocess_maps(csv_info, 
-                    path_info, 
-                    metadata_path, 
-                    give_map, 
-                    protein_tag_dist, 
+    preprocess_maps(csv_info,
+                    path_info,
+                    metadata_path,
+                    give_map,
+                    protein_tag_dist,
                     map_threshold,
-                    vof_threashold, 
+                    vof_threashold,
                     dice_threashold,
                     target_voxel_size
                     )
@@ -211,13 +211,13 @@ def download_one_map(emdb_id, pdb, raw_map_path, model_path, overwrite=False):
 
 
 # Step3: preprocess maps using multithreasing
-def preprocess_maps(csv_info, 
-                    path_info, 
-                    metadata_path, 
-                    give_map: bool=True, 
-                    protein_tag_dist: int=1, 
+def preprocess_maps(csv_info,
+                    path_info,
+                    metadata_path,
+                    give_map: bool=True,
+                    protein_tag_dist: int=1,
                     map_threashold: float=0.15,
-                    vof_threashold: float=0.25, 
+                    vof_threashold: float=0.25,
                     dice_threashold: float=0.4,
                     target_voxel_size: float=0.1
                     ):
@@ -296,7 +296,7 @@ def preprocess_maps(csv_info,
             except Exception as e:
                 logger.warning(f'  Error Preprocessing Map: {e}')
                 logger.warning('  !!! Preprocessing Failed !!!')
-                logger.info('')                
+                logger.info('')
                 row = metadata_df[metadata_df["fitted_pdbs"] == pdb]
                 row.to_csv(failed_df_path, mode="a", header=False, index=False)
 
@@ -304,10 +304,10 @@ def preprocess_maps(csv_info,
 
 ### TO BE EDITTED
 
-    # read metadata file
-    # metadata_df = pd.read_csv(metadata_path)
+# read metadata file
+# metadata_df = pd.read_csv(metadata_path)
 
-    # Print out failed maps
+# Print out failed maps
     logger.info('')
     if failed:
         logger.info('Failed to Preprocess Maps:')
@@ -321,7 +321,7 @@ def preprocess_maps(csv_info,
     print(f'Please Check Failed Entries at:\n"{os.path.abspath(failed_df_path)}"')
     logger.info('')
 
-    # # save VOF/Dice            
+    # # save VOF/Dice
     # result_df = pd.DataFrame(results, columns=['emdb_id', 'vof', 'dice_coefficient'])
     # metadata_df = metadata_df.merge(result_df, on='emdb_id', how='left')
 
@@ -404,7 +404,7 @@ def preprocess_one_map(recl: float, raw_map_path: str, model_path: str, give_map
     try:
         # logger.info('  Normalizing Map')
         map_F = map_normalizing(raw_map_path, recl, target_voxel_size)
-        
+
         if give_map:
             map_path = f"{raw_map_path.split('.map')[0]}_normalized.mrc"
             map_output(raw_map_path, to_numpy(map_F), map_path, is_model=False)
@@ -429,24 +429,24 @@ def preprocess_one_map(recl: float, raw_map_path: str, model_path: str, give_map
         logger.warning(f'  Error Reading CIF File: {e}')
         logger.warning('  !!! Preprocessing Failed !!!')
         logger.info('')
-        return (0, 0)   
+        return (0, 0)
 
     try:
-        
+
 
         # Apply the map threshold
         map_F = xp.where(map_F > map_threshold, 1, 0)
         protein_tag = xp.array(protein_tag)
         vof, dice = planes_map(map_F, protein_tag)
-        
+
         # map_path = f"{model_path.split('.cif')[0]}_simulated.mrc"
         # map_output(raw_map_path, to_numpy(protein_tag), map_path, is_model=True)
-            
+
     except Exception as e:
-            logger.warning('  !!! Preprocessing Failed !!!')
-            logger.warning(f'  Error Calculating Map to Model Fitness: {e}')
-            logger.info('')
-            return (0, 0)
+        logger.warning('  !!! Preprocessing Failed !!!')
+        logger.warning(f'  Error Calculating Map to Model Fitness: {e}')
+        logger.info('')
+        return (0, 0)
     else:
         # logger.info('  Map_to_Model Calculation Completed:')
         logger.info(f'  Volume Overlap Fraction (VOF): {(vof*100):.4f}%, Dice Coefficient: {(dice*100):.4f}%')
@@ -488,7 +488,7 @@ def planes_map(map_F, protein_tag):
         map_fx = xp.sum(map_F,axis=i)
         cifmap_fx = xp.sum(protein_tag,axis=i)
         helper_diag_gof(map_fx, cifmap_fx, all_top_gof, all_top_dc)
-       
+
 
     for i in range(3):
         map_diag = xp.zeros((map_F.shape[0],map_F.shape[1]))
@@ -501,7 +501,7 @@ def planes_map(map_F, protein_tag):
                 cifmap_diag += protein_tag[:,j,:]
 
             helper_diag_gof(map_diag,cifmap_diag, all_top_gof, all_top_dc)
-                  
+
         elif i==1:
             for j in range(map_F.shape[1]):
                 map_diag += map_F[:,:,j]
@@ -510,8 +510,8 @@ def planes_map(map_F, protein_tag):
                 cifmap_diag += protein_tag[:,:,j]
 
             helper_diag_gof(map_diag,cifmap_diag, all_top_gof, all_top_dc)
-            
-            
+
+
         elif i==2:
             for j in range(map_F.shape[1]):
                 map_diag += map_F[j,:,:]
@@ -520,8 +520,8 @@ def planes_map(map_F, protein_tag):
                 cifmap_diag += protein_tag[j,:,:]
 
             helper_diag_gof(map_diag,cifmap_diag, all_top_gof, all_top_dc)
-              
-    
+
+
     all_top_gof = xp.array(all_top_gof)
     all_top_gof = (xp.array(all_top_gof[all_top_gof != all_top_gof.max()])).mean()
     all_top_dc = xp.mean(xp.array(all_top_dc))
@@ -633,8 +633,8 @@ def map_output(input_map, map_data, output_map, is_model=False):
 
 
 def map_from_cif(cif_path: str, MAP_BOUNDARY, PROTEIN_TAG_DIST):
-        def atom_coord_cif(structure):
-            """
+    def atom_coord_cif(structure):
+        """
             Extracts atomic coordinates (z, y, x) from a PDB/CIF structure file.
             
             Args:
@@ -643,38 +643,39 @@ def map_from_cif(cif_path: str, MAP_BOUNDARY, PROTEIN_TAG_DIST):
             Returns:
                 xp.ndarray: Array of atomic coordinates on GPU.
             """
-            coords = []
-            for model in structure:
-                for chain in model:
-                    for residue in chain:
-                        for atom in residue:
-                            coords.append((int(round(atom.pos.z)), int(round(atom.pos.y)), int(round(atom.pos.x))))
+        coords = []
+        for model in structure:
+            for chain in model:
+                for residue in chain:
+                    for atom in residue:
+                        coords.append((int(round(atom.pos.z)), int(round(atom.pos.y)), int(round(atom.pos.x))))
 
-            
-            return xp.array(coords)
-            
-        protein_coords = atom_coord_cif(gemmi.read_structure(cif_path))    
-        origin_info = xp.array([0,0,0])
-        
-        # Create binary map for protein coordinates
-        MAP_BOUNDARY1 = ((int(MAP_BOUNDARY[0])),int((MAP_BOUNDARY[1])),int(MAP_BOUNDARY[2]))
-        protein_tag = xp.zeros(shape=tuple(MAP_BOUNDARY1))
-        protein_coords = np.round(protein_coords).astype(int)
-        protein_tag[protein_coords[:, 0], protein_coords[:, 1], protein_coords[:, 2]] = 1
 
-        # Binary dilation using GPU
-        structure = xp.ones((PROTEIN_TAG_DIST * 2 + 1,) * 3, dtype=xp.int8)
-        if xp == np:     # this fxn is NOT called by normalize, BUT I just preemptively updated this line (406) too
-            protein_tag = binary_dilation(protein_tag, structure=structure).astype(np.int8)
-        else:
-            protein_tag = to_numpy(binary_dilation(protein_tag, structure=structure).astype(np.int8))
+        return xp.array(coords)
 
-        return protein_tag
+    protein_coords = atom_coord_cif(gemmi.read_structure(cif_path))
+    origin_info = xp.array([0,0,0])
+
+    # Create binary map for protein coordinates
+    MAP_BOUNDARY1 = ((int(MAP_BOUNDARY[0])),int((MAP_BOUNDARY[1])),int(MAP_BOUNDARY[2]))
+    protein_tag = xp.zeros(shape=tuple(MAP_BOUNDARY1))
+    protein_coords = np.round(protein_coords).astype(int)
+    protein_tag[protein_coords[:, 0], protein_coords[:, 1], protein_coords[:, 2]] = 1
+
+    # Binary dilation using GPU
+    structure = xp.ones((PROTEIN_TAG_DIST * 2 + 1,) * 3, dtype=xp.int8)
+    if xp == np:     # this fxn is NOT called by normalize, BUT I just preemptively updated this line (406) too
+        protein_tag = binary_dilation(protein_tag, structure=structure).astype(np.int8)
+    else:
+        protein_tag = to_numpy(binary_dilation(protein_tag, structure=structure).astype(np.int8))
+
+    return protein_tag
 
 
 def main():
     # from config file read default values
-    downloading_and_preprocessing_config = ConfigParser(default_section='downloading_and_preprocessing')
+    downloading_and_preprocessing_config = ConfigParser(
+        default_section='downloading_and_preprocessing')
     downloading_and_preprocessing_config.read('CryoDataBotConfig.ini')
     # overwrite = downloading_and_preprocessing_config.getboolean('user_settings', 'overwrite')
     # give_map = downloading_and_preprocessing_config.getboolean('user_settings', 'give_map')
@@ -683,31 +684,25 @@ def main():
     # vof_threashold = downloading_and_preprocessing_config.getfloat('user_settings', 'vof_threashold')
     # dice_threashold = downloading_and_preprocessing_config.getfloat('user_settings', 'dice_threashold')
     target_voxel_size = 1.0
-    
+
     overwrite = False
     give_map = True
     protein_tag_dist = 1
     map_threashold = 0.01
-    vof_threashold = 0.8
-    dice_threashold = 0.4
+    vof_threashold = 0.65
+    dice_threashold = 1.0
 
     # metadata_path = 'CryoDataBot_Data/Metadata/ribosome_res_1-4_001/ribosome_res_1-4_001_Final.csv'
     # metadata_path = r'C:\Users\noelu\CryoDataBot\CryoDataBot_Data\Metadata\ribosome_res_1-4_001\ribosome_res_1-4_001_Final.csv'
-    metadata_path = '/home/qiboxu/Database/U_NET/EMDB_PDB_for_U_Net/Filtered_Dateset/cryoID2_metadata/cryoID2_metadata_Final-23.csv'
+    # metadata_path = '/home/qiboxu/Database/U_NET/EMDB_PDB_for_U_Net/Filtered_Dateset/cryoID2_metadata/cryoID2_metadata_Final-23.csv'
+    metadata_path = '/home/qiboxu/Database/CryoDataBot_Data/Metadata/Gprotein_res_3-4/Gprotein_res_3-4_Q0.5_Final.csv'
     # raw_dir = 'CryoDataBot_Data/Raw'
     raw_dir = '/home/qiboxu/Database/U_NET/EMDB_PDB_for_U_Net/Filtered_Dateset/Raw'
 
-
-    downloading_and_preprocessing(metadata_path, 
-                                  raw_dir, 
-                                  overwrite,
-                                  give_map,
-                                  protein_tag_dist,
-                                  map_threashold,
-                                  vof_threashold,
-                                  dice_threashold,
-                                  target_voxel_size
-                                  )
+    downloading_and_preprocessing(metadata_path, raw_dir, overwrite, give_map,
+                                  protein_tag_dist, map_threashold,
+                                  vof_threashold, dice_threashold,
+                                  target_voxel_size)
 
 
 if __name__ == '__main__':

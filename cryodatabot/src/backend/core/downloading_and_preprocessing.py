@@ -625,7 +625,8 @@ def main():
 
     # matadata_path = 'CryoDataBot_Data/Metadata/ribosome_res_1-4_001/ribosome_res_1-4_001_Final.csv'
     # matadata_path = r'C:\Users\noelu\CryoDataBot\CryoDataBot_Data\Metadata\ribosome_res_1-4_001\ribosome_res_1-4_001_Final.csv'
-    metadata_path = '/home/qiboxu/Database/U_NET/EMDB_PDB_for_U_Net/Filtered_Dateset/cryoID2_metadata/cryoID2_metadata_Final_test.csv'
+    # metadata_path = '/home/qiboxu/Database/U_NET/EMDB_PDB_for_U_Net/Filtered_Dateset/cryoID2_metadata/cryoID2_metadata_Final_test.csv'
+    metadata_path = '/home/qiboxu/Database/CryoDataBot_Data/Metadata/Gprotein_res_3-4_raw/Gprotein_res_3-4_raw-test.csv'
     # raw_dir = 'CryoDataBot_Data/Raw'
     raw_dir = '/home/qiboxu/Database/U_NET/EMDB_PDB_for_U_Net/Filtered_Dateset/Raw'
     downloading_and_preprocessing(metadata_path, 

@@ -21,6 +21,9 @@ from cryodatabot.src.backend.helper.atom_in_models import residues_protein
 from cryodatabot.src.backend.helper.helper_funcs import calculate_title_padding, move_log_file, read_csv_info
 
 
+
+# generate test labels: generate_test = 1
+
 def data_to_npy(label_groups: list,
                 group_names: list,
                 normalized_map_path: str,
@@ -862,248 +865,263 @@ def main():
     # extract_stride = generate_dataset_config.getint('user_settings', 'extract_stride')
     # atom_grid_radius = generate_dataset_config.getfloat('user_settings', 'atom_grid_radius')
     # n_workers = generate_dataset_config.getint('user_settings', 'n_workers')
-    ratio_t_t_v = (0.8,0.1,0.1)
+    ratio_t_t_v = (0.8, 0.2, 0.0)
     npy_size = 64
     extract_stride = 32
-    atom_grid_radius = 1.0
+    atom_grid_radius = 1.5
     n_workers = 4
     # csv_path = 'CryoDataBot_Data/Metadata/ribosome_res_1-4_001/ribosome_res_1-4_001_Final.csv'
     # csv_path = "C:/Users/noelu/CryoDataBot/download_file_001/download_file_001_Final.csv"
 
-    csv_path = '/home/qiboxu/Database/U_NET/EMDB_PDB_for_U_Net/Filtered_Dateset/cryoID2_metadata/cryoID2_metadata_Final-VOF-filter.csv'
-
-    group_names = ['secondary_strctures', 'residue_types', 'key_atoms']
+    # csv_path = '/home/qiboxu/Database/U_NET/EMDB_PDB_for_U_Net/Filtered_Dateset/cryoID2_metadata/cryoID2_metadata_Final-VOF-filter.csv'
+    # csv_path = '/home/qiboxu/Database/CryoDataBot_Data/Metadata/Gprotein_res_3-4/train_experiment_GPCR_38_entries.csv'
+    # csv_path = '/home/qiboxu/Database/CryoDataBot_Data/Metadata/Gprotein_res_3-4/train_raw_GPCR_126_entries.csv'
+    # csv_path = '/home/qiboxu/Database/CryoDataBot_Data/Metadata/Gprotein_res_3-4/test_GPCR_26_entries.csv'
+    csv_path = '/home/qiboxu/Database/CryoDataBot_Data/Metadata/Gprotein_res_3-4/train_Q0.3_GPCR_48_entries.csv'
+    # csv_path = '/home/qiboxu/Database/CryoDataBot_Data/Metadata/Gprotein_res_3-4/train_Q0.5_GPCR_16_entries.csv'
+    # group_names = ['secondary_strctures', 'residue_types', 'key_atoms']
+    group_names = ['CA_atoms']
     from helper.atom_in_models import atoms_sugar_ring, residues_RNA
-    label_groups = [
-        [{
-            'secondary_type': 'Helix',
-            'residue_type': '',
-            'atom_type': '',
-            'element_type': '',
-            'metal_type': '',
-            'label': 1
-        }, {
-            'secondary_type': 'Sheet',
-            'residue_type': '',
-            'atom_type': '',
-            'element_type': '',
-            'metal_type': '',
-            'label': 2
-        }, {
-            'secondary_type': 'Loop',
-            'residue_type': '',
-            'atom_type': '',
-            'element_type': '',
-            'metal_type': '',
-            'label': 3
-        }, {
-            'secondary_type': '',
-            'residue_type': ','.join(residues_RNA),
-            'atom_type': '',
-            'element_type': '',
-            'metal_type': '',
-            'label': 4
-        }],
-        [{
-            'secondary_type': '',
-            'residue_type': residues_protein[0],
-            'atom_type': '',
-            'element_type': '',
-            'metal_type': '',
-            'label': 1
-        }, {
-            'secondary_type': '',
-            'residue_type': residues_protein[1],
-            'atom_type': '',
-            'element_type': '',
-            'metal_type': '',
-            'label': 2
-        }, {
-            'secondary_type': '',
-            'residue_type': residues_protein[2],
-            'atom_type': '',
-            'element_type': '',
-            'metal_type': '',
-            'label': 3
-        }, {
-            'secondary_type': '',
-            'residue_type': residues_protein[3],
-            'atom_type': '',
-            'element_type': '',
-            'metal_type': '',
-            'label': 4
-        }, {
-            'secondary_type': '',
-            'residue_type': residues_protein[4],
-            'atom_type': '',
-            'element_type': '',
-            'metal_type': '',
-            'label': 5
-        }, {
-            'secondary_type': '',
-            'residue_type': residues_protein[5],
-            'atom_type': '',
-            'element_type': '',
-            'metal_type': '',
-            'label': 6
-        }, {
-            'secondary_type': '',
-            'residue_type': residues_protein[6],
-            'atom_type': '',
-            'element_type': '',
-            'metal_type': '',
-            'label': 7
-        }, {
-            'secondary_type': '',
-            'residue_type': residues_protein[7],
-            'atom_type': '',
-            'element_type': '',
-            'metal_type': '',
-            'label': 8
-        }, {
-            'secondary_type': '',
-            'residue_type': residues_protein[8],
-            'atom_type': '',
-            'element_type': '',
-            'metal_type': '',
-            'label': 9
-        }, {
-            'secondary_type': '',
-            'residue_type': residues_protein[9],
-            'atom_type': '',
-            'element_type': '',
-            'metal_type': '',
-            'label': 10
-        }, {
-            'secondary_type': '',
-            'residue_type': residues_protein[10],
-            'atom_type': '',
-            'element_type': '',
-            'metal_type': '',
-            'label': 11
-        }, {
-            'secondary_type': '',
-            'residue_type': residues_protein[11],
-            'atom_type': '',
-            'element_type': '',
-            'metal_type': '',
-            'label': 12
-        }, {
-            'secondary_type': '',
-            'residue_type': residues_protein[12],
-            'atom_type': '',
-            'element_type': '',
-            'metal_type': '',
-            'label': 13
-        }, {
-            'secondary_type': '',
-            'residue_type': residues_protein[13],
-            'atom_type': '',
-            'element_type': '',
-            'metal_type': '',
-            'label': 14
-        }, {
-            'secondary_type': '',
-            'residue_type': residues_protein[14],
-            'atom_type': '',
-            'element_type': '',
-            'metal_type': '',
-            'label': 15
-        }, {
-            'secondary_type': '',
-            'residue_type': residues_protein[15],
-            'atom_type': '',
-            'element_type': '',
-            'metal_type': '',
-            'label': 16
-        }, {
-            'secondary_type': '',
-            'residue_type': residues_protein[16],
-            'atom_type': '',
-            'element_type': '',
-            'metal_type': '',
-            'label': 17
-        }, {
-            'secondary_type': '',
-            'residue_type': residues_protein[17],
-            'atom_type': '',
-            'element_type': '',
-            'metal_type': '',
-            'label': 18
-        }, {
-            'secondary_type': '',
-            'residue_type': residues_protein[18],
-            'atom_type': '',
-            'element_type': '',
-            'metal_type': '',
-            'label': 19
-        }, {
-            'secondary_type': '',
-            'residue_type': residues_protein[19],
-            'atom_type': '',
-            'element_type': '',
-            'metal_type': '',
-            'label': 20
-        }, {
-            'secondary_type': '',
-            'residue_type': residues_RNA[0],
-            'atom_type': '',
-            'element_type': '',
-            'metal_type': '',
-            'label': 21
-        }, {
-            'secondary_type': '',
-            'residue_type': residues_RNA[1],
-            'atom_type': '',
-            'element_type': '',
-            'metal_type': '',
-            'label': 22
-        }, {
-            'secondary_type': '',
-            'residue_type': residues_RNA[2],
-            'atom_type': '',
-            'element_type': '',
-            'metal_type': '',
-            'label': 23
-        }, {
-            'secondary_type': '',
-            'residue_type': residues_RNA[3],
-            'atom_type': '',
-            'element_type': '',
-            'metal_type': '',
-            'label': 24
-        }],
-        [
-            {
-                'secondary_type': '',
-                'residue_type': '',
-                'atom_type': 'CA',
-                'element_type': '',
-                'metal_type': '',
-                'label': 1
-            },
-            {
-                'secondary_type': '',
-                'residue_type': '',
-                'atom_type': 'P',
-                'element_type': '',
-                'metal_type': '',
-                'label': 2
-            },
-            {
-                'secondary_type': '',
-                'residue_type': '',
-                'atom_type': ','.join(atoms_sugar_ring),
-                'element_type': '',
-                'metal_type': '',
-                'label': 3
-            },
-        ],
-    ]
-    raw_path = '/home/qiboxu/Database/U_NET/EMDB_PDB_for_U_Net/Filtered_Dateset/Raw'
-    temp_path = '/home/qiboxu/Database/U_NET/EMDB_PDB_for_U_Net/Filtered_Dateset/Temp'
-    sample_path = '/home/qiboxu/Database/U_NET/EMDB_PDB_for_U_Net/Filtered_Dateset/Training'
+    # label_groups = [
+    # [{
+    #     'secondary_type': 'Helix',
+    #     'residue_type': '',
+    #     'atom_type': '',
+    #     'element_type': '',
+    #     'metal_type': '',
+    #     'label': 1
+    # }, {
+    #     'secondary_type': 'Sheet',
+    #     'residue_type': '',
+    #     'atom_type': '',
+    #     'element_type': '',
+    #     'metal_type': '',
+    #     'label': 2
+    # }, {
+    #     'secondary_type': 'Loop',
+    #     'residue_type': '',
+    #     'atom_type': '',
+    #     'element_type': '',
+    #     'metal_type': '',
+    #     'label': 3
+    # }, {
+    #     'secondary_type': '',
+    #     'residue_type': ','.join(residues_RNA),
+    #     'atom_type': '',
+    #     'element_type': '',
+    #     'metal_type': '',
+    #     'label': 4
+    # }],
+    # [{
+    #     'secondary_type': '',
+    #     'residue_type': residues_protein[0],
+    #     'atom_type': '',
+    #     'element_type': '',
+    #     'metal_type': '',
+    #     'label': 1
+    # }, {
+    #     'secondary_type': '',
+    #     'residue_type': residues_protein[1],
+    #     'atom_type': '',
+    #     'element_type': '',
+    #     'metal_type': '',
+    #     'label': 2
+    # }, {
+    #     'secondary_type': '',
+    #     'residue_type': residues_protein[2],
+    #     'atom_type': '',
+    #     'element_type': '',
+    #     'metal_type': '',
+    #     'label': 3
+    # }, {
+    #     'secondary_type': '',
+    #     'residue_type': residues_protein[3],
+    #     'atom_type': '',
+    #     'element_type': '',
+    #     'metal_type': '',
+    #     'label': 4
+    # }, {
+    #     'secondary_type': '',
+    #     'residue_type': residues_protein[4],
+    #     'atom_type': '',
+    #     'element_type': '',
+    #     'metal_type': '',
+    #     'label': 5
+    # }, {
+    #     'secondary_type': '',
+    #     'residue_type': residues_protein[5],
+    #     'atom_type': '',
+    #     'element_type': '',
+    #     'metal_type': '',
+    #     'label': 6
+    # }, {
+    #     'secondary_type': '',
+    #     'residue_type': residues_protein[6],
+    #     'atom_type': '',
+    #     'element_type': '',
+    #     'metal_type': '',
+    #     'label': 7
+    # }, {
+    #     'secondary_type': '',
+    #     'residue_type': residues_protein[7],
+    #     'atom_type': '',
+    #     'element_type': '',
+    #     'metal_type': '',
+    #     'label': 8
+    # }, {
+    #     'secondary_type': '',
+    #     'residue_type': residues_protein[8],
+    #     'atom_type': '',
+    #     'element_type': '',
+    #     'metal_type': '',
+    #     'label': 9
+    # }, {
+    #     'secondary_type': '',
+    #     'residue_type': residues_protein[9],
+    #     'atom_type': '',
+    #     'element_type': '',
+    #     'metal_type': '',
+    #     'label': 10
+    # }, {
+    #     'secondary_type': '',
+    #     'residue_type': residues_protein[10],
+    #     'atom_type': '',
+    #     'element_type': '',
+    #     'metal_type': '',
+    #     'label': 11
+    # }, {
+    #     'secondary_type': '',
+    #     'residue_type': residues_protein[11],
+    #     'atom_type': '',
+    #     'element_type': '',
+    #     'metal_type': '',
+    #     'label': 12
+    # }, {
+    #     'secondary_type': '',
+    #     'residue_type': residues_protein[12],
+    #     'atom_type': '',
+    #     'element_type': '',
+    #     'metal_type': '',
+    #     'label': 13
+    # }, {
+    #     'secondary_type': '',
+    #     'residue_type': residues_protein[13],
+    #     'atom_type': '',
+    #     'element_type': '',
+    #     'metal_type': '',
+    #     'label': 14
+    # }, {
+    #     'secondary_type': '',
+    #     'residue_type': residues_protein[14],
+    #     'atom_type': '',
+    #     'element_type': '',
+    #     'metal_type': '',
+    #     'label': 15
+    # }, {
+    #     'secondary_type': '',
+    #     'residue_type': residues_protein[15],
+    #     'atom_type': '',
+    #     'element_type': '',
+    #     'metal_type': '',
+    #     'label': 16
+    # }, {
+    #     'secondary_type': '',
+    #     'residue_type': residues_protein[16],
+    #     'atom_type': '',
+    #     'element_type': '',
+    #     'metal_type': '',
+    #     'label': 17
+    # }, {
+    #     'secondary_type': '',
+    #     'residue_type': residues_protein[17],
+    #     'atom_type': '',
+    #     'element_type': '',
+    #     'metal_type': '',
+    #     'label': 18
+    # }, {
+    #     'secondary_type': '',
+    #     'residue_type': residues_protein[18],
+    #     'atom_type': '',
+    #     'element_type': '',
+    #     'metal_type': '',
+    #     'label': 19
+    # }, {
+    #     'secondary_type': '',
+    #     'residue_type': residues_protein[19],
+    #     'atom_type': '',
+    #     'element_type': '',
+    #     'metal_type': '',
+    #     'label': 20
+    # }, {
+    #     'secondary_type': '',
+    #     'residue_type': residues_RNA[0],
+    #     'atom_type': '',
+    #     'element_type': '',
+    #     'metal_type': '',
+    #     'label': 21
+    # }, {
+    #     'secondary_type': '',
+    #     'residue_type': residues_RNA[1],
+    #     'atom_type': '',
+    #     'element_type': '',
+    #     'metal_type': '',
+    #     'label': 22
+    # }, {
+    #     'secondary_type': '',
+    #     'residue_type': residues_RNA[2],
+    #     'atom_type': '',
+    #     'element_type': '',
+    #     'metal_type': '',
+    #     'label': 23
+    # }, {
+    #     'secondary_type': '',
+    #     'residue_type': residues_RNA[3],
+    #     'atom_type': '',
+    #     'element_type': '',
+    #     'metal_type': '',
+    #     'label': 24
+    # }],
+    #     [
+    #         {
+    #             'secondary_type': '',
+    #             'residue_type': '',
+    #             'atom_type': 'CA',
+    #             'element_type': '',
+    #             'metal_type': '',
+    #             'label': 1
+    #         },
+    #         {
+    #             'secondary_type': '',
+    #             'residue_type': '',
+    #             'atom_type': 'P',
+    #             'element_type': '',
+    #             'metal_type': '',
+    #             'label': 2
+    #         },
+    #         {
+    #             'secondary_type': '',
+    #             'residue_type': '',
+    #             'atom_type': ','.join(atoms_sugar_ring),
+    #             'element_type': '',
+    #             'metal_type': '',
+    #             'label': 3
+    #         },
+    #     ],
+    # ]
 
+    label_groups = [[{
+        'secondary_type': '',
+        'residue_type': '',
+        'atom_type': 'CA',
+        'element_type': '',
+        'metal_type': '',
+        'label': 1
+    }]]
+    raw_path = '/home/qiboxu/Database/U_NET/EMDB_PDB_for_U_Net/Filtered_Dateset/Raw'
+    # temp_path = '/home/qiboxu/Database/U_NET/EMDB_PDB_for_U_Net/Filtered_Dateset/Temp'
+    # sample_path = '/home/qiboxu/Database/U_NET/EMDB_PDB_for_U_Net/Filtered_Dateset/Training'
+    temp_path = '/home/qiboxu/Database/CryoDataBot_Data/Temp'
+    sample_path = '/home/qiboxu/Database/CryoDataBot_Data/Training'
     label_maps(
         label_groups=label_groups,
         group_names=group_names,
