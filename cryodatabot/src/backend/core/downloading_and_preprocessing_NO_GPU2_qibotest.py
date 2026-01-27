@@ -689,15 +689,15 @@ def main():
     give_map = True
     protein_tag_dist = 1
     map_threashold = 0.01
-    vof_threashold = 0.65
+    vof_threashold = 1
     dice_threashold = 1.0
 
     # metadata_path = 'CryoDataBot_Data/Metadata/ribosome_res_1-4_001/ribosome_res_1-4_001_Final.csv'
     # metadata_path = r'C:\Users\noelu\CryoDataBot\CryoDataBot_Data\Metadata\ribosome_res_1-4_001\ribosome_res_1-4_001_Final.csv'
     # metadata_path = '/home/qiboxu/Database/U_NET/EMDB_PDB_for_U_Net/Filtered_Dateset/cryoID2_metadata/cryoID2_metadata_Final-23.csv'
-    metadata_path = '/home/qiboxu/Database/CryoDataBot_Data/Metadata/Gprotein_res_3-4/Gprotein_res_3-4_Q0.5_Final.csv'
+    # metadata_path = '/home/qiboxu/Database/CryoDataBot_Data/Metadata/Gprotein_res_3-4/Gprotein_res_3-4_Q0.5_Final.csv'
 
-    metadata_path = '/mnt/h/.shortcut-targets-by-id/17Waw1mhPX-18joolWDdxszEDKngDgzgV/Projects/CryoID2/WorkFolder/BackboneTracing/TestSet'
+    metadata_path = '/mnt/h/.shortcut-targets-by-id/17Waw1mhPX-18joolWDdxszEDKngDgzgV/Projects/CryoID2/WorkFolder/BackboneTracing/TestSet/testset_list_new.csv'
     # raw_dir = 'CryoDataBot_Data/Raw'
     # raw_dir = '/home/qiboxu/Database/U_NET/EMDB_PDB_for_U_Net/Filtered_Dateset/Raw'
     raw_dir = '/mnt/h/.shortcut-targets-by-id/17Waw1mhPX-18joolWDdxszEDKngDgzgV/Projects/CryoID2/WorkFolder/BackboneTracing/TestSet/Raw'
