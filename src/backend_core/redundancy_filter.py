@@ -354,6 +354,16 @@ def first_filter(input_csv_path: str, output_dir:str):
     first_filter_kept_path = os.path.join(firstFilter_Path,"First_Filter_Kept.csv")
     result.to_csv(first_filter_kept_path, index = False)
 
+    # Assuming 'emdb_id' is a column in both grouped_proteins_df and result
+    mask_kept = grouped_proteins_df['emdb_id'].isin(result['emdb_id'])
+
+    # Use the mask to get the entries that were removed
+    removed_df = grouped_proteins_df[~mask_kept]
+
+    # Save the removed entries
+    first_filter_removed_path = os.path.join(firstFilter_Path, "First_Filter_Removed.csv")
+    removed_df.to_csv(first_filter_removed_path, index=False)
+
     #Save this stuff
     num_entries_kept_by_first_filter = len(result)
     num_entries_removed_by_first_filter = len(raw_data_with_xREF) - num_entries_kept_by_first_filter

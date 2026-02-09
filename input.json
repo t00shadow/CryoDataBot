@@ -4,11 +4,11 @@
         "file_name": "ribosome_res_1-4"
     },
     "fetch_inputs": {
-        "query": "ribosome AND resolution:[1 TO 4}",
-        "file_name": "ribosome_res_1-4"
+        "query": "G Protein-Coupled Receptors AND resolution:[3 TO 4}",
+        "file_name": "Gprotein_res_3-4"
     },
     "filter_inputs": {
-        "csv_path": "CryoDataBot_Data/Metadata/ribosome_res_1-4_001/ribosome_res_1-4_001.csv"
+        "csv_path": "CryoDataBot_Data/Metadata/Gprotein_res_3-4_05/Gprotein_res_3-4_train_126_entries.csv"
     },
     "preprocess_inputs": {
         "csv_path": "CryoDataBot_Data/Metadata/ribosome_res_1-4_001/ribosome_res_1-4_001_Final.csv"

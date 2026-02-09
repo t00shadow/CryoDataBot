@@ -63,12 +63,14 @@ def run_funcs(file_path: str,
         fetch_qscore = fetch_sample_info_config.getboolean('user_settings', 'fetch_qscore')
         fetch_classification = fetch_sample_info_config.getboolean('user_settings', 'fetch_classification')
         rows = fetch_sample_info_config.getint('user_settings', 'rows')
+        fl = fetch_sample_info_config.get('user_settings', 'fl')
         search_emdb(query=params['query'],
                     file_name=params['file_name'],
                     save_path=metadata_path,
                     fetch_qscore=fetch_qscore,
-                    fetch_classification=fetch_classification, 
+                    fl=(fl),
                     rows=rows,
+                    fetch_classification=fetch_classification,
                     )
     elif run_what == 'filter':
         params = extract_params(file_path,
